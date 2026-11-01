@@ -11,7 +11,6 @@ const connectDB = require('../src/config/db');
 const Product = require('../src/models/Product');
 const User = require('../src/models/User');
 const products = require('./products');
-const seedHistory = require('./history');
 
 const credits = JSON.parse(
   fs.readFileSync(path.join(__dirname, '..', '..', 'client', 'assets', 'img', 'credits.json'), 'utf8')
@@ -34,9 +33,6 @@ async function seed() {
   // insert one by one so the slug hook runs for each document
   for (const p of products) await Product.create({ ...p, imageCredit: creditFor(p.image) });
   console.log(`Inserted ${products.length} products.`);
-
-  const h = await seedHistory(creditFor);
-  console.log(`Sample sales history: ${h.orders} orders, ${h.soldCars} sold cars, ${h.customers} demo customers.`);
 
   const admin = await upsertUser({
     name: 'Voltyard Admin',

@@ -52,7 +52,7 @@ export function createSalesView() {
       { label: 'Sales completed', value: t.completed, money: true, sub: `${done} ${done === 1 ? 'order' : 'orders'} handed over` },
       { label: 'Deposits & payments taken', value: t.deposits, money: true, sub: 'Collected at reservation' },
       { label: 'Open pipeline', value: t.pipeline, money: true, sub: `${live} ${live === 1 ? 'order' : 'orders'} in progress` },
-      { label: 'Cars sold', value: t.carsSold, money: false, sub: `Average order ${formatPriceShort(t.average)}` },
+      { label: 'Cars sold', value: t.carsSold, money: false, sub: t.orders ? `Average order ${formatPriceShort(t.average)}` : 'No orders yet' },
     ];
     $('#kpis').innerHTML = items
       .map((k, i) => `<div><dt>${k.label}</dt><dd data-kpi="${i}" title="${k.money ? formatPrice(k.value) : k.value}">${k.money ? formatPriceShort(k.value) : k.value}</dd><span>${k.sub}</span></div>`)
@@ -65,6 +65,13 @@ export function createSalesView() {
   function renderWeekly(animate = false) {
     chartEl.classList.toggle('no-anim', !animate);
     const rows = data.weekly;
+    if (rows.every((r) => r.booked === 0)) {
+      // No sales in this range: say so instead of drawing an empty axis.
+      chartEl.innerHTML = `<div class="chart-empty"><strong>No sales in the last ${rows.length} weeks yet.</strong>
+        <span>Each order a customer places shows up here in the week it was made: solid for completed, lighter for still open.</span></div>`;
+      $('#weekly-table').innerHTML = '<tbody><tr><td class="muted">No orders in this range.</td></tr></tbody>';
+      return;
+    }
     const W = Math.max(chartEl.clientWidth, 320);
     const H = 280;
     const m = { top: 14, right: 8, bottom: 30, left: 58 };
@@ -147,7 +154,7 @@ export function createSalesView() {
         <span class="hb-track"><span class="hb-bar" style="--w:${((m.revenue / max) * 100).toFixed(2)}%"></span></span>
         <span class="hb-value mono">${formatPriceShort(m.revenue)}</span>
       </li>`)
-      .join('') || '<li class="q-empty">No sales yet.</li>';
+      .join('') || '<li class="q-empty">No sales yet. Revenue per model appears after the first order.</li>';
   }
 
   /* ---------- Orders by status (labelled rows; never colour alone) ---------- */

@@ -31,7 +31,7 @@ Project write-up (introduction, problem, objectives, scope, limitations, solutio
 cd server
 npm install
 cp .env.example .env      # then edit MONGO_URI (and JWT_SECRET)
-npm run seed              # loads 14 vehicles, 5 accessories, accounts and sample sales history
+npm run seed              # loads 14 vehicles, 5 accessories, an admin and a demo customer
 npm start                 # http://localhost:5000
 ```
 
