@@ -24,7 +24,9 @@ app.use('/api', notFound);
 
 // --- Frontend (the /client folder) ---
 const clientDir = path.join(__dirname, '..', '..', 'client');
-app.use(express.static(clientDir, { extensions: ['html'] }));
+// "no-cache" = the browser must check for a newer file on every load,
+// so visitors never run an old copy of the scripts after an update.
+app.use(express.static(clientDir, { extensions: ['html'], setHeaders: (res) => res.setHeader('Cache-Control', 'no-cache') }));
 app.use((req, res) => res.status(404).sendFile(path.join(clientDir, '404.html')));
 
 app.use(errorHandler);

@@ -140,6 +140,8 @@ function megaHtml() {
 
 function accountHtml() {
   const user = getUser();
+  // Staff browsing the store get a way back to the panel instead of an account menu.
+  if (isAdmin()) return `<a class="nav-login" href="admin.html">${ICONS.shield}<span>Admin panel</span></a>`;
   if (!user) {
     return `<a class="nav-login" href="account.html">${ICONS.user}<span>Log in</span></a>`;
   }
@@ -195,9 +197,9 @@ function headerHtml(active) {
         </button>
         <button class="icon-btn" id="theme-toggle" type="button" aria-label="Switch colour theme">${ICONS.moon}</button>
         ${accountHtml()}
-        <button class="icon-btn cart-btn" type="button" id="cart-btn" aria-label="Open cart">
+        ${isAdmin() ? '' : `<button class="icon-btn cart-btn" type="button" id="cart-btn" aria-label="Open cart">
           ${ICONS.cart}<span class="cart-count" id="cart-count" hidden></span>
-        </button>
+        </button>`}
         <button class="icon-btn menu-toggle" id="menu-btn" type="button" aria-label="Open menu" aria-controls="mobile-nav">${ICONS.menu}</button>
       </div>
     </div>
@@ -237,8 +239,9 @@ function headerHtml(active) {
         <li><a href="index.html" ${active === 'home' ? 'aria-current="page"' : ''}>Home</a></li>
         <li><a href="products.html" ${active === 'inventory' ? 'aria-current="page"' : ''}>All inventory <span data-total></span></a></li>
         ${LINKS.map((l) => `<li><a href="${l.href}" ${l.key === active ? 'aria-current="page"' : ''}>${l.label}${l.pill ? `<span class="nav-pill">${l.pill}</span>` : ''}</a></li>`).join('')}
-        <li><a href="account.html">${getUser() ? 'My account & orders' : 'Log in or create account'}</a></li>
-        ${isAdmin() ? '<li><a href="admin.html">Admin panel</a></li>' : ''}
+        ${isAdmin()
+          ? '<li><a href="admin.html">Admin panel</a></li>'
+          : `<li><a href="account.html">${getUser() ? 'My account & orders' : 'Log in or create account'}</a></li>`}
       </ul>
       <p class="nav-eyebrow">Shop by model</p>
       <ul class="mobile-models">
@@ -506,7 +509,7 @@ export function openCartDrawer() {
 function setupCartDrawer() {
   const dialog = $('#cart-drawer');
   setupDialog(dialog);
-  $('#cart-btn').addEventListener('click', () => {
+  $('#cart-btn')?.addEventListener('click', () => {
     // On the cart page itself the drawer would duplicate the page.
     if (location.pathname.endsWith('cart.html')) return window.scrollTo({ top: 0, behavior: 'smooth' });
     openCartDrawer();
