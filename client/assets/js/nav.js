@@ -140,8 +140,6 @@ function megaHtml() {
 
 function accountHtml() {
   const user = getUser();
-  // Staff browsing the store get a way back to the panel instead of an account menu.
-  if (isAdmin()) return `<a class="nav-login" href="admin.html">${ICONS.shield}<span>Admin panel</span></a>`;
   if (!user) {
     return `<a class="nav-login" href="account.html">${ICONS.user}<span>Log in</span></a>`;
   }
@@ -164,6 +162,12 @@ function headerHtml(active) {
   const status = showroomStatus();
   const inventoryActive = active === 'inventory';
   return `
+  ${isAdmin() ? `<div class="staffbar">
+    <div class="wrap staffbar-inner">
+      <span><b>Staff preview</b><span class="staffbar-note">Ordering is turned off for staff accounts</span></span>
+      <a href="admin.html">Back to lot console ${ICONS.arrow}</a>
+    </div>
+  </div>` : ''}
   <div class="topbar">
     <div class="wrap topbar-inner">
       <span class="open-status ${status.open ? 'is-open' : ''}" data-status><i aria-hidden="true"></i><span>${status.text}</span></span>

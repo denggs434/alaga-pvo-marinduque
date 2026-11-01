@@ -22,6 +22,7 @@ const protect = asyncHandler(async (req, res, next) => {
 
   const user = await User.findById(payload.id);
   if (!user) throw new HttpError(401, 'This account no longer exists.');
+  if (user.banned) throw new HttpError(401, 'This account is suspended. Contact the showroom for help.');
   req.user = user;
   next();
 });

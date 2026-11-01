@@ -341,10 +341,15 @@ function boot() {
   function renderCustomers() {
     const ordersBy = (id) => state.orders.filter((o) => String(o.user?._id || o.user) === String(id) && o.status !== 'cancelled');
     $('#customers-table').innerHTML = `
-      <thead><tr><th>Name</th><th>Email</th><th>Mobile</th><th class="num">Orders</th><th>Joined</th></tr></thead>
-      <tbody>${state.users.filter((u) => u.role === 'customer').map((u) => `<tr>
+      <thead><tr><th>Name</th><th>Email</th><th>Mobile</th><th class="num">Orders</th><th>Joined</th><th>Status</th><th></th></tr></thead>
+      <tbody>${state.users.filter((u) => u.role === 'customer').map((u) => `<tr class="${u.banned ? 'is-banned' : ''}">
         <td>${esc(u.name)}</td><td>${esc(u.email)}</td><td class="mono">${esc(u.phone || '—')}</td>
-        <td class="num">${ordersBy(u._id).length}</td><td>${formatDate(u.createdAt)}</td></tr>`).join('') || '<tr><td colspan="5" class="muted">No customers yet.</td></tr>'}</tbody>`;
+        <td class="num">${ordersBy(u._id).length}</td><td>${formatDate(u.createdAt)}</td>
+        <td>${u.banned ? `<span class="acct acct-banned">Banned ${u.bannedAt ? formatDate(u.bannedAt) : ''}</span>` : '<span class="acct acct-active">Active</span>'}</td>
+        <td><div class="row" style="flex-wrap:nowrap;justify-content:flex-end">
+          <button class="btn btn-ghost btn-sm" type="button" data-ban="${u._id}" data-to="${!u.banned}">${u.banned ? 'Unban' : 'Ban'}</button>
+          <button class="btn btn-danger btn-sm" type="button" data-user-delete="${u._id}">Delete</button>
+        </div></td></tr>`).join('') || '<tr><td colspan="7" class="muted">No customers yet.</td></tr>'}</tbody>`;
   }
 
   /* ---------- One click handler for every action in the console ---------- */
@@ -361,6 +366,10 @@ function boot() {
     }
     if (d.edit) openProductDialog(state.products.find((x) => x._id === d.edit));
     if (d.delete && armed(b, 'Confirm')) act(() => api(`/products/${d.delete}`, { method: 'DELETE' }), 'Listing deleted.');
+    if (d.ban && (d.to === 'false' || armed(b, 'Confirm ban'))) {
+      act(() => api(`/users/${d.ban}/ban`, { method: 'PATCH', body: { banned: d.to === 'true' } }), d.to === 'true' ? 'Customer banned. They can no longer log in.' : 'Customer unbanned.');
+    }
+    if (d.userDelete && armed(b, 'Confirm delete')) act(() => api(`/users/${d.userDelete}`, { method: 'DELETE' }), 'Customer deleted.');
   });
   $('.console-main').addEventListener('change', (e) => {
     const id = e.target.dataset.status;

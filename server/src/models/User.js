@@ -24,6 +24,9 @@ const userSchema = new mongoose.Schema(
       select: false,
     },
     role: { type: String, enum: ['customer', 'admin'], default: 'customer' },
+    // Set by an admin. Banned accounts cannot log in or use an existing session.
+    banned: { type: Boolean, default: false },
+    bannedAt: Date,
   },
   { timestamps: true }
 );

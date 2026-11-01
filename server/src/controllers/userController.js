@@ -3,6 +3,7 @@
  */
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const Order = require('../models/Order');
 const HttpError = require('../utils/httpError');
 const asyncHandler = require('../utils/asyncHandler');
 
@@ -31,6 +32,7 @@ exports.login = asyncHandler(async (req, res) => {
   if (!user || !(await user.matchPassword(password))) {
     throw new HttpError(401, 'Email or password is incorrect.');
   }
+  if (user.banned) throw new HttpError(403, 'This account is suspended. Contact the showroom for help.');
   res.json({ user, token: signToken(user) });
 });
 
@@ -54,4 +56,34 @@ exports.updateMe = asyncHandler(async (req, res) => {
 exports.listUsers = asyncHandler(async (req, res) => {
   const users = await User.find().sort({ createdAt: -1 }).lean();
   res.json(users.map(({ password, __v, ...u }) => u));
+});
+
+/** Load a customer account an admin is allowed to act on. */
+async function findCustomer(id) {
+  const user = await User.findById(id);
+  if (!user) throw new HttpError(404, 'Customer not found.');
+  if (user.role === 'admin') throw new HttpError(403, 'Admin accounts cannot be banned or deleted here.');
+  return user;
+}
+
+// PATCH /api/users/:id/ban  { banned: true|false }  (admin)
+exports.setBanned = asyncHandler(async (req, res) => {
+  const user = await findCustomer(req.params.id);
+  user.banned = req.body.banned === true;
+  user.bannedAt = user.banned ? new Date() : undefined;
+  await user.save();
+  res.json(user);
+});
+
+// DELETE /api/users/:id  (admin)
+// Refused while the customer has open orders, so no reservation is left orphaned.
+// Completed and cancelled orders stay for the sales history.
+exports.deleteUser = asyncHandler(async (req, res) => {
+  const user = await findCustomer(req.params.id);
+  const open = await Order.countDocuments({ user: user._id, status: { $in: ['pending', 'confirmed', 'ready'] } });
+  if (open) {
+    throw new HttpError(409, `${user.name} has ${open} open ${open === 1 ? 'order' : 'orders'}. Complete or cancel ${open === 1 ? 'it' : 'them'} first.`);
+  }
+  await user.deleteOne();
+  res.json({ message: `Deleted ${user.name}.` });
 });
