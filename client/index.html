@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Voltyard Motors | Tesla dealer, Quezon City</title>
+  <meta name="description" content="New and certified pre-owned Tesla Model 3, Model Y, Model S, Model X and Cybertruck in Quezon City. Battery health tested on every car.">
+  <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="assets/css/styles.css">
+</head>
+<body>
+  <main>
+    <!-- Hero: the lot itself -->
+    <section class="hero">
+      <div class="wrap">
+        <div class="hero-grid">
+          <div class="hero-copy">
+            <span class="label">Independent Tesla dealer · Quezon City</span>
+            <h1>Every Tesla on our lot, <em>battery-tested</em> and priced in pesos.</h1>
+            <p>New imports and certified pre-owned Model 3, Model Y, Model S, Model X and Cybertruck. Reserve online with a refundable deposit and pay the balance at handover.</p>
+            <div class="hero-actions">
+              <a class="btn btn-accent" href="products.html">Browse inventory</a>
+              <a class="btn btn-ghost" href="contact.html?topic=test-drive">Book a test drive</a>
+            </div>
+          </div>
+          <figure class="hero-photo" style="margin:0">
+            <img src="assets/img/cars/model3-highland-lr.jpg" alt="Red 2024 Tesla Model 3 Long Range on a showroom floor" width="1400" height="788">
+            <figcaption class="photo-credit">Photo: Chanokchon, CC BY-SA 4.0, via Wikimedia Commons</figcaption>
+          </figure>
+        </div>
+        <div class="lot-strip" id="lot-strip" aria-live="polite">
+          <div><span class="label">Cars on the lot</span><strong id="stat-count">—</strong></div>
+          <div><span class="label">Prices from</span><strong id="stat-from">—</strong></div>
+          <div><span class="label">Longest range</span><strong id="stat-range">—</strong></div>
+          <div><span class="label">Lowest odometer, pre-owned</span><strong id="stat-km">—</strong></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Shop by model -->
+    <section class="section">
+      <div class="wrap">
+        <div class="section-head">
+          <h2>Shop by model</h2>
+          <a class="link-arrow" href="products.html">All vehicles</a>
+        </div>
+        <nav class="model-row" id="model-row" aria-label="Models">
+          <a href="products.html?model=Model%203"><strong>Model 3</strong><span class="label" data-model="Model 3">—</span></a>
+          <a href="products.html?model=Model%20Y"><strong>Model Y</strong><span class="label" data-model="Model Y">—</span></a>
+          <a href="products.html?model=Model%20S"><strong>Model S</strong><span class="label" data-model="Model S">—</span></a>
+          <a href="products.html?model=Model%20X"><strong>Model X</strong><span class="label" data-model="Model X">—</span></a>
+          <a href="products.html?model=Cybertruck"><strong>Cybertruck</strong><span class="label" data-model="Cybertruck">—</span></a>
+          <a href="products.html?model=Roadster"><strong>Roadster</strong><span class="label" data-model="Roadster">—</span></a>
+        </nav>
+      </div>
+    </section>
+
+    <!-- Featured -->
+    <section class="section" style="padding-top:0">
+      <div class="wrap">
+        <div class="section-head">
+          <div class="stack" style="gap:8px">
+            <h2>Picked this week</h2>
+            <p>Cars our team would buy themselves, from a 12 km Model 3 to a 3,200 km Cybertruck.</p>
+          </div>
+        </div>
+        <div class="grid-cards" id="featured"></div>
+      </div>
+    </section>
+
+    <!-- Roadster pre-order band -->
+    <section class="roadster-band" id="roadster-band">
+      <div class="wrap roadster-grid">
+        <figure style="margin:0">
+          <img src="assets/img/cars/roadster-2gen.jpg" alt="Red second-generation Tesla Roadster prototype on display" loading="lazy" width="1400" height="952">
+          <figcaption class="photo-credit">Photo: Steve Jurvetson, CC BY 2.0, via Wikimedia Commons</figcaption>
+        </figure>
+        <div class="stack">
+          <span class="label">Pre-order · Not yet in production</span>
+          <h2>The Tesla that might fly.</h2>
+          <p>The second-generation Roadster with the SpaceX Package uses cold-gas thrusters where the rear seats would be. Tesla says it will be the quickest production car ever made. Elon Musk has hinted it may hover.</p>
+          <dl class="sticker">
+            <div><dt>0–100</dt><dd>1.9<small> s*</small></dd></div>
+            <div><dt>Range</dt><dd>1,000<small> km*</small></dd></div>
+            <div><dt>Deposit</dt><dd>₱500k</dd></div>
+          </dl>
+          <p class="photo-credit">* Manufacturer claims for the prototype. No delivery date confirmed. Deposit fully refundable.</p>
+          <div class="row">
+            <a class="btn btn-accent" id="roadster-link" href="products.html?condition=pre-order">Reserve a build slot</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- How buying works: a real sequence, so numbered -->
+    <section class="section">
+      <div class="wrap">
+        <div class="section-head"><h2>How buying works</h2></div>
+        <ol class="steps">
+          <li><h3>Reserve online</h3><p>Pay a ₱50,000 refundable deposit. The car comes off the site for everyone else.</p></li>
+          <li><h3>Inspect and drive</h3><p>Visit the showroom. We print the battery health report and you take it for a drive.</p></li>
+          <li><h3>Finance or pay</h3><p>Pay the balance by bank transfer, or let us arrange bank financing for you.</p></li>
+          <li><h3>Handover</h3><p>Pick up in Quezon City or get it delivered within Metro Manila, LTO papers ready.</p></li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- Battery inspection -->
+    <section class="section" style="padding-top:0">
+      <div class="wrap split">
+        <figure style="margin:0">
+          <img src="assets/img/site/interior-model3.jpg" alt="Tesla Model 3 interior with central touchscreen" loading="lazy" width="1400" height="947">
+          <figcaption class="photo-credit">Photo: Steve Jurvetson, CC BY 2.0, via Wikimedia Commons</figcaption>
+        </figure>
+        <div class="split-copy">
+          <span class="label">The Voltyard inspection</span>
+          <h2>We test the battery before we price the car.</h2>
+          <p>A Tesla's value lives in its battery pack. Every pre-owned car gets a capacity test, and the result is printed on the listing as a percentage of the original pack.</p>
+          <ul class="checklist">
+            <li>Battery capacity test, shown on every listing</li>
+            <li>Over 150 inspection points, including suspension and drive units</li>
+            <li>Odometer and service history checked against Tesla records</li>
+            <li>7-day return window if the car is not as described</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- Accessories -->
+    <section class="section" style="padding-top:0">
+      <div class="wrap">
+        <div class="section-head">
+          <h2>Charging & parts</h2>
+          <a class="link-arrow" href="products.html?category=accessory">All accessories</a>
+        </div>
+        <div class="grid-cards" id="accessories"></div>
+      </div>
+    </section>
+  </main>
+
+  <script type="module" src="assets/js/pages/home.js"></script>
+</body>
+</html>

@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>About | Voltyard Motors</title>
+  <meta name="description" content="Voltyard Motors is an independent Tesla dealer in Quezon City selling new imports and battery-tested pre-owned Teslas.">
+  <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="assets/css/styles.css">
+</head>
+<body>
+  <main>
+    <div class="wrap">
+      <header class="page-head">
+        <p class="crumbs"><a href="index.html">Home</a> / About</p>
+        <h1>A Tesla dealer that starts with the battery.</h1>
+        <p>Voltyard Motors is an independent dealer in Quezon City. We import new Teslas, buy and recondition used ones, and sell them with the battery health printed on the listing.</p>
+      </header>
+    </div>
+
+    <section class="section" style="padding-top:16px">
+      <div class="wrap stack-lg">
+        <div class="facts">
+          <div><span class="label">Founded</span><strong>2021</strong><span class="muted">in a two-car garage in Cubao</span></div>
+          <div><span class="label">Teslas handed over</span><strong>640+</strong><span class="muted">across Luzon, Visayas and Mindanao</span></div>
+          <div><span class="label">Average battery health sold</span><strong>92%</strong><span class="muted">of original pack capacity</span></div>
+        </div>
+
+        <div class="split">
+          <div class="split-copy">
+            <span class="label">Why we exist</span>
+            <h2>Buying a used EV should not be a guess.</h2>
+            <p>When we started, people buying a pre-owned Tesla in the Philippines had no way to check the most expensive part of the car. Sellers quoted range numbers from the brochure and buyers found out the truth after the first long drive.</p>
+            <p>So we bought the diagnostic tools, trained two technicians, and made one rule: no car goes on sale without a printed battery capacity test. Today we also bring in new cars that Tesla does not ship here officially, handle the import and LTO registration, and sell chargers and parts from the same showroom.</p>
+          </div>
+          <figure style="margin:0">
+            <img src="assets/img/site/supercharger.jpg" alt="Row of Tesla Supercharger stalls" loading="lazy" width="1100" height="1100" style="aspect-ratio:4/3">
+            <figcaption class="photo-credit">Photo: Dietmar Rabich, CC BY-SA 4.0, via Wikimedia Commons</figcaption>
+          </figure>
+        </div>
+
+        <div class="stack">
+          <h2 style="font-size:var(--step-2)">Who we sell to</h2>
+          <div class="grid-cards" style="grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr))">
+            <div class="panel stack" style="gap:8px"><h3>First-time EV owners</h3><p class="muted">Professionals in Metro Manila moving from a petrol car who want a clear explanation of charging at home and on the road.</p></div>
+            <div class="panel stack" style="gap:8px"><h3>Families</h3><p class="muted">Parents looking at Model Y and Model X for school runs and provincial trips, who care about seats and range more than lap times.</p></div>
+            <div class="panel stack" style="gap:8px"><h3>Enthusiasts and collectors</h3><p class="muted">Buyers after a Plaid, a Cybertruck, an original Roadster, or a build slot for the next one.</p></div>
+            <div class="panel stack" style="gap:8px"><h3>Businesses</h3><p class="muted">Hotels, offices and condos installing destination chargers for guests and tenants.</p></div>
+          </div>
+        </div>
+
+        <section class="stack" id="credits" aria-labelledby="credits-title">
+          <h2 id="credits-title" style="font-size:var(--step-2)">Photo credits</h2>
+          <p class="muted">Every photo on this site comes from Wikimedia Commons under a free licence (CC0, CC BY or CC BY-SA). Photos were resized for the web. Thank you to the photographers below.</p>
+          <ul class="credits" id="credit-list"></ul>
+        </section>
+      </div>
+    </section>
+  </main>
+  <script type="module">
+    import { initPage, esc, $ } from './assets/js/ui.js';
+    initPage('about');
+    // credits.json is generated alongside the images and lists author, licence and source.
+    fetch('assets/img/credits.json')
+      .then((r) => r.json())
+      .then((list) => {
+        $('#credit-list').innerHTML = list.map((c) => `<li>
+          <img src="${esc(c.image)}" alt="" loading="lazy">
+          <span><strong>${esc(c.title.replace(/\.(jpe?g|png)$/i, ''))}</strong><br>
+          <span class="muted">${esc(c.author)} · <a href="${esc(c.licenseUrl)}" target="_blank" rel="noopener">${esc(c.license)}</a> · <a href="${esc(c.source)}" target="_blank" rel="noopener">source</a></span></span>
+        </li>`).join('');
+      })
+      .catch(() => ($('#credit-list').innerHTML = '<li>Credits could not be loaded.</li>'));
+  </script>
+</body>
+</html>

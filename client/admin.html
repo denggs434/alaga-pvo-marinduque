@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Admin | Voltyard Motors</title>
+  <meta name="robots" content="noindex">
+  <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="assets/css/styles.css">
+</head>
+<body>
+  <main class="wrap">
+    <header class="page-head">
+      <p class="crumbs"><a href="index.html">Home</a> / Admin</p>
+      <h1>Showroom admin</h1>
+    </header>
+
+    <div id="denied" class="empty" hidden>
+      <h2 style="font-size:var(--step-2)">Admins only</h2>
+      <p class="muted">Log in with an admin account to manage inventory, orders and messages.</p>
+      <a class="btn btn-accent" href="account.html?next=admin.html">Log in</a>
+    </div>
+
+    <div id="admin" hidden>
+      <section class="admin-tiles" id="tiles" aria-label="Summary"></section>
+
+      <div class="tabs" role="tablist">
+        <button type="button" role="tab" aria-selected="true" data-tab="inventory">Inventory</button>
+        <button type="button" role="tab" aria-selected="false" data-tab="orders">Orders</button>
+        <button type="button" role="tab" aria-selected="false" data-tab="messages">Messages</button>
+        <button type="button" role="tab" aria-selected="false" data-tab="customers">Customers</button>
+      </div>
+
+      <section data-panel="inventory" class="stack">
+        <div class="row between">
+          <input class="input" type="search" id="inv-search" placeholder="Filter by name or stock no." style="max-width:320px" aria-label="Filter inventory">
+          <button class="btn btn-accent" type="button" id="add-product">Add listing</button>
+        </div>
+        <div class="table-wrap"><table id="inv-table"></table></div>
+      </section>
+      <section data-panel="orders" class="stack" hidden><div class="table-wrap"><table id="orders-table"></table></div></section>
+      <section data-panel="messages" class="stack" hidden><div class="table-wrap"><table id="messages-table"></table></div></section>
+      <section data-panel="customers" class="stack" hidden><div class="table-wrap"><table id="customers-table"></table></div></section>
+    </div>
+
+    <!-- Create / edit listing -->
+    <dialog id="product-dialog" aria-labelledby="dialog-title">
+      <form id="product-form" method="dialog" novalidate>
+        <div class="dialog-head"><h3 id="dialog-title">Add listing</h3><button class="btn btn-ghost btn-sm" type="button" data-close>Close</button></div>
+        <div class="dialog-body">
+          <div class="form-grid">
+            <label class="field full"><span>Name</span><input class="input" id="f-name" name="name" required><small class="field-error"></small></label>
+            <label class="field"><span>Category</span><select class="input" id="f-category" name="category"><option value="vehicle">Vehicle</option><option value="accessory">Accessory</option></select></label>
+            <label class="field"><span>Price (PHP)</span><input class="input" type="number" id="f-price" name="price" min="0" step="1000" required><small class="field-error"></small></label>
+            <label class="field" data-v><span>Model</span><select class="input" id="f-model" name="model"><option>Model 3</option><option>Model Y</option><option>Model S</option><option>Model X</option><option>Cybertruck</option><option>Roadster</option></select></label>
+            <label class="field" data-v><span>Stock number</span><input class="input" id="f-stockNumber" name="stockNumber" placeholder="VY-0000"></label>
+            <label class="field" data-v><span>Condition</span><select class="input" id="f-condition" name="condition"><option value="new">New</option><option value="pre-owned">Pre-owned</option><option value="pre-order">Pre-order</option></select></label>
+            <label class="field" data-v><span>Status</span><select class="input" id="f-status" name="status"><option value="available">Available</option><option value="reserved">Reserved</option><option value="sold">Sold</option></select></label>
+            <label class="field" data-v><span>Year</span><input class="input" type="number" id="f-year" name="year" min="2008" max="2030"></label>
+            <label class="field" data-v><span>Trim</span><input class="input" id="f-trim" name="trim"></label>
+            <label class="field" data-v><span>Colour</span><input class="input" id="f-color" name="color"></label>
+            <label class="field" data-v><span>Deposit (PHP, blank = ₱50,000)</span><input class="input" type="number" id="f-deposit" name="deposit" min="0" step="1000"></label>
+            <label class="field" data-a><span>Units in stock</span><input class="input" type="number" id="f-stock" name="stock" min="0"></label>
+            <label class="field" data-a><span>Fits (comma separated)</span><input class="input" id="f-compatibleWith" name="compatibleWith" placeholder="Model 3, Model Y"></label>
+            <label class="field full"><span>Image path</span><input class="input" id="f-image" name="image" list="image-paths" required placeholder="assets/img/cars/…"><small class="field-error"></small></label>
+            <datalist id="image-paths"></datalist>
+            <label class="field full"><span>Summary (one line)</span><input class="input" id="f-summary" name="summary" maxlength="200"></label>
+            <label class="field full"><span>Description</span><textarea class="input" id="f-description" name="description"></textarea></label>
+            <label class="field full"><span>Features (one per line)</span><textarea class="input" id="f-features" name="features" style="min-height:90px"></textarea></label>
+            <label class="field full" data-v><span>Disclaimer (pre-orders)</span><textarea class="input" id="f-disclaimer" name="disclaimer" style="min-height:70px"></textarea></label>
+          </div>
+          <fieldset class="form-grid" data-v style="border:0;padding:0;margin:0;grid-template-columns:repeat(auto-fit,minmax(130px,1fr))">
+            <legend class="label" style="margin-bottom:8px">Specs</legend>
+            <label class="field"><span>Range km</span><input class="input" type="number" id="s-rangeKm" name="s-rangeKm"></label>
+            <label class="field"><span>0–100 s</span><input class="input" type="number" step="0.1" id="s-zeroTo100" name="s-zeroTo100"></label>
+            <label class="field"><span>Top km/h</span><input class="input" type="number" id="s-topSpeedKph" name="s-topSpeedKph"></label>
+            <label class="field"><span>Battery kWh</span><input class="input" type="number" id="s-batteryKwh" name="s-batteryKwh"></label>
+            <label class="field"><span>Drive</span><select class="input" id="s-drive" name="s-drive"><option>AWD</option><option>RWD</option></select></label>
+            <label class="field"><span>Seats</span><input class="input" type="number" id="s-seats" name="s-seats"></label>
+            <label class="field"><span>Odometer km</span><input class="input" type="number" id="s-odometerKm" name="s-odometerKm"></label>
+            <label class="field"><span>Battery health %</span><input class="input" type="number" min="0" max="100" id="s-batteryHealth" name="s-batteryHealth"></label>
+          </fieldset>
+          <label class="check"><input type="checkbox" id="f-featured" name="featured"> Show in “Picked this week” on the home page</label>
+          <p class="notice notice-error" id="product-error" hidden></p>
+        </div>
+        <div class="dialog-foot"><button class="btn btn-ghost" type="button" data-close>Cancel</button><button class="btn btn-accent" type="submit" id="save-product">Save listing</button></div>
+      </form>
+    </dialog>
+  </main>
+  <script type="module" src="assets/js/pages/admin.js"></script>
+</body>
+</html>

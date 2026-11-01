@@ -34,7 +34,7 @@
   --step-1: 1.25rem;
   --step-2: 1.625rem;
   --step-3: 2.25rem;
-  --step-4: clamp(2.5rem, 5.2vw, 4.25rem);
+  --step-4: clamp(2.25rem, 4.4vw, 3.6rem);
 
   --radius: 6px;
   --wrap: 1240px;
@@ -95,7 +95,7 @@ body {
   flex-direction: column;
 }
 main { flex: 1; }
-img { max-width: 100%; display: block; }
+img { max-width: 100%; height: auto; display: block; }
 a { color: inherit; }
 h1, h2, h3, h4 {
   font-family: var(--font-display);
@@ -327,7 +327,7 @@ body::before {
   align-items: center;
   padding-block: clamp(32px, 6vw, 72px);
 }
-.hero h1 { font-stretch: 118%; }
+.hero h1 { font-stretch: 112%; overflow-wrap: anywhere; hyphens: manual; }
 .hero h1 em { font-style: normal; color: var(--accent); }
 .hero-copy { display: grid; gap: 20px; min-width: 0; }
 .hero-copy p { color: var(--muted); font-size: 1.0625rem; }
@@ -398,7 +398,7 @@ body::before {
 /* ---------- Product cards ---------- */
 .grid-cards {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 250px), 1fr));
   gap: 20px;
 }
 .card {
@@ -441,10 +441,10 @@ body::before {
   border: 1px solid var(--line);
   border-radius: 4px;
 }
-.sticker > div { padding: 8px 10px; border-left: 1px solid var(--line); min-width: 0; }
+.sticker > div { padding: 8px; border-left: 1px solid var(--line); min-width: 0; }
 .sticker > div:first-child { border-left: 0; }
 .sticker dt { font: 500 0.625rem/1.2 var(--font-mono); text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
-.sticker dd { margin: 3px 0 0; font: 500 0.9375rem/1.2 var(--font-mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.sticker dd { margin: 3px 0 0; font: 500 0.875rem/1.2 var(--font-mono); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
 .sticker dd small { font-size: 0.6875rem; color: var(--muted); }
 .sticker, .sticker dl { margin: 0; }
 
@@ -786,6 +786,7 @@ table { width: 100%; border-collapse: collapse; font-size: 0.9375rem; }
 th, td { padding: 12px 14px; text-align: left; border-bottom: 1px solid var(--line); vertical-align: middle; }
 th { font: 500 0.6875rem/1.2 var(--font-mono); text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); background: var(--surface-2); white-space: nowrap; }
 tr:last-child td { border-bottom: 0; }
+td.mono { white-space: nowrap; }
 td.num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; text-align: right; white-space: nowrap; }
 .thumb { width: 64px; aspect-ratio: 4 / 3; object-fit: cover; border-radius: 3px; }
 
@@ -848,4 +849,33 @@ dialog::backdrop { background: rgb(10 12 14 / 0.55); }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+
+/* ---------- Roadster pre-order band (home) ---------- */
+.roadster-band {
+  background: var(--ink);
+  color: var(--bg);
+  padding-block: clamp(48px, 7vw, 88px);
+}
+.roadster-band .label, .roadster-band .photo-credit, .roadster-band p { color: color-mix(in srgb, var(--bg) 72%, var(--ink)); }
+.roadster-band h2 { font-size: var(--step-4); font-stretch: 120%; color: var(--bg); }
+.roadster-band .sticker { border-color: color-mix(in srgb, var(--bg) 25%, var(--ink)); max-width: 420px; }
+.roadster-band .sticker > div { border-color: color-mix(in srgb, var(--bg) 25%, var(--ink)); }
+.roadster-band .sticker dt, .roadster-band .sticker dd small { color: color-mix(in srgb, var(--bg) 65%, var(--ink)); }
+.roadster-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+  gap: clamp(24px, 5vw, 56px);
+  align-items: center;
+}
+.roadster-grid img { width: 100%; aspect-ratio: 3 / 2; object-fit: cover; border-radius: var(--radius); }
+@media (max-width: 860px) { .roadster-grid { grid-template-columns: 1fr; } }
+
+/* Pre-order disclaimer on product page */
+.disclaimer {
+  padding: 14px 16px;
+  border-left: 3px solid var(--warn);
+  background: var(--warn-soft);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  font-size: 0.9375rem;
 }

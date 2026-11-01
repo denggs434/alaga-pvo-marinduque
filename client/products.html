@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Inventory | Voltyard Motors</title>
+  <meta name="description" content="Browse new, pre-owned and pre-order Teslas plus chargers and wheels at Voltyard Motors.">
+  <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="assets/css/styles.css">
+</head>
+<body>
+  <main class="wrap">
+    <header class="page-head">
+      <p class="crumbs"><a href="index.html">Home</a> / <span id="crumb-current">Inventory</span></p>
+      <h1 id="page-title">Inventory</h1>
+      <p id="page-lede">Every car listed here is on our lot in Quezon City, except pre-orders.</p>
+    </header>
+
+    <div class="shop">
+      <!-- Filters -->
+      <form class="filters" id="filters" aria-label="Filter listings">
+        <div class="seg" role="group" aria-label="Category">
+          <button type="button" data-category="vehicle" aria-pressed="true">Vehicles</button>
+          <button type="button" data-category="accessory" aria-pressed="false">Charging & parts</button>
+        </div>
+
+        <fieldset id="model-filter">
+          <legend class="label">Model</legend>
+          <div id="model-options" class="stack" style="gap:8px"></div>
+        </fieldset>
+
+        <fieldset id="condition-filter">
+          <legend class="label">Condition</legend>
+          <label class="check"><input type="radio" name="condition" value="" checked> Any</label>
+          <label class="check"><input type="radio" name="condition" value="new"> New</label>
+          <label class="check"><input type="radio" name="condition" value="pre-owned"> Pre-owned</label>
+          <label class="check"><input type="radio" name="condition" value="pre-order"> Pre-order</label>
+        </fieldset>
+
+        <fieldset>
+          <legend class="label">Max price</legend>
+          <input type="range" id="maxPrice" name="maxPrice" min="25000" max="15000000" step="25000" value="15000000">
+          <output class="range-out" id="maxPrice-out" for="maxPrice">Any</output>
+        </fieldset>
+
+        <fieldset id="range-filter">
+          <legend class="label">Min. range</legend>
+          <input type="range" id="minRange" name="minRange" min="0" max="700" step="50" value="0">
+          <output class="range-out" id="minRange-out" for="minRange">Any</output>
+        </fieldset>
+
+        <button class="btn btn-ghost btn-sm" type="reset" id="reset">Clear filters</button>
+      </form>
+
+      <!-- Results -->
+      <section aria-label="Results" style="min-width:0">
+        <div class="toolbar">
+          <button class="btn btn-ghost filters-toggle" type="button" id="filters-toggle" aria-controls="filters" aria-expanded="false">Filters</button>
+          <label class="search">
+            <span class="sr-only">Search</span>
+            <input class="input" type="search" id="q" placeholder="Search model, colour or stock no." autocomplete="off">
+          </label>
+          <label>
+            <span class="sr-only">Sort by</span>
+            <select class="input" id="sort">
+              <option value="">Recommended</option>
+              <option value="price-asc">Price: low to high</option>
+              <option value="price-desc">Price: high to low</option>
+              <option value="year-desc">Newest year</option>
+              <option value="range-desc">Longest range</option>
+              <option value="km-asc">Lowest odometer</option>
+            </select>
+          </label>
+        </div>
+        <p class="result-count" id="result-count" aria-live="polite"></p>
+        <div class="grid-cards" id="results" style="margin-top:16px"></div>
+        <nav class="pager" id="pager" aria-label="Pages"></nav>
+      </section>
+    </div>
+  </main>
+
+  <script type="module" src="assets/js/pages/products.js"></script>
+</body>
+</html>

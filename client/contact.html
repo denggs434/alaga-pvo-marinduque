@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Contact | Voltyard Motors</title>
+  <meta name="description" content="Book a test drive, ask about financing or trade in your car at Voltyard Motors, Quezon City.">
+  <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="assets/css/styles.css">
+</head>
+<body>
+  <main class="wrap">
+    <header class="page-head">
+      <p class="crumbs"><a href="index.html">Home</a> / Contact</p>
+      <h1>Talk to the showroom</h1>
+      <p>Book a test drive, ask about financing, or get a trade-in offer. We reply within one business day.</p>
+    </header>
+
+    <div class="contact-layout" style="padding-bottom:48px">
+      <form id="contact-form" class="panel stack" novalidate>
+        <div class="field">
+          <span>What can we help with?</span>
+          <div class="radio-cards" style="grid-template-columns:repeat(auto-fit,minmax(140px,1fr))">
+            <label><input type="radio" name="topic" value="test-drive" checked><strong>Test drive</strong></label>
+            <label><input type="radio" name="topic" value="financing"><strong>Financing</strong></label>
+            <label><input type="radio" name="topic" value="trade-in"><strong>Trade-in</strong></label>
+            <label><input type="radio" name="topic" value="general"><strong>Something else</strong></label>
+          </div>
+        </div>
+
+        <div class="form-grid">
+          <label class="field"><span>Full name</span><input class="input" id="name" name="name" autocomplete="name" required><small class="field-error"></small></label>
+          <label class="field"><span>Email</span><input class="input" type="email" id="email" name="email" autocomplete="email" required><small class="field-error"></small></label>
+          <label class="field"><span>Mobile <span class="muted">(optional)</span></span><input class="input" id="phone" name="phone" autocomplete="tel" placeholder="0917 123 4567"><small class="field-error"></small></label>
+          <label class="field" id="date-field"><span>Preferred date</span><input class="input" type="date" id="preferredDate" name="preferredDate"><small class="field-error"></small></label>
+          <label class="field full"><span>Car you are asking about <span class="muted">(optional)</span></span>
+            <select class="input" id="product" name="product"><option value="">Not sure yet</option></select>
+          </label>
+          <label class="field full"><span>Message</span><textarea class="input" id="message" name="message" required minlength="10" maxlength="2000" placeholder="For trade-ins, tell us the model, year and mileage."></textarea><small class="field-error"></small></label>
+        </div>
+        <p class="notice notice-error" id="contact-error" hidden></p>
+        <button class="btn btn-accent" type="submit" style="justify-self:start">Send message</button>
+      </form>
+
+      <aside class="info-list">
+        <div><span class="label">Showroom</span><p>88 E. Rodriguez Jr. Ave.<br>Quezon City, Metro Manila 1110</p></div>
+        <div><span class="label">Phone</span><p class="mono">+63 2 8555 0142</p></div>
+        <div><span class="label">Email</span><p class="mono">sales@voltyard.ph</p></div>
+        <div>
+          <span class="label">Opening hours</span>
+          <table class="hours">
+            <tr><td>Tuesday – Saturday</td><td>10:00–19:00</td></tr>
+            <tr><td>Sunday</td><td>11:00–17:00</td></tr>
+            <tr><td>Monday</td><td>Closed</td></tr>
+          </table>
+        </div>
+        <div><span class="label">Charging on site</span><p class="muted">Two Wall Connectors in the customer lot. Free while you visit.</p></div>
+      </aside>
+    </div>
+  </main>
+  <script type="module" src="assets/js/pages/contact.js"></script>
+</body>
+</html>

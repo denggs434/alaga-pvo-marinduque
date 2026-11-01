@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Account | Voltyard Motors</title>
+  <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="assets/css/styles.css">
+</head>
+<body>
+  <main class="wrap">
+    <header class="page-head">
+      <p class="crumbs"><a href="index.html">Home</a> / Account</p>
+      <h1 id="account-title">Your account</h1>
+    </header>
+
+    <!-- Logged out -->
+    <section id="auth" class="panel" style="max-width:520px" hidden>
+      <div class="tabs" role="tablist">
+        <button type="button" role="tab" id="tab-login" aria-selected="true" aria-controls="login-form">Log in</button>
+        <button type="button" role="tab" id="tab-register" aria-selected="false" aria-controls="register-form">Create account</button>
+      </div>
+
+      <form id="login-form" class="stack" role="tabpanel" aria-labelledby="tab-login" novalidate>
+        <label class="field"><span>Email</span><input class="input" type="email" id="login-email" name="email" autocomplete="email" required><small class="field-error"></small></label>
+        <label class="field"><span>Password</span><input class="input" type="password" id="login-password" name="password" autocomplete="current-password" required><small class="field-error"></small></label>
+        <p class="notice notice-error" id="login-error" hidden></p>
+        <button class="btn btn-accent btn-block" type="submit">Log in</button>
+        <p class="muted" style="font-size:.875rem">Demo customer: <span class="mono">juan@example.com</span> / <span class="mono">Customer123!</span></p>
+      </form>
+
+      <form id="register-form" class="stack" role="tabpanel" aria-labelledby="tab-register" novalidate hidden>
+        <label class="field"><span>Full name</span><input class="input" id="reg-name" name="name" autocomplete="name" required><small class="field-error"></small></label>
+        <label class="field"><span>Email</span><input class="input" type="email" id="reg-email" name="email" autocomplete="email" required><small class="field-error"></small></label>
+        <label class="field"><span>Mobile number <span class="muted">(optional)</span></span><input class="input" id="reg-phone" name="phone" autocomplete="tel"><small class="field-error"></small></label>
+        <label class="field"><span>Password</span><input class="input" type="password" id="reg-password" name="password" autocomplete="new-password" minlength="8" required><small class="field-error"></small></label>
+        <p class="notice notice-error" id="register-error" hidden></p>
+        <button class="btn btn-accent btn-block" type="submit">Create account</button>
+      </form>
+    </section>
+
+    <!-- Logged in -->
+    <section id="dashboard" class="stack-lg" hidden>
+      <div class="row between">
+        <p class="muted" id="who"></p>
+        <div class="row">
+          <a class="btn btn-ghost btn-sm" id="admin-link" href="admin.html" hidden>Open admin panel</a>
+          <button class="btn btn-ghost btn-sm" id="logout" type="button">Log out</button>
+        </div>
+      </div>
+      <div class="stack">
+        <h2 style="font-size:var(--step-2)">Your orders</h2>
+        <div id="orders"></div>
+      </div>
+      <form id="profile-form" class="panel stack" style="max-width:520px" novalidate>
+        <h3>Profile</h3>
+        <label class="field"><span>Full name</span><input class="input" id="p-name" name="name" required><small class="field-error"></small></label>
+        <label class="field"><span>Mobile number</span><input class="input" id="p-phone" name="phone"><small class="field-error"></small></label>
+        <label class="field"><span>New password <span class="muted">(leave blank to keep)</span></span><input class="input" type="password" id="p-password" name="password" autocomplete="new-password"><small class="field-error"></small></label>
+        <button class="btn btn-sm" type="submit" style="justify-self:start">Save profile</button>
+      </form>
+    </section>
+  </main>
+  <script type="module" src="assets/js/pages/account.js"></script>
+</body>
+</html>
