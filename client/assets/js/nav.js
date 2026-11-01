@@ -546,7 +546,7 @@ function setupMobileMenu() {
 }
 
 /* ---------- Theme toggle ---------- */
-function setupThemeToggle() {
+export function setupThemeToggle() {
   const btn = $('#theme-toggle');
   const prefersDark = () => window.matchMedia('(prefers-color-scheme: dark)').matches;
   const current = () => document.documentElement.dataset.theme || (prefersDark() ? 'dark' : 'light');
@@ -585,6 +585,29 @@ function setupScroll(closeMega) {
   }, { passive: true });
   // Showing the header again when keyboard focus moves into it.
   header.addEventListener('focusin', () => header.classList.remove('is-hidden'));
+}
+
+/* =========================================================================
+   Admin header: a compact bar for the admin panel only (no shop navigation)
+   ========================================================================= */
+export function renderAdminHeader() {
+  const user = getUser();
+  document.body.insertAdjacentHTML(
+    'afterbegin',
+    `<header class="site-header admin-header" id="site-header">
+      <div class="wrap nav admin-nav">
+        <a class="brand" href="admin.html" aria-label="Voltyard admin home">${BRAND_MARK}<span class="brand-word">Voltyard<small>Admin</small></span></a>
+        <div class="nav-tools">
+          <a class="btn btn-ghost btn-sm" href="index.html" target="_blank" rel="noopener">View store ${ICONS.arrow}</a>
+          <button class="icon-btn" id="theme-toggle" type="button" aria-label="Switch colour theme">${ICONS.moon}</button>
+          ${user ? `<span class="admin-user"><span class="avatar" aria-hidden="true">${esc(user.name.split(/\s+/).map((w) => w[0]).slice(0, 2).join('').toUpperCase())}</span><span class="admin-user-name">${esc(user.name)}</span></span>
+          <button class="btn btn-ghost btn-sm" type="button" data-logout>${ICONS.logout}Log out</button>` : ''}
+        </div>
+      </div>
+    </header>`
+  );
+  setupThemeToggle();
+  $$('[data-logout]').forEach((b) => b.addEventListener('click', () => { clearSession(); location.href = 'admin.html'; }));
 }
 
 /* =========================================================================

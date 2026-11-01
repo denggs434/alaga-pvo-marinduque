@@ -6,7 +6,7 @@
 import { clearSession } from './store.js';
 import { formatPrice, formatNumber, esc, $, $$ } from './format.js';
 import { ICONS, BRAND_MARK } from './icons.js';
-import { renderHeader, updateCartBadge, openCartDrawer } from './nav.js';
+import { renderHeader, renderAdminHeader, updateCartBadge, openCartDrawer } from './nav.js';
 import { initMotion } from './motion.js';
 
 // Re-export helpers so page scripts can keep importing everything from ui.js.
@@ -193,6 +193,15 @@ export function initPage(active) {
   // keep the skip link first in tab order
   document.body.prepend(document.querySelector(".skip-link"));
   renderFooter();
+  initMotion();
+}
+
+/** Admin panel pages: compact admin header, no shop navigation or footer. */
+export function initAdminPage({ header = true } = {}) {
+  const main = document.querySelector('main');
+  if (main && !main.id) main.id = 'main';
+  document.body.classList.add('admin-body');
+  if (header) renderAdminHeader();
   initMotion();
 }
 

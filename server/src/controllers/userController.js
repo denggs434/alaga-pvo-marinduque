@@ -22,9 +22,12 @@ exports.register = asyncHandler(async (req, res) => {
 // POST /api/users/login
 exports.login = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
-  if (!email || !password) throw new HttpError(400, 'Enter your email and password.');
+  // Only accept plain strings (blocks {"$gt": ""} style injection and bcrypt crashes).
+  if (typeof email !== 'string' || typeof password !== 'string' || !email || !password) {
+    throw new HttpError(400, 'Enter your email and password.');
+  }
 
-  const user = await User.findOne({ email: String(email).toLowerCase() }).select('+password');
+  const user = await User.findOne({ email: email.trim().toLowerCase() }).select('+password');
   if (!user || !(await user.matchPassword(password))) {
     throw new HttpError(401, 'Email or password is incorrect.');
   }

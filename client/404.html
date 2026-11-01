@@ -2,10 +2,12 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
+  <!-- Served for any unknown path (even nested ones), so resolve all relative links from the site root -->
+  <base href="/">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Page not found | Voltyard Motors</title>
-  <link rel="icon" href="/assets/img/favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="/assets/css/styles.css">
+  <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="assets/css/styles.css">
 </head>
 <body>
   <main class="wrap">
@@ -13,7 +15,7 @@
       <span class="label">Error 404</span>
       <h1 style="font-size:var(--step-3)">This page ran out of range.</h1>
       <p class="muted">The link may be old, or the car may have been sold.</p>
-      <div class="row"><a class="btn btn-accent" href="/products.html">Browse inventory</a><a class="btn btn-ghost" href="/index.html">Home</a></div>
+      <div class="row"><a class="btn btn-accent" href="products.html">Browse inventory</a><a class="btn btn-ghost" href="index.html">Home</a></div>
     </div>
   </main>
   <script type="module">import { initPage } from '/assets/js/ui.js'; initPage('');</script>

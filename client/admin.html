@@ -8,47 +8,143 @@
   <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="assets/css/styles.css">
 </head>
-<body>
-  <main class="wrap">
-    <header class="page-head">
-      <p class="crumbs"><a href="index.html">Home</a> / Admin</p>
-      <h1>Showroom admin</h1>
-    </header>
-
-    <div id="denied" class="empty" hidden>
-      <h2 style="font-size:var(--step-2)">Admins only</h2>
-      <p class="muted">Log in with an admin account to manage inventory, orders and messages.</p>
-      <a class="btn btn-accent" href="account.html?next=admin.html">Log in</a>
-    </div>
-
-    <div id="admin" hidden>
-      <section class="admin-tiles" id="tiles" aria-label="Summary"></section>
-
-      <div class="tabs" role="tablist">
-        <button type="button" role="tab" aria-selected="true" data-tab="inventory">Inventory</button>
-        <button type="button" role="tab" aria-selected="false" data-tab="orders">Orders</button>
-        <button type="button" role="tab" aria-selected="false" data-tab="messages">Messages</button>
-        <button type="button" role="tab" aria-selected="false" data-tab="customers">Customers</button>
-      </div>
-
-      <section data-panel="inventory" class="stack">
-        <div class="row between">
-          <input class="input" type="search" id="inv-search" placeholder="Filter by name or stock no." style="max-width:320px" aria-label="Filter inventory">
-          <button class="btn btn-accent" type="button" id="add-product">Add listing</button>
+<body class="admin-body">
+  <main>
+    <!-- Guests: admin sign-in -->
+    <section id="admin-login" class="admin-login wrap" hidden>
+      <form id="admin-login-form" class="panel stack" novalidate>
+        <div class="stack" style="gap:6px">
+          <span class="label">Staff only</span>
+          <h1 style="font-size:var(--step-3)">Admin sign in</h1>
+          <p class="muted">Manage the lot, orders and customer messages for the Mogpog showroom.</p>
         </div>
-        <div class="table-wrap"><table id="inv-table"></table></div>
-      </section>
-      <section data-panel="orders" class="stack" hidden><div class="table-wrap"><table id="orders-table"></table></div></section>
-      <section data-panel="messages" class="stack" hidden><div class="table-wrap"><table id="messages-table"></table></div></section>
-      <section data-panel="customers" class="stack" hidden><div class="table-wrap"><table id="customers-table"></table></div></section>
+        <label class="field"><span>Email</span><input class="input" type="email" id="admin-email" name="email" autocomplete="username" required><small class="field-error"></small></label>
+        <label class="field"><span>Password</span><input class="input" type="password" id="admin-password" name="password" autocomplete="current-password" required><small class="field-error"></small></label>
+        <p class="notice notice-error" id="admin-login-error" hidden></p>
+        <button class="btn btn-accent btn-block" type="submit">Sign in to admin</button>
+        <p class="muted" style="font-size:.8125rem">Demo admin: <span class="mono">admin@voltyard.ph</span> / <span class="mono">Admin123!</span></p>
+      </form>
+    </section>
+
+    <!-- Signed in, but not an admin -->
+    <div id="denied" class="empty admin-login wrap" hidden>
+      <h2 style="font-size:var(--step-2)">This account is not an admin</h2>
+      <p class="muted">You are signed in as a customer. Sign out, then sign in with an admin account.</p>
+      <div class="row"><button class="btn btn-accent" type="button" data-logout>Sign out</button><a class="btn btn-ghost" href="index.html">Back to the store</a></div>
     </div>
 
-    <!-- Create / edit listing -->
+    <!-- The panel -->
+    <div class="console" id="admin" hidden>
+      <aside class="console-side" aria-label="Admin sections">
+        <a class="console-brand" href="admin.html#today">
+          <svg viewBox="0 0 32 32" aria-hidden="true"><rect x="1" y="1" width="30" height="30" rx="7" fill="#e8ebea"/><path d="M8 9h4.2L16 19.5 19.8 9H24l-6 15h-4z" fill="#101315"/><path d="M17.5 4.5 15 10h3l-2.5 5.5" fill="none" stroke="#8098ff" stroke-width="1.6" stroke-linejoin="round"/></svg>
+          <span>Voltyard<small>Lot console</small></span>
+        </a>
+        <p class="console-status" id="console-status"><i></i><span></span></p>
+        <nav class="console-nav">
+          <a href="#today" data-view="today"><kbd>1</kbd>Today</a>
+          <a href="#lot" data-view="lot"><kbd>2</kbd>Lot<b data-badge="lot"></b></a>
+          <a href="#orders" data-view="orders"><kbd>3</kbd>Orders<b data-badge="orders"></b></a>
+          <a href="#messages" data-view="messages"><kbd>4</kbd>Messages<b data-badge="messages"></b></a>
+          <a href="#customers" data-view="customers"><kbd>5</kbd>Customers</a>
+        </nav>
+        <div class="console-foot">
+          <div class="console-user"><span class="avatar" id="admin-avatar"></span><span><strong id="admin-name"></strong><small>Mogpog showroom</small></span></div>
+          <div class="console-actions">
+            <a href="index.html" target="_blank" rel="noopener">View store</a>
+            <button type="button" id="console-theme">Theme</button>
+            <button type="button" data-logout>Log out</button>
+          </div>
+        </div>
+      </aside>
+
+      <section class="console-main">
+        <!-- Today -->
+        <div class="view" data-panel="today">
+          <header class="view-head">
+            <span class="label" id="admin-date"></span>
+            <h1 id="today-line">Loading the lot…</h1>
+          </header>
+          <div class="lotbar-wrap">
+            <div class="lotbar" id="lotbar" role="img" aria-label="Vehicle status"></div>
+            <ul class="lotbar-legend" id="lotbar-legend"></ul>
+          </div>
+          <div class="today-grid">
+            <section class="queue" aria-labelledby="queue-title">
+              <h2 id="queue-title">Needs attention</h2>
+              <ul id="queue" class="queue-list"></ul>
+            </section>
+            <aside class="ledger" aria-label="Money">
+              <div><span class="label">Deposits &amp; sales booked</span><strong id="money-collected">—</strong></div>
+              <div><span class="label">Value of open orders</span><strong id="money-booked">—</strong></div>
+              <div><span class="label">Customer accounts</span><strong id="money-customers">—</strong></div>
+            </aside>
+          </div>
+        </div>
+
+        <!-- Lot -->
+        <div class="view" data-panel="lot" hidden>
+          <header class="view-head row between">
+            <div class="stack" style="gap:4px"><span class="label">Inventory</span><h1>The lot</h1></div>
+            <button class="btn btn-accent" type="button" id="add-product">Add listing</button>
+          </header>
+          <div class="lot-tools">
+            <input class="input" type="search" id="inv-search" placeholder="Search name or stock no." aria-label="Search the lot">
+            <div class="chips" role="group" aria-label="Show">
+              <button type="button" class="chip" data-filter="all" aria-pressed="true">All</button>
+              <button type="button" class="chip" data-filter="available" aria-pressed="false">Available</button>
+              <button type="button" class="chip" data-filter="reserved" aria-pressed="false">Reserved</button>
+              <button type="button" class="chip" data-filter="sold" aria-pressed="false">Sold</button>
+              <button type="button" class="chip" data-filter="accessory" aria-pressed="false">Parts</button>
+            </div>
+          </div>
+          <div class="lot-list" id="inv-table"></div>
+        </div>
+
+        <!-- Orders pipeline -->
+        <div class="view" data-panel="orders" hidden>
+          <header class="view-head"><span class="label">Pipeline</span><h1>Orders</h1></header>
+          <div class="pipeline" id="orders-table"></div>
+        </div>
+
+        <!-- Messages inbox -->
+        <div class="view" data-panel="messages" hidden>
+          <header class="view-head row between">
+            <div class="stack" style="gap:4px"><span class="label">Inbox</span><h1>Messages</h1></div>
+            <div class="chips" role="group" aria-label="Show messages">
+              <button type="button" class="chip" data-mfilter="open" aria-pressed="true">Open</button>
+              <button type="button" class="chip" data-mfilter="all" aria-pressed="false">All</button>
+            </div>
+          </header>
+          <ul class="inbox" id="messages-table"></ul>
+        </div>
+
+        <!-- Customers -->
+        <div class="view" data-panel="customers" hidden>
+          <header class="view-head"><span class="label">Accounts</span><h1>Customers</h1></header>
+          <div class="table-wrap"><table id="customers-table"></table></div>
+        </div>
+      </section>
+    </div>
+
     <dialog id="product-dialog" aria-labelledby="dialog-title">
       <form id="product-form" method="dialog" novalidate>
         <div class="dialog-head"><h3 id="dialog-title">Add listing</h3><button class="btn btn-ghost btn-sm" type="button" data-close>Close</button></div>
         <div class="dialog-body">
           <div class="form-grid">
+            <div class="field full">
+              <span>Photo</span>
+              <label class="dropzone" id="dropzone">
+                <input type="file" id="f-file" accept="image/jpeg,image/png,image/webp">
+                <span id="photo-preview" class="dz-preview" role="img" aria-label="Selected photo" hidden></span>
+                <span class="dz-text"><strong>Drop a photo here or click to upload</strong><small>JPG, PNG or WebP, up to 5 MB. Landscape 4:3 looks best.</small></span>
+              </label>
+              <details class="dz-existing">
+                <summary>Or use a photo already on the site</summary>
+                <input class="input" id="f-image" name="image" list="image-paths" placeholder="assets/img/cars/…" aria-label="Existing photo path">
+              </details>
+              <small class="field-error"></small>
+            </div>
             <label class="field full"><span>Name</span><input class="input" id="f-name" name="name" required><small class="field-error"></small></label>
             <label class="field"><span>Category</span><select class="input" id="f-category" name="category"><option value="vehicle">Vehicle</option><option value="accessory">Accessory</option></select></label>
             <label class="field"><span>Price (PHP)</span><input class="input" type="number" id="f-price" name="price" min="0" step="1000" required><small class="field-error"></small></label>
@@ -62,7 +158,7 @@
             <label class="field" data-v><span>Deposit (PHP, blank = ₱50,000)</span><input class="input" type="number" id="f-deposit" name="deposit" min="0" step="1000"></label>
             <label class="field" data-a><span>Units in stock</span><input class="input" type="number" id="f-stock" name="stock" min="0"></label>
             <label class="field" data-a><span>Fits (comma separated)</span><input class="input" id="f-compatibleWith" name="compatibleWith" placeholder="Model 3, Model Y"></label>
-            <label class="field full"><span>Image path</span><input class="input" id="f-image" name="image" list="image-paths" required placeholder="assets/img/cars/…"><small class="field-error"></small></label>
+            
             <datalist id="image-paths"></datalist>
             <label class="field full"><span>Summary (one line)</span><input class="input" id="f-summary" name="summary" maxlength="200"></label>
             <label class="field full"><span>Description</span><textarea class="input" id="f-description" name="description"></textarea></label>

@@ -28,6 +28,10 @@ async function releaseStock(lines) {
 
 // POST /api/orders
 exports.createOrder = asyncHandler(async (req, res) => {
+  // Only customers buy. Staff accounts manage orders but cannot place them.
+  if (req.user.role !== 'customer') {
+    throw new HttpError(403, 'Admin accounts cannot place orders. Sign in with a customer account to buy.');
+  }
   const { items = [], fulfillment, paymentMethod, notes } = req.body;
   if (!Array.isArray(items) || items.length === 0) throw new HttpError(400, 'Your cart is empty.');
 

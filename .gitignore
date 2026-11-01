@@ -2,3 +2,6 @@ node_modules/
 .env
 .DS_Store
 *.log
+# Photos uploaded through the admin panel are runtime data
+client/assets/img/uploads/*
+!client/assets/img/uploads/.gitkeep

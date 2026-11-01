@@ -2,7 +2,7 @@
  * Product detail page: product.html?slug=<slug>
  */
 import { api } from '../api.js';
-import { addToCart, DEFAULT_DEPOSIT } from '../store.js';
+import { addToCart, DEFAULT_DEPOSIT, isAdmin } from '../store.js';
 import { initPage, productCard, errorState, formatPrice, formatNumber, batteryGauge, conditionTag, toast, esc, openCartDrawer, $ } from '../ui.js';
 
 initPage('inventory');
@@ -32,7 +32,8 @@ function specSheet(p) {
 function buyBox(p) {
   const isVehicle = p.category === 'vehicle';
   const deposit = p.deposit ?? DEFAULT_DEPOSIT;
-  const unavailable = p.status !== 'available' || (!isVehicle && p.stock < 1);
+  const staff = isAdmin(); // admins manage listings; only customers can buy
+  const unavailable = staff || p.status !== 'available' || (!isVehicle && p.stock < 1);
 
   let note;
   if (!isVehicle) note = p.stock > 0 ? `<strong>${p.stock} in stock.</strong> Paid in full at checkout.` : 'Out of stock. Contact us for the next shipment.';
@@ -47,7 +48,9 @@ function buyBox(p) {
         <button type="button" data-step="1" aria-label="More">+</button></div></div>`
     : '';
 
-  const cta = isVehicle ? (p.condition === 'pre-order' ? 'Reserve build slot' : 'Reserve this car') : 'Add to cart';
+  const cta = staff
+    ? 'Admins cannot order'
+    : isVehicle ? (p.condition === 'pre-order' ? 'Reserve build slot' : 'Reserve this car') : 'Add to cart';
 
   return `<aside class="pdp-buy">
     <div class="stack" style="gap:8px">

@@ -24,6 +24,12 @@ let observer;
 function reveal(el) {
   el.classList.add('is-in');
   observer?.unobserve(el);
+  // Numbers marked data-countup count up the first time they appear.
+  const targets = el.matches('[data-countup]') ? [el] : el.querySelectorAll('[data-countup]');
+  targets.forEach((n) => {
+    const suffix = n.dataset.suffix || '';
+    countUp(n, Number(n.dataset.countup), (v) => `${Math.round(v)}${suffix}`, 1400);
+  });
 }
 
 function watch(el) {

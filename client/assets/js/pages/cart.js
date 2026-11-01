@@ -45,6 +45,12 @@ function summaryHtml(cart) {
 }
 
 function checkoutHtml(user) {
+  if (user?.role === 'admin') {
+    return `<div class="stack">
+      <p class="notice">You are signed in as an admin. Only customer accounts can place orders.</p>
+      <a class="btn btn-accent btn-block" href="admin.html">Go to the admin panel</a>
+    </div>`;
+  }
   if (!user) {
     return `<div class="stack">
       <p>Log in or create an account to place your order. Your cart stays saved.</p>

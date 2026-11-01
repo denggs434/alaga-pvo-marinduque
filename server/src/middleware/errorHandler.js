@@ -13,9 +13,21 @@ function errorHandler(err, req, res, next) {
   let message = err.message || 'Something went wrong on the server.';
   let details = err.details;
 
-  if (err.name === 'ValidationError') {
+  if (err.type === 'entity.parse.failed') {
     status = 400;
-    details = Object.fromEntries(Object.entries(err.errors).map(([k, v]) => [k, v.message]));
+    message = 'The request body is not valid JSON.';
+  } else if (err.type === 'entity.too.large') {
+    status = 413;
+    message = 'That request is too large. Shorten the text and try again.';
+  } else if (err.name === 'ValidationError') {
+    status = 400;
+    // Replace Mongoose's technical enum/cast wording with plain messages.
+    const friendly = (path, v) => {
+      if (v.kind === 'enum') return `Choose a valid ${path.split('.').pop()}.`;
+      if (v.name === 'CastError') return `Enter a valid value for ${path.split('.').pop()}.`;
+      return v.message;
+    };
+    details = Object.fromEntries(Object.entries(err.errors).map(([k, v]) => [k, friendly(k, v)]));
     message = Object.values(details)[0];
   } else if (err.name === 'CastError') {
     status = 400;
@@ -23,7 +35,12 @@ function errorHandler(err, req, res, next) {
   } else if (err.code === 11000) {
     status = 409;
     const field = Object.keys(err.keyValue || {})[0] || 'field';
-    message = `That ${field} is already in use.`;
+    message =
+      field === 'slug'
+        ? 'A listing with this name and stock number already exists. Change the stock number.'
+        : field === 'email'
+          ? 'An account with that email already exists. Log in instead.'
+          : `That ${field} is already in use.`;
   }
 
   if (status >= 500) console.error(err);

@@ -17,7 +17,9 @@ Project write-up (introduction, problem, objectives, scope, limitations, solutio
 - Accounts: register, log in (JWT), order history, cancel pending orders, edit profile
 - Double-booking protection: a car is locked in the database the moment it is ordered
 - Contact form for test drives, financing and trade-ins, linked to a specific car
-- Admin panel: live stats; create, edit and delete listings; order status; message triage; customer list
+- Admin lot console (admins land here after login): today's to-do queue, lot status bar, inline status and stock changes, order pipeline (pending → confirmed → ready → completed), customer inbox, number-key shortcuts
+- Photo upload for listings (drag and drop, JPG/PNG/WebP up to 5 MB, file type checked on the server)
+- Only customer accounts can place orders; admins manage them
 - Responsive layout, light and dark themes, accessible forms and focus states
 
 ## Running it locally
@@ -87,6 +89,7 @@ docs/                       Assignment instructions and rubric
 | GET | `/api/orders` | Admin | All orders |
 | PATCH | `/api/orders/:id/status` | Admin | pending → confirmed → ready → completed / cancelled |
 | GET | `/api/admin/stats` | Admin | Dashboard numbers |
+| POST | `/api/uploads` | Admin | Upload a listing photo (multipart field `image`) |
 
 Errors always come back as `{ "message": "...", "details": { field: message } }` with a matching HTTP status.
 

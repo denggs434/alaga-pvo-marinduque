@@ -4,73 +4,161 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>About | Voltyard Motors</title>
-  <meta name="description" content="Voltyard Motors is an independent Tesla dealer in Mogpog, Marinduque selling new imports and battery-tested pre-owned Teslas.">
+  <meta name="description" content="Voltyard Motors is an independent Tesla dealer in Mogpog, Marinduque selling new imports and battery-tested pre-owned Teslas, with delivery to all six towns.">
   <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="assets/css/styles.css">
 </head>
 <body>
   <main>
-    <div class="wrap">
-      <header class="page-head">
-        <p class="crumbs"><a href="index.html">Home</a> / About</p>
-        <h1>A Tesla dealer that starts with the battery.</h1>
-        <p>Voltyard Motors is an independent dealer in Mogpog, Marinduque, a few minutes from Balanacan Port. We import new Teslas, buy and recondition used ones, and sell them with the battery health printed on the listing.</p>
-      </header>
-    </div>
-
-    <section class="section" style="padding-top:16px">
-      <div class="wrap stack-lg">
-        <div class="facts">
-          <div><span class="label">Founded</span><strong>2021</strong><span class="muted">in a two-car garage in Mogpog</span></div>
-          <div><span class="label">Teslas handed over</span><strong>180+</strong><span class="muted">across all six towns of Marinduque</span></div>
-          <div><span class="label">Average battery health sold</span><strong>92%</strong><span class="muted">of original pack capacity</span></div>
-        </div>
-
-        <div class="split">
-          <div class="split-copy">
-            <span class="label">Why we exist</span>
-            <h2>Buying a used EV should not be a guess.</h2>
-            <p>When we started, people buying a pre-owned Tesla in the Philippines had no way to check the most expensive part of the car. Sellers quoted range numbers from the brochure and buyers found out the truth after the first long drive.</p>
-            <p>So we bought the diagnostic tools, trained two technicians, and made one rule: no car goes on sale without a printed battery capacity test. Today we also bring in new cars that Tesla does not ship here officially, handle the import and LTO registration, and sell chargers and parts from the same showroom.</p>
-          </div>
-          <figure style="margin:0">
-            <img src="assets/img/site/supercharger.jpg" alt="Row of Tesla Supercharger stalls" loading="lazy" width="1100" height="1100" style="aspect-ratio:4/3">
-            <figcaption class="photo-credit">Photo: Dietmar Rabich, CC BY-SA 4.0, via Wikimedia Commons</figcaption>
-          </figure>
-        </div>
-
-        <div class="stack">
-          <h2 style="font-size:var(--step-2)">Who we sell to</h2>
-          <div class="grid-cards" style="grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr))">
-            <div class="panel stack" style="gap:8px"><h3>First-time EV owners</h3><p class="muted">Teachers, nurses, OFW families and business owners in Boac, Gasan and Santa Cruz moving from a petrol car who want a clear answer on charging at home, since public chargers on the island are still rare.</p></div>
-            <div class="panel stack" style="gap:8px"><h3>Families</h3><p class="muted">Parents looking at Model Y and Model X for school runs and provincial trips, who care about seats and range more than lap times.</p></div>
-            <div class="panel stack" style="gap:8px"><h3>Enthusiasts and collectors</h3><p class="muted">Buyers after a Plaid, a Cybertruck, an original Roadster, or a build slot for the next one.</p></div>
-            <div class="panel stack" style="gap:8px"><h3>Businesses</h3><p class="muted">Hotels, offices and condos installing destination chargers for guests and tenants.</p></div>
+    <!-- Hero: who we are, with a two-photo collage -->
+    <section class="about-hero">
+      <div class="wrap about-hero-grid">
+        <div class="about-hero-copy">
+          <p class="crumbs"><a href="index.html">Home</a> / About</p>
+          <span class="label">About Voltyard · Mogpog, Marinduque</span>
+          <h1>Marinduque's own Tesla dealer.</h1>
+          <p class="lede">We started in a two-car garage in Mogpog because buying an electric car on the island meant a RoRo trip to Lucena and a long drive to Manila. Now the cars come to us, every battery gets tested, and we deliver to all six towns.</p>
+          <div class="row">
+            <a class="btn btn-accent" href="products.html">See what's on the lot</a>
+            <a class="btn btn-ghost" href="contact.html?topic=test-drive">Visit the showroom</a>
           </div>
         </div>
+        <div class="collage" aria-hidden="true">
+          <figure class="collage-main"><img src="assets/img/site/supercharger.jpg" alt="" width="1100" height="1100"></figure>
+          <figure class="collage-small" data-parallax="0.12"><img src="assets/img/site/interior-model3.jpg" alt="" width="1400" height="947"></figure>
+          <span class="collage-tag"><i></i>Battery tested before every sale</span>
+        </div>
+      </div>
 
-        <section class="stack" id="credits" aria-labelledby="credits-title">
-          <h2 id="credits-title" style="font-size:var(--step-2)">Photo credits</h2>
-          <p class="muted">Every photo on this site comes from Wikimedia Commons under a free licence (CC0, CC BY or CC BY-SA). Photos were resized for the web. Thank you to the photographers below.</p>
+      <div class="wrap">
+        <dl class="about-stats">
+          <div data-reveal><dt>Founded</dt><dd>2021</dd><span>in a two-car garage in Mogpog</span></div>
+          <div data-reveal><dt>Teslas handed over</dt><dd data-countup="180" data-suffix="+">180+</dd><span>across Marinduque and the mainland</span></div>
+          <div data-reveal><dt>Average battery health sold</dt><dd data-countup="92" data-suffix="%">92%</dd><span>of original pack capacity</span></div>
+          <div data-reveal><dt>Towns we deliver to</dt><dd data-countup="6">6</dd><span>the whole island, with charger installs</span></div>
+        </dl>
+      </div>
+    </section>
+
+    <!-- Why we exist -->
+    <section class="section">
+      <div class="wrap why-grid">
+        <blockquote class="why-quote" data-reveal>
+          “Buying a used EV should not be a guess, and it should not need a ferry ticket.”
+          <cite>Voltyard founders, 2021</cite>
+        </blockquote>
+        <div class="stack" data-reveal>
+          <span class="label">Why we exist</span>
+          <p>When we started, a pre-owned Tesla in the Philippines came with brochure range numbers and no way to check the most expensive part of the car. Buyers found out the truth after their first long drive.</p>
+          <p>So we bought the diagnostic tools, trained two technicians, and made one rule: <strong>no car goes on sale without a printed battery capacity test.</strong> We also bring in new cars that Tesla does not ship here officially, handle the import and LTO registration, and install home chargers anywhere on the island.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- The route: a real sequence, so it is numbered and animated left to right -->
+    <section class="section route-section">
+      <div class="wrap">
+        <div class="section-head" data-reveal>
+          <div class="stack" style="gap:8px">
+            <span class="label">From port to driveway</span>
+            <h2>How a Tesla reaches Mogpog</h2>
+          </div>
+          <p>Every imported car takes the same trip. We handle each leg, so you only see the last one.</p>
+        </div>
+        <ol class="route" data-reveal>
+          <li><span class="route-dot"></span><strong>Port of entry</strong><span>Cleared through customs in Manila or Batangas, duties paid.</span></li>
+          <li><span class="route-dot"></span><strong>Lucena</strong><span>Trucked south to Dalahican Port for the crossing.</span></li>
+          <li><span class="route-dot"></span><strong>RoRo crossing</strong><span>About three hours on the ferry across Tayabas Bay.</span></li>
+          <li><span class="route-dot"></span><strong>Balanacan Port</strong><span>Rolls off in Mogpog and gets its first island charge.</span></li>
+          <li><span class="route-dot"></span><strong>Voltyard showroom</strong><span>Five minutes up the road. Inspected, tested, listed.</span></li>
+          <span class="route-car" aria-hidden="true"></span>
+        </ol>
+      </div>
+    </section>
+
+    <!-- Six towns -->
+    <section class="section" style="padding-top:0">
+      <div class="wrap">
+        <div class="section-head" data-reveal>
+          <div class="stack" style="gap:8px">
+            <span class="label">Delivery and charger installs</span>
+            <h2>All six towns of Marinduque</h2>
+          </div>
+          <a class="link-arrow" href="contact.html?topic=test-drive">Book a home test drive</a>
+        </div>
+        <ul class="towns">
+          <li data-reveal class="is-home"><span class="town-tag">Our home</span><strong>Mogpog</strong><span>Balanacan Port and the birthplace of the Moriones Festival.</span></li>
+          <li data-reveal><strong>Boac</strong><span>The provincial capital, home of Boac Cathedral.</span></li>
+          <li data-reveal><strong>Gasan</strong><span>Gateway to the Tres Reyes Islands.</span></li>
+          <li data-reveal><strong>Buenavista</strong><span>At the foot of Mount Malindig.</span></li>
+          <li data-reveal><strong>Torrijos</strong><span>Poctoy White Beach, with a view of Malindig.</span></li>
+          <li data-reveal><strong>Santa Cruz</strong><span>The island's largest town, out to Maniwaya Island.</span></li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- Timeline -->
+    <section class="section timeline-section">
+      <div class="wrap timeline-grid">
+        <div class="stack timeline-intro" data-reveal>
+          <span class="label">Our story so far</span>
+          <h2>Six years, one island.</h2>
+          <p class="muted">From a borrowed garage to the island's first Cybertruck.</p>
+        </div>
+        <ol class="timeline">
+          <li data-reveal><span class="year">2021</span><div><strong>A two-car garage in Mogpog</strong><p>Our first sale: a 2015 Model S brought over on the RoRo from Lucena.</p></div></li>
+          <li data-reveal><span class="year">2022</span><div><strong>Battery diagnostics in house</strong><p>Every pre-owned car now gets a printed capacity test before it is priced.</p></div></li>
+          <li data-reveal><span class="year">2023</span><div><strong>The Balanacan Port Road showroom</strong><p>Room for twelve cars and two Wall Connectors for visitors.</p></div></li>
+          <li data-reveal><span class="year">2024</span><div><strong>First Cybertruck on the island</strong><p>A Foundation Series, imported and LTO-registered by our team.</p></div></li>
+          <li data-reveal><span class="year">2025</span><div><strong>Chargers in all six towns</strong><p>Home Wall Connectors installed from Boac to Santa Cruz, plus resort chargers in Gasan.</p></div></li>
+          <li data-reveal><span class="year">2026</span><div><strong>Online store and Roadster pre-orders</strong><p>Reserve any car from your phone, and a build slot for the Roadster that might fly.</p></div></li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- Who we sell to -->
+    <section class="section" style="padding-top:0">
+      <div class="wrap">
+        <div class="section-head" data-reveal><h2>Who we sell to</h2></div>
+        <div class="audience">
+          <article data-reveal><span class="audience-icon" data-icon="user"></span><h3>First-time EV owners</h3><p>Teachers, nurses and business owners moving from a petrol car, who want a straight answer on charging at home since public chargers on the island are still rare.</p></article>
+          <article data-reveal><span class="audience-icon" data-icon="orders"></span><h3>OFW families</h3><p>Families buying a car from abroad for parents back home. We send videos, the battery report and handle delivery.</p></article>
+          <article data-reveal><span class="audience-icon" data-icon="bolt"></span><h3>Enthusiasts and collectors</h3><p>Buyers after a Plaid, a Cybertruck, an original Roadster, or a build slot for the next one.</p></article>
+          <article data-reveal><span class="audience-icon" data-icon="pin"></span><h3>Resorts and businesses</h3><p>Beach resorts, hotels and offices installing destination chargers for guests, especially during Moriones season.</p></article>
+        </div>
+      </div>
+    </section>
+
+    <!-- Closing band -->
+    <section class="about-cta">
+      <div class="wrap about-cta-inner" data-reveal>
+        <div class="stack" style="gap:8px">
+          <h2>Come see one in person.</h2>
+          <p>Balanacan Port Road, Brgy. Balanacan, Mogpog, Marinduque 4901 · Tue–Sat 10:00–19:00, Sun 11:00–17:00</p>
+        </div>
+        <div class="row">
+          <a class="btn btn-accent" href="contact.html?topic=test-drive">Book a test drive</a>
+          <a class="btn btn-ghost" href="products.html">Browse inventory</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Photo credits -->
+    <section class="section" id="credits">
+      <div class="wrap">
+        <details class="credits-box">
+          <summary>
+            <span class="stack" style="gap:4px">
+              <strong>Photo credits</strong>
+              <span class="muted">Every photo comes from Wikimedia Commons under a free licence (CC0, CC BY or CC BY-SA), resized for the web.</span>
+            </span>
+            <span class="credits-toggle" aria-hidden="true"></span>
+          </summary>
           <ul class="credits" id="credit-list"></ul>
-        </section>
+        </details>
       </div>
     </section>
   </main>
-  <script type="module">
-    import { initPage, esc, $ } from './assets/js/ui.js';
-    initPage('about');
-    // credits.json is generated alongside the images and lists author, licence and source.
-    fetch('assets/img/credits.json')
-      .then((r) => r.json())
-      .then((list) => {
-        $('#credit-list').innerHTML = list.map((c) => `<li>
-          <img src="${esc(c.image)}" alt="" loading="lazy">
-          <span><strong>${esc(c.title.replace(/\.(jpe?g|png)$/i, ''))}</strong><br>
-          <span class="muted">${esc(c.author)} · <a href="${esc(c.licenseUrl)}" target="_blank" rel="noopener">${esc(c.license)}</a> · <a href="${esc(c.source)}" target="_blank" rel="noopener">source</a></span></span>
-        </li>`).join('');
-      })
-      .catch(() => ($('#credit-list').innerHTML = '<li>Credits could not be loaded.</li>'));
-  </script>
+  <script type="module" src="assets/js/pages/about.js"></script>
 </body>
 </html>

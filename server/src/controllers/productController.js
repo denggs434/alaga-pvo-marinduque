@@ -23,22 +23,33 @@ const EDITABLE = [
 ];
 const pick = (obj, keys) => Object.fromEntries(keys.filter((k) => obj[k] !== undefined).map((k) => [k, obj[k]]));
 const escapeRegex = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+/** Parse a numeric query value; returns undefined for blanks and garbage like "abc". */
+const num = (v) => {
+  if (v === undefined || v === '') return undefined;
+  const n = Number(v);
+  return Number.isFinite(n) ? n : undefined;
+};
+/** Query values must be plain strings (Express turns ?a[$ne]=x into an object). */
+const str = (v) => (typeof v === 'string' ? v : '');
 
 /** Turn query-string filters into a MongoDB filter object. */
 function buildFilter(q, isAdmin) {
   const filter = {};
-  if (q.category) filter.category = q.category;
-  if (q.model) filter.model = { $in: String(q.model).split(',') };
-  if (q.condition) filter.condition = q.condition;
+  if (str(q.category)) filter.category = str(q.category);
+  if (str(q.model)) filter.model = { $in: str(q.model).split(',') };
+  if (str(q.condition)) filter.condition = str(q.condition);
   if (q.featured === 'true') filter.featured = true;
-  if (q.minPrice || q.maxPrice) {
+  const minPrice = num(q.minPrice);
+  const maxPrice = num(q.maxPrice);
+  if (minPrice !== undefined || maxPrice !== undefined) {
     filter.price = {};
-    if (q.minPrice) filter.price.$gte = Number(q.minPrice);
-    if (q.maxPrice) filter.price.$lte = Number(q.maxPrice);
+    if (minPrice !== undefined) filter.price.$gte = minPrice;
+    if (maxPrice !== undefined) filter.price.$lte = maxPrice;
   }
-  if (q.minRange) filter['specs.rangeKm'] = { $gte: Number(q.minRange) };
-  if (q.q) {
-    const rx = new RegExp(escapeRegex(String(q.q).trim()), 'i');
+  const minRange = num(q.minRange);
+  if (minRange) filter['specs.rangeKm'] = { $gte: minRange };
+  if (str(q.q).trim()) {
+    const rx = new RegExp(escapeRegex(str(q.q).trim()), 'i');
     filter.$or = [{ name: rx }, { model: rx }, { trim: rx }, { color: rx }, { stockNumber: rx }];
   }
   // Shoppers never see sold cars. Admins see everything when they ask for all=true.
@@ -51,8 +62,9 @@ exports.listProducts = asyncHandler(async (req, res) => {
   const isAdmin = req.user?.role === 'admin';
   const filter = buildFilter(req.query, isAdmin);
   const sort = SORTS[req.query.sort] || { featured: -1, year: -1 };
-  const limit = Math.min(Number(req.query.limit) || 24, 100);
-  const page = Math.max(Number(req.query.page) || 1, 1);
+  // Clamp paging so negative, zero or huge values cannot misbehave.
+  const limit = Math.min(Math.max(Math.floor(num(req.query.limit) || 24), 1), 100);
+  const page = Math.max(Math.floor(num(req.query.page) || 1), 1);
 
   const [items, total, modelCounts] = await Promise.all([
     Product.find(filter).sort(sort).skip((page - 1) * limit).limit(limit).lean(),

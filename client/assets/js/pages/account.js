@@ -23,6 +23,8 @@ $('#tab-register').addEventListener('click', () => selectTab('register'));
 function afterAuth(session, message) {
   setSession(session);
   toast(message);
+  // Admins work in the admin panel, not the customer account page.
+  if (session.user.role === 'admin') return void (location.href = 'admin.html');
   if (next && /^[a-z]+\.html$/.test(next)) location.href = next; // only local pages
   else location.reload();
 }
@@ -154,6 +156,7 @@ $('#logout').addEventListener('click', logout);
 /* ---------- Boot ---------- */
 async function boot() {
   const cached = getUser();
+  if (cached?.role === 'admin') return void location.replace('admin.html');
   if (!cached) {
     $('#account-title').textContent = 'Log in';
     $('#auth').hidden = false;

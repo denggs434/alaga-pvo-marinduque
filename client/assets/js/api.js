@@ -35,6 +35,22 @@ export async function api(path, { method = 'GET', body, auth = true } = {}) {
   return data;
 }
 
+/** Upload a file (multipart). Returns the parsed JSON response. */
+export async function apiUpload(path, file, field = 'image') {
+  const body = new FormData();
+  body.append(field, file);
+  const token = getToken();
+  let res;
+  try {
+    res = await fetch(BASE + path, { method: 'POST', headers: token ? { Authorization: `Bearer ${token}` } : {}, body });
+  } catch {
+    throw new Error('Cannot reach the server. Check that the API is running and try again.');
+  }
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw Object.assign(new Error(data.message || `Upload failed (${res.status}).`), { status: res.status });
+  return data;
+}
+
 /** Build a query string, skipping empty values. */
 export function qs(params) {
   const p = new URLSearchParams();
