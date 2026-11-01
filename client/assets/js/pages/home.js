@@ -3,6 +3,7 @@
  */
 import { api, qs } from '../api.js';
 import { initPage, productCard, skeletonCards, errorState, formatPrice, formatNumber, $, $$ } from '../ui.js';
+import { countUp } from '../motion.js';
 
 initPage('home');
 
@@ -17,14 +18,14 @@ async function loadLotStats() {
   const forSale = items.filter((p) => p.status === 'available' && p.condition !== 'pre-order');
   const preOwned = forSale.filter((p) => p.condition === 'pre-owned');
 
-  $('#stat-count').textContent = forSale.length;
-  $('#stat-from').textContent = forSale.length ? formatPrice(Math.min(...forSale.map((p) => p.price))) : '—';
-  $('#stat-range').textContent = forSale.length
-    ? `${formatNumber(Math.max(...forSale.map((p) => p.specs?.rangeKm || 0)))} km`
-    : '—';
-  $('#stat-km').textContent = preOwned.length
-    ? `${formatNumber(Math.min(...preOwned.map((p) => p.specs?.odometerKm ?? Infinity)))} km`
-    : '—';
+  // Numbers count up like an instrument cluster settling after power-on.
+  const km = (n) => `${formatNumber(Math.round(n))} km`;
+  countUp($('#stat-count'), forSale.length);
+  if (forSale.length) {
+    countUp($('#stat-from'), Math.min(...forSale.map((p) => p.price)), (n) => formatPrice(Math.round(n / 1000) * 1000));
+    countUp($('#stat-range'), Math.max(...forSale.map((p) => p.specs?.rangeKm || 0)), km);
+  }
+  if (preOwned.length) countUp($('#stat-km'), Math.min(...preOwned.map((p) => p.specs?.odometerKm ?? Infinity)), km);
 
   $$('[data-model]').forEach((el) => {
     const n = facets.models[el.dataset.model] || 0;

@@ -1,87 +1,34 @@
 /**
- * Shared UI: site header/footer, formatters, product cards, toasts.
+ * Shared UI: footer, product cards, toasts, form helpers and page bootstrap.
+ * The header lives in nav.js, animation in motion.js.
  * Every page imports this module and calls initPage().
  */
-import { cartCount, getUser, isAdmin, clearSession } from './store.js';
+import { clearSession } from './store.js';
+import { formatPrice, formatNumber, esc, $, $$ } from './format.js';
+import { ICONS, BRAND_MARK } from './icons.js';
+import { renderHeader, updateCartBadge, openCartDrawer } from './nav.js';
+import { initMotion } from './motion.js';
 
-/* ---------- Formatters ---------- */
-const peso = new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP', maximumFractionDigits: 0 });
-const num = new Intl.NumberFormat('en-PH');
-export const formatPrice = (n) => peso.format(n || 0);
-export const formatNumber = (n) => num.format(n || 0);
-export const formatDate = (d) =>
-  new Date(d).toLocaleDateString('en-PH', { year: 'numeric', month: 'short', day: 'numeric' });
+// Re-export helpers so page scripts can keep importing everything from ui.js.
+export { formatPrice, formatNumber, formatDate, formatPriceShort, esc, $, $$ } from './format.js';
+export { ICONS } from './icons.js';
+export { updateCartBadge, openCartDrawer };
 
-/** Escape text before putting it into innerHTML. */
-export function esc(value) {
-  return String(value ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
-}
+// Apply a saved theme as early as possible to avoid a flash of the wrong theme.
+try {
+  const saved = localStorage.getItem('voltyard.theme');
+  if (saved) document.documentElement.dataset.theme = saved;
+} catch { /* ignore */ }
 
-export const $ = (sel, root = document) => root.querySelector(sel);
-export const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
-
-/* ---------- Icons (inline SVG, stroke = currentColor) ---------- */
-const icon = (d) =>
-  `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
-export const ICONS = {
-  cart: icon('<path d="M3 4h2l2.4 11.2a1 1 0 0 0 1 .8h9.2a1 1 0 0 0 1-.8L20 8H6.2"/><circle cx="9" cy="20" r="1.4"/><circle cx="17" cy="20" r="1.4"/>'),
-  user: icon('<circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/>'),
-  menu: icon('<path d="M4 7h16M4 12h16M4 17h16"/>'),
-  sun: icon('<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>'),
-  moon: icon('<path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5Z"/>'),
-};
-
-const BRAND_MARK = `<svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true">
-  <rect x="1" y="1" width="30" height="30" rx="5" fill="var(--ink)"/>
-  <path d="M8 9h4.2L16 19.5 19.8 9H24l-6 15h-4z" fill="var(--bg)"/>
-  <path d="M17.5 4.5 15 10h3l-2.5 5.5" fill="none" stroke="var(--accent)" stroke-width="1.6" stroke-linejoin="round"/>
-</svg>`;
-
-/* ---------- Header & footer ---------- */
-const NAV = [
-  { href: 'index.html', label: 'Home', key: 'home' },
-  { href: 'products.html', label: 'Inventory', key: 'inventory' },
-  { href: 'products.html?category=accessory', label: 'Charging & Parts', key: 'accessories' },
-  { href: 'about.html', label: 'About', key: 'about' },
-  { href: 'contact.html', label: 'Contact', key: 'contact' },
-];
-
-function renderHeader(active) {
-  const user = getUser();
-  const links = [...NAV, ...(isAdmin() ? [{ href: 'admin.html', label: 'Admin', key: 'admin' }] : [])];
-  const header = document.createElement('header');
-  header.className = 'site-header';
-  header.innerHTML = `
-    <nav class="wrap nav" aria-label="Main">
-      <a class="brand" href="index.html">${BRAND_MARK}<span>Voltyard</span></a>
-      <ul class="nav-links" id="nav-links">
-        ${links.map((l) => `<li><a href="${l.href}" ${l.key === active ? 'aria-current="page"' : ''}>${l.label}</a></li>`).join('')}
-      </ul>
-      <div class="nav-tools">
-        <button class="icon-btn" id="theme-toggle" type="button" aria-label="Switch colour theme">${ICONS.moon}</button>
-        <a class="icon-btn" href="account.html" aria-label="${user ? `Account: ${esc(user.name)}` : 'Log in'}" title="${user ? esc(user.name) : 'Log in'}">${ICONS.user}</a>
-        <a class="icon-btn" href="cart.html" aria-label="Cart">${ICONS.cart}<span class="cart-count" id="cart-count" hidden></span></a>
-        <button class="icon-btn menu-toggle" id="menu-toggle" type="button" aria-expanded="false" aria-controls="nav-links" aria-label="Menu">${ICONS.menu}</button>
-      </div>
-    </nav>`;
-  document.body.prepend(header);
-
-  $('#menu-toggle').addEventListener('click', (e) => {
-    const open = $('#nav-links').classList.toggle('open');
-    e.currentTarget.setAttribute('aria-expanded', String(open));
-  });
-  setupThemeToggle();
-  updateCartBadge();
-}
-
+/* ---------- Footer ---------- */
 function renderFooter() {
   const footer = document.createElement('footer');
   footer.className = 'site-footer';
   footer.innerHTML = `
     <div class="wrap footer-grid">
       <div class="stack">
-        <a class="brand" href="index.html">${BRAND_MARK}<span>Voltyard</span></a>
-        <p class="muted">Independent Tesla dealer in Quezon City. New imports and certified pre-owned, every battery tested before sale.</p>
+        <a class="brand" href="index.html">${BRAND_MARK}<span class="brand-word">Voltyard<small>Motors</small></span></a>
+        <p class="muted">Independent Tesla dealer in Mogpog, Marinduque. New imports and certified pre-owned, every battery tested before sale.</p>
       </div>
       <div>
         <h4>Shop</h4>
@@ -104,10 +51,11 @@ function renderFooter() {
       <div>
         <h4>Showroom</h4>
         <ul class="muted">
-          <li>88 E. Rodriguez Jr. Ave.</li>
-          <li>Quezon City, Metro Manila</li>
-          <li class="mono">+63 2 8555 0142</li>
-          <li>Tue–Sun, 10:00–19:00</li>
+          <li>Balanacan Port Road, Brgy. Balanacan</li>
+          <li>Mogpog, Marinduque 4901</li>
+          <li class="mono">+63 42 332 0142</li>
+          <li>Tue–Sat 10:00–19:00</li>
+          <li>Sun 11:00–17:00 · Mon closed</li>
         </ul>
       </div>
     </div>
@@ -117,38 +65,6 @@ function renderFooter() {
     </div>`;
   document.body.append(footer);
 }
-
-/* ---------- Theme toggle (light / dark), remembered per browser ---------- */
-function setupThemeToggle() {
-  const btn = $('#theme-toggle');
-  const prefersDark = () => window.matchMedia('(prefers-color-scheme: dark)').matches;
-  const current = () => document.documentElement.dataset.theme || (prefersDark() ? 'dark' : 'light');
-  const paint = () => {
-    btn.innerHTML = current() === 'dark' ? ICONS.sun : ICONS.moon;
-    btn.setAttribute('aria-label', current() === 'dark' ? 'Switch to light theme' : 'Switch to dark theme');
-  };
-  btn.addEventListener('click', () => {
-    const next = current() === 'dark' ? 'light' : 'dark';
-    document.documentElement.dataset.theme = next;
-    try { localStorage.setItem('voltyard.theme', next); } catch { /* ignore */ }
-    paint();
-  });
-  paint();
-}
-// Apply a saved theme as early as possible.
-try {
-  const saved = localStorage.getItem('voltyard.theme');
-  if (saved) document.documentElement.dataset.theme = saved;
-} catch { /* ignore */ }
-
-export function updateCartBadge() {
-  const el = $('#cart-count');
-  if (!el) return;
-  const n = cartCount();
-  el.textContent = n;
-  el.hidden = n === 0;
-}
-document.addEventListener('cart:change', updateCartBadge);
 
 /* ---------- Toasts ---------- */
 export function toast(message, type = 'info') {
@@ -175,7 +91,7 @@ export function batteryGauge(health) {
   const cells = Math.round(health / 10);
   const cls = health >= 90 ? '' : 'mid';
   return `<span class="battery ${cls}" title="Battery health ${health}% of original capacity">
-    <span class="battery-cells" aria-hidden="true">${Array.from({ length: 10 }, (_, i) => `<i class="${i < cells ? 'on' : ''}"></i>`).join('')}</span>
+    <span class="battery-cells" aria-hidden="true">${Array.from({ length: 10 }, (_, i) => `<i class="${i < cells ? 'on' : ''}" style="--i:${i}"></i>`).join('')}</span>
     <span>${health}%</span><span class="sr-only">battery health</span>
   </span>`;
 }
@@ -202,7 +118,7 @@ function stickerFor(p) {
   const third =
     p.condition === 'pre-owned'
       ? `<div><dt>Odometer</dt><dd>${formatNumber(s.odometerKm)}<small> km</small></dd></div>`
-      : `<div><dt>Top speed</dt><dd>${s.topSpeedKph}<small> km/h</small></dd></div>`;
+      : `<div><dt title="Top speed">Top</dt><dd>${s.topSpeedKph}<small> km/h</small></dd></div>`;
   return `<dl class="sticker">
     <div><dt>Range</dt><dd>${formatNumber(s.rangeKm)}<small> km</small></dd></div>
     <div><dt>0–100</dt><dd>${Number(s.zeroTo100).toFixed(1)}<small> s</small></dd></div>
@@ -270,8 +186,14 @@ export function setBusy(button, busy, busyLabel) {
 
 /* ---------- Page bootstrap ---------- */
 export function initPage(active) {
+  const main = document.querySelector("main");
+  if (main && !main.id) main.id = "main";
+  document.body.insertAdjacentHTML("afterbegin", '<a class="skip-link" href="#main">Skip to content</a>');
   renderHeader(active);
+  // keep the skip link first in tab order
+  document.body.prepend(document.querySelector(".skip-link"));
   renderFooter();
+  initMotion();
 }
 
 export function logout() {

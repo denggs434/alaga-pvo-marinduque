@@ -3,7 +3,7 @@
  */
 import { api } from '../api.js';
 import { addToCart, DEFAULT_DEPOSIT } from '../store.js';
-import { initPage, productCard, errorState, formatPrice, formatNumber, batteryGauge, conditionTag, toast, esc, $ } from '../ui.js';
+import { initPage, productCard, errorState, formatPrice, formatNumber, batteryGauge, conditionTag, toast, esc, openCartDrawer, $ } from '../ui.js';
 
 initPage('inventory');
 
@@ -101,7 +101,7 @@ function render(p) {
   $('#add')?.addEventListener('click', () => {
     const result = addToCart(p, qtyInput ? Number(qtyInput.value) || 1 : 1);
     toast(result.message, result.ok ? 'info' : 'error');
-    if (result.ok && p.category === 'vehicle') setTimeout(() => (location.href = 'cart.html'), 600);
+    if (result.ok) openCartDrawer();
   });
 }
 

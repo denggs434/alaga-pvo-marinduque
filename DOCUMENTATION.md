@@ -13,13 +13,13 @@ Stack: HTML/CSS/JavaScript · Node.js + Express.js · MongoDB (Mongoose) · REST
 | **Company type** | Small business, an independent car dealer |
 | **Industry** | Automotive |
 | **Services** | Sells new imported and certified pre-owned Tesla vehicles (Model 3, Model Y, Model S, Model X, Cybertruck, Roadster), takes pre-orders for upcoming Tesla models, sells home and commercial chargers, wheels and parts, books test drives, makes trade-in offers and arranges financing. |
-| **Target audience** | First-time EV buyers in Metro Manila, families looking at 5–7 seat EVs, enthusiasts and collectors, and businesses installing destination chargers. |
+| **Target audience** | First-time EV buyers across Marinduque (Boac, Buenavista, Gasan, Mogpog, Santa Cruz, Torrijos), OFW families buying a family car, enthusiasts and collectors, and resorts and businesses installing destination chargers. |
 | **Company goals** | Reach buyers outside the showroom, show live inventory with honest battery data, take reservations online, and reduce time spent answering the same questions by phone. |
 | **Website purpose** | Sell products: reserve vehicles with a deposit, buy accessories, and collect test-drive, financing and trade-in leads. |
 
 ### Company brief
 
-Voltyard Motors is an independent Tesla dealer in Quezon City that sells new imported and battery-tested pre-owned Teslas, along with chargers and parts. Every pre-owned car is sold with a printed battery health test. The company needs a website so customers across the Philippines can browse live inventory, reserve a car with a refundable deposit, and book test drives without calling the showroom.
+Voltyard Motors is an independent Tesla dealer in Mogpog, Marinduque, near Balanacan Port, that sells new imported and battery-tested pre-owned Teslas, along with chargers and parts. Every pre-owned car is sold with a printed battery health test. Because Marinduque is an island province, most buyers would otherwise have to take the RoRo to Lucena and drive to Manila just to see a Tesla. The company needs a website so customers on the island and beyond can browse live inventory, reserve a car with a refundable deposit, and book test drives without calling the showroom.
 
 ---
 
@@ -31,7 +31,7 @@ The website is an **e-commerce** site. Shoppers can filter the inventory, view a
 
 ## 2. Problem Statement
 
-Voltyard Motors currently faces challenges such as inventory that is only visible to people who visit the showroom, reservations taken by phone and written in a notebook, and the same questions about range and battery condition answered again and again by sales staff. This limits their ability to sell to buyers outside Metro Manila, prevents two salespeople from promising the same car to different customers, and slows down every sale.
+Voltyard Motors currently faces challenges such as inventory that is only visible to people who visit the showroom, reservations taken by phone and written in a notebook, and the same questions about range and battery condition answered again and again by sales staff. This limits their ability to sell to buyers in the other five towns of Marinduque and on the mainland, prevents two salespeople from promising the same car to different customers, and slows down every sale.
 
 Used EV buyers also have no reliable way to judge battery condition before visiting. A digital solution that publishes the battery test result with each listing, and that locks a car the moment it is reserved, solves both the trust problem and the double-booking problem.
 
@@ -52,7 +52,7 @@ The system will include key pages such as Home, About, Products (Inventory), Pro
 - Browse vehicles and accessories, filtered by model, condition (new, pre-owned, pre-order), price and range, with search, sorting and pagination
 - View a specification sheet for each vehicle: range, 0–100 km/h, top speed, battery size, drive, seats, odometer and battery health
 - Add vehicles and accessories to a cart and see the deposit due now and the balance due at handover
-- Create an account, log in, place an order for showroom pickup or Metro Manila delivery, and cancel a pending order
+- Create an account, log in, place an order for showroom pickup in Mogpog or delivery anywhere in Marinduque, and cancel a pending order
 - Pre-order the second-generation Roadster with the SpaceX Package, a car that is announced but not yet in production
 - Send a test-drive, financing, trade-in or general enquiry through the contact form
 - (Admins) View store statistics; add, edit and delete listings; update order status; triage contact messages; and view customers

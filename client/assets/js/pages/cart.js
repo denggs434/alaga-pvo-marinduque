@@ -54,14 +54,14 @@ function checkoutHtml(user) {
   return `<form id="checkout" class="stack" novalidate>
     <h3>Checkout</h3>
     <div class="radio-cards" role="radiogroup" aria-label="Fulfilment">
-      <label><input type="radio" name="method" value="pickup" checked><strong>Showroom pickup</strong><small>Quezon City</small></label>
-      <label><input type="radio" name="method" value="delivery"><strong>Delivery</strong><small>Metro Manila</small></label>
+      <label><input type="radio" name="method" value="pickup" checked><strong>Showroom pickup</strong><small>Mogpog showroom</small></label>
+      <label><input type="radio" name="method" value="delivery"><strong>Delivery</strong><small>Anywhere in Marinduque</small></label>
     </div>
     <label class="field"><span>Full name</span><input class="input" id="fullName" name="fullName" value="${esc(user.name)}" required autocomplete="name"><small class="field-error"></small></label>
     <label class="field"><span>Mobile number</span><input class="input" id="phone" name="phone" value="${esc(user.phone || '')}" required autocomplete="tel" placeholder="0917 123 4567"><small class="field-error"></small></label>
     <div id="address-fields" class="stack" hidden>
       <label class="field"><span>Street address</span><input class="input" id="address" name="address" autocomplete="street-address"><small class="field-error"></small></label>
-      <label class="field"><span>City</span><input class="input" id="city" name="city" autocomplete="address-level2" placeholder="Makati"><small class="field-error"></small></label>
+      <label class="field"><span>City</span><input class="input" id="city" name="city" autocomplete="address-level2" placeholder="Boac"><small class="field-error"></small></label>
     </div>
     <label class="field"><span>Payment</span>
       <select class="input" id="paymentMethod" name="paymentMethod">

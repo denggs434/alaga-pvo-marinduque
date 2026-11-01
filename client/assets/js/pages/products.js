@@ -21,7 +21,7 @@ const state = {
   page: Number(params.get('page')) || 1,
 };
 
-initPage(state.category === 'accessory' ? 'accessories' : 'inventory');
+initPage(state.category === 'accessory' ? 'accessories' : state.condition === 'pre-order' ? 'preorder' : 'inventory');
 
 const form = $('#filters');
 const results = $('#results');
@@ -51,7 +51,7 @@ function syncControls() {
   $('#minRange-out').textContent = state.minRange ? `${state.minRange}+ km` : 'Any';
 
   const titles = {
-    vehicle: ['Inventory', 'Every car listed here is on our lot in Quezon City, except pre-orders.'],
+    vehicle: ['Inventory', 'Every car listed here is on our lot in Mogpog, Marinduque, except pre-orders.'],
     accessory: ['Charging & parts', 'Home chargers, wheels and parts for your Tesla. Paid in full at checkout.'],
   };
   let [title, lede] = titles[state.category];

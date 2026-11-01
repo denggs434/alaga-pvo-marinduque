@@ -1,6 +1,6 @@
 # Voltyard Motors: Tesla Online Shop
 
-A full stack e-commerce site for **Voltyard Motors**, a fictional independent Tesla dealer in Quezon City. Shoppers browse new, pre-owned and pre-order Teslas, reserve a car with a refundable deposit, buy chargers and parts, and book test drives. Staff run everything from an admin panel.
+A full stack e-commerce site for **Voltyard Motors**, a fictional independent Tesla dealer in Mogpog, Marinduque. Shoppers browse new, pre-owned and pre-order Teslas, reserve a car with a refundable deposit, buy chargers and parts, and book test drives. Staff run everything from an admin panel.
 
 - **Frontend:** HTML, CSS, JavaScript (ES modules, no build step), in `/client`
 - **Backend:** Node.js + Express.js REST API, in `/server`
