@@ -14,6 +14,7 @@ const itemSchema = new mongoose.Schema(
     name: String,
     image: String,
     category: { type: String, enum: ['vehicle', 'accessory'] },
+    model: String, // snapshot, so sales reports survive listing deletions
     price: Number,
     qty: { type: Number, min: 1 },
     preorder: { type: Boolean, default: false }, // vehicle not yet in production

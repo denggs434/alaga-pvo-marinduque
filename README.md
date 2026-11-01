@@ -18,6 +18,7 @@ Project write-up (introduction, problem, objectives, scope, limitations, solutio
 - Double-booking protection: a car is locked in the database the moment it is ordered
 - Contact form for test drives, financing and trade-ins, linked to a specific car
 - Admin lot console (admins land here after login): today's to-do queue, lot status bar, inline status and stock changes, order pipeline (pending → confirmed → ready → completed), customer inbox, number-key shortcuts
+- Sales view: completed sales, deposits, open pipeline, cars sold, weekly sales chart (4/12/26 weeks), revenue by model, orders by status, table view
 - Photo upload for listings (drag and drop, JPG/PNG/WebP up to 5 MB, file type checked on the server)
 - Only customer accounts can place orders; admins manage them
 - Responsive layout, light and dark themes, accessible forms and focus states
@@ -30,7 +31,7 @@ Project write-up (introduction, problem, objectives, scope, limitations, solutio
 cd server
 npm install
 cp .env.example .env      # then edit MONGO_URI (and JWT_SECRET)
-npm run seed              # loads 14 vehicles, 5 accessories, admin and demo customer
+npm run seed              # loads 14 vehicles, 5 accessories, accounts and sample sales history
 npm start                 # http://localhost:5000
 ```
 
@@ -90,6 +91,7 @@ docs/                       Assignment instructions and rubric
 | PATCH | `/api/orders/:id/status` | Admin | pending → confirmed → ready → completed / cancelled |
 | GET | `/api/admin/stats` | Admin | Dashboard numbers |
 | POST | `/api/uploads` | Admin | Upload a listing photo (multipart field `image`) |
+| GET | `/api/admin/sales?weeks=12` | Admin | Sales totals, weekly series, revenue by model, orders by status |
 
 Errors always come back as `{ "message": "...", "details": { field: message } }` with a matching HTTP status.
 

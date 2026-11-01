@@ -76,6 +76,7 @@ exports.createOrder = asyncHandler(async (req, res) => {
       name: p.name,
       image: p.image,
       category: p.category,
+      model: p.model || undefined,
       price: p.price,
       qty: p.category === 'vehicle' ? 1 : wanted.get(String(p._id)),
       preorder: p.condition === 'pre-order',

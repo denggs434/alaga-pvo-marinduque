@@ -3,6 +3,7 @@
  *
  * Views (switched with the URL hash so each can be bookmarked):
  *   #today      what needs attention right now + lot status bar
+ *   #sales      sales figures and charts (admin-sales.js)
  *   #lot        every listing, with inline status / stock changes
  *   #orders     pipeline: pending → confirmed → ready → completed
  *   #messages   customer inbox
@@ -14,6 +15,7 @@
 import { api, apiUpload, qs } from '../api.js';
 import { isAdmin, getUser, setSession, clearSession } from '../store.js';
 import { showroomStatus } from '../nav.js';
+import { createSalesView } from './admin-sales.js';
 import { initAdminPage, formatPrice, formatPriceShort, formatDate, esc, toast, showFieldErrors, setBusy, ICONS, $, $$ } from '../ui.js';
 
 const signedIn = isAdmin();
@@ -86,7 +88,8 @@ function boot() {
   });
 
   /* ---------- Views (hash routing) ---------- */
-  const VIEWS = ['today', 'lot', 'orders', 'messages', 'customers'];
+  const VIEWS = ['today', 'sales', 'lot', 'orders', 'messages', 'customers'];
+  const sales = createSalesView();
   function showView() {
     const view = VIEWS.includes(location.hash.slice(1)) ? location.hash.slice(1) : 'today';
     $$('[data-panel]').forEach((p) => (p.hidden = p.dataset.panel !== view));
@@ -96,7 +99,7 @@ function boot() {
   addEventListener('hashchange', showView);
   showView();
 
-  // Number keys 1–5 jump between views (ignored while typing in a field).
+  // Number keys 1–6 jump between views (ignored while typing in a field).
   addEventListener('keydown', (e) => {
     if (e.metaKey || e.ctrlKey || e.altKey || /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement?.tagName) || $('dialog[open]')) return;
     const view = VIEWS[Number(e.key) - 1];
@@ -123,6 +126,7 @@ function boot() {
       ]);
       Object.assign(state, { products, orders, messages, users });
       renderAll();
+      sales.load(); // order changes move the sales numbers too
     } catch (err) {
       toast(err.message, 'error');
       if (err.status === 401 || err.status === 403) setTimeout(() => location.reload(), 1200);
@@ -183,8 +187,9 @@ function boot() {
     const v = vehicles();
     const groups = [
       { key: 'available', label: 'Available', n: v.filter((p) => p.status === 'available' && p.condition !== 'pre-order').length },
-      { key: 'reserved', label: 'Reserved', n: v.filter((p) => p.status === 'reserved').length },
+      // Order chosen so no two hard-to-separate colours touch (validated with the dataviz script).
       { key: 'preorder', label: 'Pre-order', n: v.filter((p) => p.condition === 'pre-order').length },
+      { key: 'reserved', label: 'Reserved', n: v.filter((p) => p.status === 'reserved').length },
       { key: 'sold', label: 'Sold', n: v.filter((p) => p.status === 'sold').length },
     ];
     const pending = state.orders.filter((o) => o.status === 'pending');

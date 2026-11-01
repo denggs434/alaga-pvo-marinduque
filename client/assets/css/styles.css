@@ -18,6 +18,7 @@
   --accent: #1d3fd6;      /* signal cobalt */
   --accent-ink: #ffffff;
   --accent-soft: #e3e8fc;
+  --chart-open: #8a9ef0;  /* lighter step of the accent hue for 'still open' bar segments */
   --good: #1c7f3c;
   --warn: #a8630b;
   --bad: #b3261e;
@@ -63,6 +64,7 @@
     --accent: #8098ff;
     --accent-ink: #0b1030;
     --accent-soft: #1d2549;
+    --chart-open: #4452ad;
     --good: #5cc983;
     --warn: #e5a54a;
     --bad: #f08b83;
@@ -84,6 +86,7 @@
   --accent: #8098ff;
   --accent-ink: #0b1030;
   --accent-soft: #1d2549;
+  --chart-open: #4452ad;
   --good: #5cc983;
   --warn: #e5a54a;
   --bad: #f08b83;
@@ -2029,3 +2032,98 @@ dialog::backdrop { background: rgb(10 12 14 / 0.55); }
 }
 .console-nav a[aria-current] kbd { border-color: #8098ff; color: #c9d3ff; }
 @media (max-width: 860px) { .console-status, .console-nav kbd { display: none; } }
+
+/* ==========================================================================
+   Admin Sales view (charts)
+   ========================================================================== */
+.kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0; margin: 0; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); overflow: hidden; }
+.kpis > div { display: grid; gap: 4px; padding: 18px 20px 20px; border-left: 1px solid var(--line); }
+.kpis > div:first-child { border-left: 0; }
+.kpis dt { font: 500 0.6875rem/1.3 var(--font-mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.kpis dd { margin: 4px 0 0; font: 700 clamp(1.5rem, 2.6vw, 2.125rem)/1 var(--font-display); letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
+.kpis span { color: var(--muted); font-size: 0.8125rem; }
+
+.chart-card { position: relative; display: grid; gap: 16px; padding: 20px 22px 18px; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); min-width: 0; }
+.chart-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-start; gap: 10px 24px; }
+.chart-head h2 { font-size: 1.0625rem; }
+.chart-head p { color: var(--muted); font-size: 0.8125rem; }
+.chart-legend { display: flex; gap: 16px; list-style: none; margin: 0; padding: 0; font-size: 0.8125rem; color: var(--muted); }
+.chart-legend li { display: inline-flex; align-items: center; gap: 6px; }
+.sw-done, .sw-open { display: inline-block; width: 10px; height: 10px; border-radius: 3px; }
+.sw-done { background: var(--accent); }
+.sw-open { background: var(--chart-open); }
+
+.chart { width: 100%; min-width: 0; }
+.chart svg { display: block; width: 100%; height: auto; overflow: visible; }
+.chart .grid { stroke: var(--line); stroke-width: 1; stroke-dasharray: 2 4; }
+.chart .axis { stroke: color-mix(in srgb, var(--ink) 30%, var(--line)); stroke-width: 1; }
+.chart .tick { fill: var(--muted); font: 500 11px var(--font-mono); }
+.chart .tick-now { fill: var(--ink); font-weight: 600; }
+.chart .seg-done { fill: var(--accent); }
+.chart .seg-open { fill: var(--chart-open); }
+.chart .hit { fill: transparent; cursor: pointer; outline: none; }
+.chart .hit:focus-visible { stroke: var(--accent); stroke-width: 2; stroke-dasharray: 3 3; }
+.chart .bar { transition: opacity var(--dur-2) ease; }
+.chart .bar.is-dim { opacity: 0.35; }
+.chart-tip {
+  position: absolute;
+  z-index: 5;
+  display: grid;
+  gap: 4px;
+  min-width: 210px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface);
+  box-shadow: var(--shadow-lg);
+  font-size: 0.8125rem;
+  pointer-events: none;
+}
+.chart-tip span { display: flex; align-items: center; gap: 6px; color: var(--muted); }
+.chart-tip b { margin-left: auto; color: var(--ink); font: 600 0.8125rem var(--font-mono); }
+.chart-tip .tip-total { padding-top: 4px; margin-top: 2px; border-top: 1px solid var(--line); }
+
+.sales-split { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 16px; }
+.hbars, .status-rows { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+.hbars li { display: grid; grid-template-columns: 140px minmax(0, 1fr) 72px; align-items: center; gap: 12px; }
+.hb-label { display: grid; font-weight: 600; font-size: 0.875rem; line-height: 1.25; }
+.hb-label small { color: var(--muted); font-weight: 400; font-size: 0.75rem; }
+.hb-track { height: 14px; }
+.hb-bar { display: block; width: var(--w); height: 100%; min-width: 3px; border-radius: 0 4px 4px 0; background: var(--accent); }
+.hb-value { text-align: right; font-size: 0.875rem; font-weight: 500; }
+.status-rows li { display: grid; grid-template-columns: 12px minmax(0, 1fr) 32px 80px 72px; align-items: center; gap: 10px; font-size: 0.875rem; }
+.sr-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--muted); }
+.tone-warn .sr-dot { background: var(--warn); }
+.tone-accent .sr-dot { background: var(--accent); }
+.tone-good .sr-dot { background: var(--good); }
+.tone-bad .sr-dot { background: var(--bad); }
+.sr-label { font-weight: 500; }
+.sr-count { text-align: right; font-weight: 600; }
+.sr-share { height: 6px; border-radius: 3px; background: var(--surface-2); overflow: hidden; }
+.sr-share span { display: block; width: var(--w); height: 100%; border-radius: 3px; background: color-mix(in srgb, var(--ink) 35%, var(--line)); }
+.sr-value { text-align: right; color: var(--muted); }
+.table-toggle { padding: 14px 18px; }
+.table-toggle summary { cursor: pointer; font-weight: 500; color: var(--muted); }
+.table-toggle .table-wrap { margin-top: 12px; }
+
+@media (max-width: 1100px) { .sales-split { grid-template-columns: 1fr; } }
+@media (max-width: 760px) {
+  .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .kpis > div:nth-child(3) { border-left: 0; }
+  .kpis > div:nth-child(n + 3) { border-top: 1px solid var(--line); }
+  .hbars li { grid-template-columns: 110px minmax(0, 1fr) 64px; }
+  .status-rows li { grid-template-columns: 12px minmax(0, 1fr) 28px 64px; }
+  .sr-share { display: none; }
+}
+
+@keyframes bar-grow { from { transform: scaleY(0); } }
+@keyframes hbar-grow { from { transform: scaleX(0); } }
+@media (prefers-reduced-motion: no-preference) {
+  /* Bars grow up from the baseline, left to right, ~30ms apart */
+  .chart .bar path, .chart .bar rect:not(.hit) { transform-box: fill-box; transform-origin: bottom; animation: bar-grow 700ms var(--ease-out) both; animation-delay: calc(var(--i) * 30ms + 100ms); }
+  .chart .bar .seg-open { animation-delay: calc(var(--i) * 30ms + 260ms); }
+  .hb-bar { transform-origin: left; animation: hbar-grow 800ms var(--ease-out) both; animation-delay: calc(var(--i) * 60ms + 150ms); }
+  .sr-share span { transform-origin: left; animation: hbar-grow 700ms var(--ease-out) 200ms both; }
+}
+
+.chart.no-anim .bar path, .chart.no-anim .bar rect { animation: none !important; }

@@ -55,7 +55,7 @@ The system will include key pages such as Home, About, Products (Inventory), Pro
 - Create an account, log in, place an order for showroom pickup in Mogpog or delivery anywhere in Marinduque, and cancel a pending order
 - Pre-order the second-generation Roadster with the SpaceX Package, a car that is announced but not yet in production
 - Send a test-drive, financing, trade-in or general enquiry through the contact form
-- (Admins) Sign in to a separate admin console, see a daily to-do queue, add, edit and delete listings with photo upload, change a car's status or a part's stock inline, move orders through a pipeline, answer contact messages, and view customers. Admin accounts cannot place orders.
+- (Admins) Sign in to a separate admin console, see a daily to-do queue, add, edit and delete listings with photo upload, change a car's status or a part's stock inline, move orders through a pipeline, review sales (weekly chart, revenue by model, orders by status), answer contact messages, and view customers. Admin accounts cannot place orders.
 
 ## 5. Limitations
 
@@ -91,7 +91,7 @@ At a high level:
 | Users | `POST /api/users/register`, `POST /api/users/login`, `GET/PUT /api/users/me`, `GET /api/users` (admin) |
 | Contact | `POST /api/contact`, `GET /api/contact` (admin), `PATCH/DELETE /api/contact/:id` (admin) |
 | Orders | `POST /api/orders`, `GET /api/orders/mine`, `GET /api/orders/:id`, `PATCH /api/orders/:id/cancel`, `GET /api/orders` (admin), `PATCH /api/orders/:id/status` (admin) |
-| Admin | `GET /api/admin/stats`, `POST /api/uploads` (photo upload) |
+| Admin | `GET /api/admin/stats`, `GET /api/admin/sales`, `POST /api/uploads` (photo upload) |
 
 **Database (data storage).** MongoDB with four collections defined by Mongoose schemas:
 

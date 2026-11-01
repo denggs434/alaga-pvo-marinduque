@@ -43,10 +43,11 @@
         <p class="console-status" id="console-status"><i></i><span></span></p>
         <nav class="console-nav">
           <a href="#today" data-view="today"><kbd>1</kbd>Today</a>
-          <a href="#lot" data-view="lot"><kbd>2</kbd>Lot<b data-badge="lot"></b></a>
-          <a href="#orders" data-view="orders"><kbd>3</kbd>Orders<b data-badge="orders"></b></a>
-          <a href="#messages" data-view="messages"><kbd>4</kbd>Messages<b data-badge="messages"></b></a>
-          <a href="#customers" data-view="customers"><kbd>5</kbd>Customers</a>
+          <a href="#sales" data-view="sales"><kbd>2</kbd>Sales</a>
+          <a href="#lot" data-view="lot"><kbd>3</kbd>Lot<b data-badge="lot"></b></a>
+          <a href="#orders" data-view="orders"><kbd>4</kbd>Orders<b data-badge="orders"></b></a>
+          <a href="#messages" data-view="messages"><kbd>5</kbd>Messages<b data-badge="messages"></b></a>
+          <a href="#customers" data-view="customers"><kbd>6</kbd>Customers</a>
         </nav>
         <div class="console-foot">
           <div class="console-user"><span class="avatar" id="admin-avatar"></span><span><strong id="admin-name"></strong><small>Mogpog showroom</small></span></div>
@@ -80,6 +81,48 @@
               <div><span class="label">Customer accounts</span><strong id="money-customers">—</strong></div>
             </aside>
           </div>
+        </div>
+
+        <!-- Sales -->
+        <div class="view" data-panel="sales" hidden>
+          <header class="view-head row between">
+            <div class="stack" style="gap:4px"><span class="label">Performance</span><h1>Sales</h1></div>
+            <div class="chips" role="group" aria-label="Time range">
+              <button type="button" class="chip" data-weeks="4" aria-pressed="false">4 weeks</button>
+              <button type="button" class="chip" data-weeks="12" aria-pressed="true">12 weeks</button>
+              <button type="button" class="chip" data-weeks="26" aria-pressed="false">26 weeks</button>
+            </div>
+          </header>
+
+          <dl class="kpis" id="kpis"></dl>
+
+          <section class="chart-card" aria-labelledby="weekly-title">
+            <header class="chart-head">
+              <div><h2 id="weekly-title">Sales booked per week</h2><p>Value of orders placed each week. Cancelled orders are left out.</p></div>
+              <ul class="chart-legend">
+                <li><i class="sw-done"></i>Completed</li>
+                <li><i class="sw-open"></i>Still open</li>
+              </ul>
+            </header>
+            <div class="chart" id="weekly-chart"></div>
+            <div class="chart-tip" id="chart-tip" hidden></div>
+          </section>
+
+          <div class="sales-split">
+            <section class="chart-card" aria-labelledby="model-title">
+              <header class="chart-head"><div><h2 id="model-title">Revenue by model</h2><p>All time, cancelled orders left out.</p></div></header>
+              <ul class="hbars" id="by-model"></ul>
+            </section>
+            <section class="chart-card" aria-labelledby="status-title">
+              <header class="chart-head"><div><h2 id="status-title">Orders by status</h2><p>Count and value, all time.</p></div></header>
+              <ul class="status-rows" id="by-status"></ul>
+            </section>
+          </div>
+
+          <details class="chart-card table-toggle">
+            <summary>Show weekly numbers as a table</summary>
+            <div class="table-wrap"><table id="weekly-table"></table></div>
+          </details>
         </div>
 
         <!-- Lot -->
