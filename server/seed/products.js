@@ -135,6 +135,18 @@ module.exports = [
     specs: { rangeKm: 393, zeroTo100: 4.0, topSpeedKph: 201, batteryKwh: 53, drive: 'RWD', seats: 2, odometerKm: 61400, batteryHealth: 78 },
   },
 
+  {
+    name: 'Roadster (2nd Gen) with SpaceX Package', model: 'Roadster', year: 2027, trim: 'Founders Series, SpaceX Package',
+    stockNumber: 'VY-PRE-01', condition: 'pre-order', color: 'Red Multi-Coat', price: 14900000, featured: true,
+    deposit: 500000,
+    image: 'assets/img/cars/roadster-2gen.jpg',
+    summary: 'The "flying" Tesla. Cold-gas thrusters from SpaceX. Not yet in production.',
+    disclaimer: 'Pre-order only. Tesla has not started production or confirmed a delivery date. Specifications are manufacturer claims for the prototype, and the SpaceX Package ("flight" capability) has not been demonstrated publicly. Your ₱500,000 deposit is fully refundable until the factory confirms your build.',
+    description: 'Tesla calls the second-generation Roadster the quickest production car ever planned. The optional SpaceX Package swaps the rear seats for about ten cold-gas thrusters running on composite-overwrapped pressure vessels. Tesla says they will cut acceleration times and improve braking and cornering, and Elon Musk has hinted the car may be able to hover briefly. Reserve a build slot through Voltyard and we handle the import, homologation and LTO registration when cars start shipping.',
+    features: ['SpaceX cold-gas thruster package', 'Removable glass roof', '2+2 seating', 'Tri-motor AWD', 'Refundable deposit', 'Import and LTO registration handled by Voltyard'],
+    specs: { rangeKm: 1000, zeroTo100: 1.9, topSpeedKph: 400, batteryKwh: 200, drive: 'AWD', seats: 4, odometerKm: 0 },
+  },
+
   // ---------- Accessories ----------
   {
     name: 'Wall Connector (Gen 3)', category: 'accessory', compatibleWith: ALL, price: 38500, stock: 12,

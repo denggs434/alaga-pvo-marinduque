@@ -3,6 +3,7 @@
  *
  * Stock rules:
  *  - A vehicle is reserved the moment the order is placed (status available -> reserved).
+ *  - A pre-order (vehicle not yet built) is never locked; any number of buyers can reserve one.
  *  - Accessory stock is decremented by the ordered quantity.
  *  - Cancelling releases both. Completing an order marks its vehicles as sold.
  * Each reservation uses a conditional update so two shoppers cannot reserve the same car.
@@ -15,11 +16,13 @@ const asyncHandler = require('../utils/asyncHandler');
 /** Put stock back for every line of an order (used on cancel and on failed checkout). */
 async function releaseStock(lines) {
   await Promise.all(
-    lines.map((line) =>
-      line.category === 'vehicle'
-        ? Product.updateOne({ _id: line.product, status: 'reserved' }, { status: 'available', stock: 1 })
-        : Product.updateOne({ _id: line.product }, { $inc: { stock: line.qty } })
-    )
+    lines
+      .filter((line) => !line.preorder) // pre-orders never took stock
+      .map((line) =>
+        line.category === 'vehicle'
+          ? Product.updateOne({ _id: line.product, status: 'reserved' }, { status: 'available', stock: 1 })
+          : Product.updateOne({ _id: line.product }, { $inc: { stock: line.qty } })
+      )
   );
 }
 
@@ -43,7 +46,10 @@ exports.createOrder = asyncHandler(async (req, res) => {
   const held = []; // lines whose stock we already took, for rollback
   try {
     for (const p of products) {
-      if (p.category === 'vehicle') {
+      if (p.category === 'vehicle' && p.condition === 'pre-order') {
+        if (p.status !== 'available') throw new HttpError(409, `Pre-orders for ${p.name} are closed.`);
+        held.push({ product: p._id, category: 'vehicle', qty: 1, preorder: true });
+      } else if (p.category === 'vehicle') {
         const ok = await Product.findOneAndUpdate(
           { _id: p._id, status: 'available' },
           { status: 'reserved', stock: 0 }
@@ -68,11 +74,12 @@ exports.createOrder = asyncHandler(async (req, res) => {
       category: p.category,
       price: p.price,
       qty: p.category === 'vehicle' ? 1 : wanted.get(String(p._id)),
+      preorder: p.condition === 'pre-order',
+      deposit: p.category === 'vehicle' ? p.deposit ?? Order.VEHICLE_DEPOSIT : undefined,
     }));
 
-    const deposit = Order.VEHICLE_DEPOSIT;
     const subtotal = lines.reduce((sum, l) => sum + l.price * l.qty, 0);
-    const dueNow = lines.reduce((sum, l) => sum + (l.category === 'vehicle' ? deposit : l.price * l.qty), 0);
+    const dueNow = lines.reduce((sum, l) => sum + (l.category === 'vehicle' ? l.deposit : l.price * l.qty), 0);
 
     const order = await Order.create({
       user: req.user._id,
@@ -140,7 +147,7 @@ exports.updateOrderStatus = asyncHandler(async (req, res) => {
 
   if (status === 'cancelled') await releaseStock(order.items);
   if (status === 'completed') {
-    const vehicleIds = order.items.filter((i) => i.category === 'vehicle').map((i) => i.product);
+    const vehicleIds = order.items.filter((i) => i.category === 'vehicle' && !i.preorder).map((i) => i.product);
     await Product.updateMany({ _id: { $in: vehicleIds } }, { status: 'sold', stock: 0 });
   }
   res.json(order);

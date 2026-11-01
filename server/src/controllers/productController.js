@@ -19,7 +19,7 @@ const SORTS = {
 const EDITABLE = [
   'name', 'category', 'model', 'compatibleWith', 'stockNumber', 'condition', 'year', 'trim',
   'color', 'price', 'stock', 'status', 'image', 'imageCredit', 'summary', 'description',
-  'features', 'specs', 'featured',
+  'features', 'specs', 'featured', 'deposit', 'disclaimer',
 ];
 const pick = (obj, keys) => Object.fromEntries(keys.filter((k) => obj[k] !== undefined).map((k) => [k, obj[k]]));
 const escapeRegex = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');

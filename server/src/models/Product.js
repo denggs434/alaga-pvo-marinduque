@@ -1,5 +1,6 @@
 /**
  * Product = anything sold in the shop.
+ *  - condition "pre-order": a vehicle not yet in production; reservations do not lock it
  *  - category "vehicle":   a single physical car with a stock number (stock is always 1)
  *  - category "accessory": chargers, wheels, etc. with a stock count
  */
@@ -34,7 +35,11 @@ const productSchema = new mongoose.Schema(
     model: { type: String, enum: [...MODELS, ''], default: '' },
     compatibleWith: [{ type: String, enum: MODELS }],
     stockNumber: { type: String, trim: true },
-    condition: { type: String, enum: ['new', 'pre-owned'], default: 'new' },
+    condition: { type: String, enum: ['new', 'pre-owned', 'pre-order'], default: 'new' },
+    // Optional custom deposit (PHP). Falls back to Order.VEHICLE_DEPOSIT for vehicles.
+    deposit: { type: Number, min: 0 },
+    // Short warning shown on listings that are not yet in production.
+    disclaimer: { type: String, maxlength: 400 },
     year: Number,
     trim: { type: String, trim: true },
     color: { type: String, trim: true },
@@ -60,7 +65,8 @@ productSchema.pre('validate', function setSlug(next) {
     const base = this.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
     this.slug = this.stockNumber ? `${base}-${this.stockNumber.toLowerCase()}` : base;
   }
-  if (this.category === 'vehicle') this.stock = this.status === 'available' ? 1 : 0;
+  // Physical cars are one-offs. Pre-orders can be reserved by many buyers.
+  if (this.category === 'vehicle' && this.condition !== 'pre-order') this.stock = this.status === 'available' ? 1 : 0;
   next();
 });
 

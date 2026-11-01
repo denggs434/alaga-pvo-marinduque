@@ -1,6 +1,7 @@
 /**
  * An order placed from the cart.
- * Vehicles are reserved with a fixed deposit; the balance is paid at handover.
+ * Vehicles are reserved with a deposit (default VEHICLE_DEPOSIT, or the listing's own);
+ * the balance is paid at handover.
  * Accessories are paid in full.
  */
 const mongoose = require('mongoose');
@@ -15,6 +16,8 @@ const itemSchema = new mongoose.Schema(
     category: { type: String, enum: ['vehicle', 'accessory'] },
     price: Number,
     qty: { type: Number, min: 1 },
+    preorder: { type: Boolean, default: false }, // vehicle not yet in production
+    deposit: Number,                              // deposit charged for this vehicle line
   },
   { _id: false }
 );

@@ -158,5 +158,13 @@
     "license": "CC BY-SA 4.0",
     "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
     "source": "https://commons.wikimedia.org/wiki/File:The_tire_wheel_of_TESLA_MODEL_S_P100D.jpg"
+  },
+  {
+    "image": "assets/img/cars/roadster-2gen.jpg",
+    "title": "Tesla Roadster 2.0 (47619421652).jpg",
+    "author": "Steve Jurvetson from Menlo Park, USA",
+    "license": "CC BY 2.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Tesla_Roadster_2.0_(47619421652).jpg"
   }
 ]
