@@ -119,14 +119,20 @@ exports.getOrder = asyncHandler(async (req, res) => {
 });
 
 // PATCH /api/orders/:id/cancel  (owner, only while pending)
+// The status check and the change happen in one atomic update, so a double tap
+// (or a customer and an admin cancelling at once) releases stock only once.
 exports.cancelMyOrder = asyncHandler(async (req, res) => {
-  const order = await Order.findOne({ _id: req.params.id, user: req.user._id });
-  if (!order) throw new HttpError(404, 'Order not found.');
-  if (order.status !== 'pending') {
+  const order = await Order.findOneAndUpdate(
+    { _id: req.params.id, user: req.user._id, status: 'pending' },
+    { status: 'cancelled' },
+    { new: true }
+  );
+  if (!order) {
+    const current = await Order.findOne({ _id: req.params.id, user: req.user._id }).select('status').lean();
+    if (!current) throw new HttpError(404, 'Order not found.');
+    if (current.status === 'cancelled') throw new HttpError(400, 'This order is already cancelled.');
     throw new HttpError(400, 'This order is already confirmed. Contact us to change it.');
   }
-  order.status = 'cancelled';
-  await order.save();
   await releaseStock(order.items);
   res.json(order);
 });
@@ -141,14 +147,22 @@ exports.listOrders = asyncHandler(async (req, res) => {
 // PATCH /api/orders/:id/status  (admin)
 exports.updateOrderStatus = asyncHandler(async (req, res) => {
   const { status } = req.body;
-  const order = await Order.findById(req.params.id);
-  if (!order) throw new HttpError(404, 'Order not found.');
-  if (['cancelled', 'completed'].includes(order.status)) {
-    throw new HttpError(400, `This order is already ${order.status} and can no longer change.`);
+  if (typeof status !== 'string' || !Order.schema.path('status').enumValues.includes(status)) {
+    throw new HttpError(400, 'Choose a valid status.');
   }
 
-  order.status = status;
-  await order.save();
+  // Atomic: only an order that is not final yet can change, so two admins (or an
+  // admin and the customer) cancelling together cannot release stock twice.
+  const order = await Order.findOneAndUpdate(
+    { _id: req.params.id, status: { $nin: ['cancelled', 'completed'] } },
+    { status },
+    { new: true }
+  );
+  if (!order) {
+    const current = await Order.findById(req.params.id).select('status').lean();
+    if (!current) throw new HttpError(404, 'Order not found.');
+    throw new HttpError(400, `This order is already ${current.status} and can no longer change.`);
+  }
 
   if (status === 'cancelled') await releaseStock(order.items);
   if (status === 'completed') {

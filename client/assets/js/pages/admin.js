@@ -360,10 +360,8 @@ function boot() {
     if (d.orderNext) act(() => api(`/orders/${d.orderNext}/status`, { method: 'PATCH', body: { status: d.to } }), `Order moved to ${d.to}.`);
     if (d.orderCancel && armed(b, 'Confirm cancel')) act(() => api(`/orders/${d.orderCancel}/status`, { method: 'PATCH', body: { status: 'cancelled' } }), 'Order cancelled. Stock released.');
     if (d.msg) act(() => api(`/contact/${d.msg}`, { method: 'PATCH', body: { status: d.to } }), `Message marked ${d.to}.`);
-    if (d.stock) {
-      const p = state.products.find((x) => x._id === d.stock);
-      act(() => api(`/products/${p._id}`, { method: 'PUT', body: { stock: Math.max(0, p.stock + Number(d.delta)) } }));
-    }
+    // Send the change (+1 / -1), not a new total, so the server applies it to the live count.
+    if (d.stock) act(() => api(`/products/${d.stock}/stock`, { method: 'PATCH', body: { delta: Number(d.delta) } }));
     if (d.edit) openProductDialog(state.products.find((x) => x._id === d.edit));
     if (d.delete && armed(b, 'Confirm')) act(() => api(`/products/${d.delete}`, { method: 'DELETE' }), 'Listing deleted.');
     if (d.ban && (d.to === 'false' || armed(b, 'Confirm ban'))) {

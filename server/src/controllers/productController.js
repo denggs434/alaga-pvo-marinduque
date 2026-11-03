@@ -121,6 +121,28 @@ exports.updateProduct = asyncHandler(async (req, res) => {
   res.json(product);
 });
 
+// PATCH /api/products/:id/stock  { delta: +n | -n }  (admin, accessories)
+// Adjusts stock relative to the current database value with $inc, so a sale that
+// happens while the admin page is open is never overwritten by a stale number.
+exports.adjustStock = asyncHandler(async (req, res) => {
+  const delta = req.body.delta;
+  if (!Number.isInteger(delta) || delta === 0 || Math.abs(delta) > 1000) {
+    throw new HttpError(400, 'Stock change must be a whole number between -1000 and 1000.');
+  }
+  const product = await Product.findOneAndUpdate(
+    { _id: req.params.id, category: 'accessory', ...(delta < 0 && { stock: { $gte: -delta } }) },
+    { $inc: { stock: delta } },
+    { new: true }
+  );
+  if (!product) {
+    const current = await Product.findById(req.params.id).select('category stock name').lean();
+    if (!current) throw new HttpError(404, 'Product not found.');
+    if (current.category !== 'accessory') throw new HttpError(400, 'Vehicle stock follows its status. Change the status instead.');
+    throw new HttpError(409, `Only ${current.stock} of ${current.name} in stock.`);
+  }
+  res.json(product);
+});
+
 // DELETE /api/products/:id  (admin)
 exports.deleteProduct = asyncHandler(async (req, res) => {
   const product = await Product.findByIdAndDelete(req.params.id);

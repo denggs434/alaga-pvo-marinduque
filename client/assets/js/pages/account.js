@@ -124,11 +124,13 @@ $('#orders').addEventListener('click', async (e) => {
     setTimeout(() => { btn.dataset.armed = ''; btn.textContent = 'Cancel order'; }, 3000);
     return;
   }
+  btn.disabled = true; // one request per confirm, even on a double tap
   try {
     await api(`/orders/${id}/cancel`, { method: 'PATCH' });
     toast('Order cancelled. Any reserved car is back on sale.');
     loadOrders();
   } catch (err) {
+    btn.disabled = false;
     toast(err.message, 'error');
   }
 });
