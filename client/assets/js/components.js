@@ -206,9 +206,10 @@ export function createPostList(container, { onEmpty = () => {} } = {}) {
       list.forEach((p) => posts.set(p._id, p));
       container.insertAdjacentHTML('beforeend', list.map((p) => postCard(p, open.has(p._id))).join(''));
     },
-    prepend(p) {
+    prepend(p, { open: openComments = false } = {}) {
       posts.set(p._id, p);
-      container.insertAdjacentHTML('afterbegin', postCard(p));
+      if (openComments) open.add(p._id);
+      container.insertAdjacentHTML('afterbegin', postCard(p, openComments));
     },
     clear() {
       posts.clear();

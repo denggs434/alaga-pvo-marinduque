@@ -7,6 +7,7 @@ const User = require('../models/User');
 const Pet = require('../models/Pet');
 const Post = require('../models/Post');
 const Report = require('../models/Report');
+const Notification = require('../models/Notification');
 const HttpError = require('../utils/httpError');
 const asyncHandler = require('../utils/asyncHandler');
 const { requireId } = require('../utils/validate');
@@ -118,6 +119,7 @@ exports.deleteUser = asyncHandler(async (req, res) => {
     Post.deleteMany({ $or: [{ author: user._id }, { pet: { $in: petIds } }] }),
     Post.updateMany({}, { $pull: { likes: user._id, comments: { user: user._id } } }),
     Pet.deleteMany({ owner: user._id }),
+    Notification.deleteMany({ $or: [{ user: user._id }, { actor: user._id }] }),
   ]);
   await user.deleteOne();
   res.json({ message: `Deleted ${user.name} and ${petIds.length} ${petIds.length === 1 ? 'pet' : 'pets'}.` });

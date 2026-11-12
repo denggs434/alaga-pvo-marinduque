@@ -49,6 +49,23 @@ function renderWelcome() {
     </div>`;
 }
 
+/* ---------- One post from a notification (index.html?post=<id>) ---------- */
+const focusId = new URLSearchParams(location.search).get('post');
+async function showFocusedPost() {
+  if (!focusId || !/^[a-f\d]{24}$/i.test(focusId)) return;
+  const box = $('#focus-post');
+  try {
+    const post = await api(`/posts/${focusId}`);
+    box.hidden = false;
+    focusList.prepend(post, { open: true });
+    requestAnimationFrame(() => box.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' }));
+  } catch (err) {
+    box.hidden = false;
+    box.querySelector('#focus-list').innerHTML = `<p class="notice">${esc(err.message)}</p>`;
+  }
+}
+const focusList = createPostList($('#focus-list'));
+
 /* ---------- Feed ---------- */
 async function loadPosts() {
   if (loading) return;
@@ -60,7 +77,7 @@ async function loadPosts() {
     $$('[data-stat="posts"]').forEach((el) => (el.textContent = data.total));
     if (page === 1) feed.clear();
     if (!data.items.length && page === 1) return showEmptyFeed();
-    feed.append(data.items);
+    feed.append(data.items.filter((p) => p._id !== focusId)); // the opened post is already shown above
     if (data.page < data.pages) {
       moreEl.innerHTML = '<button class="btn btn-ghost" type="button" id="load-more">Load more posts</button>';
       $('#load-more').addEventListener('click', () => { page += 1; loadPosts(); });
@@ -255,6 +272,7 @@ async function boot() {
   renderMeCard();
   renderComposer();
   setupFeedTabs();
+  showFocusedPost();
   loadPosts();
   loadSide();
 }

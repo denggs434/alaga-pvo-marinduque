@@ -7,6 +7,7 @@ const rateLimit = require('../middleware/rateLimit');
 const writeLimit = rateLimit({ windowMs: 10 * 60e3, max: 30, message: 'You are posting very quickly. Take a short break and try again.' });
 
 router.route('/').get(optionalAuth, c.listPosts).post(protect, ownerOnly, writeLimit, c.createPost);
+router.get('/:id', optionalAuth, c.getPost);
 router.delete('/:id', protect, c.deletePost);
 router.post('/:id/like', protect, c.toggleLike);
 router.post('/:id/comments', protect, writeLimit, c.addComment);

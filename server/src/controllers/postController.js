@@ -10,6 +10,7 @@
 const Post = require('../models/Post');
 const Pet = require('../models/Pet');
 const HttpError = require('../utils/httpError');
+const notify = require('../utils/notify');
 const asyncHandler = require('../utils/asyncHandler');
 const { str, paging, requireId, publicName } = require('../utils/validate');
 
@@ -123,11 +124,22 @@ exports.createPost = asyncHandler(async (req, res) => {
   await respond(res, post, req.user, 201);
 });
 
+// GET /api/posts/:id  (one post, e.g. opened from a notification)
+exports.getPost = asyncHandler(async (req, res) => {
+  const post = await Post.findById(requireId(req.params.id, 'Post')).populate(POPULATE).lean();
+  if (!post || post.pet === null) throw new HttpError(404, 'This post was removed.');
+  const hidden = post.pet && post.pet.isPublic === false && !same(post.author, req.user) && !same(post.pet.owner, req.user) && !isAdmin(req.user);
+  if (hidden) throw new HttpError(404, 'This post was removed.');
+  res.json(serializePost(post, req.user));
+});
+
 // DELETE /api/posts/:id  (author or admin)
 exports.deletePost = asyncHandler(async (req, res) => {
   const post = await loadPost(req.params.id);
   if (!same(post.author, req.user) && !isAdmin(req.user)) throw new HttpError(403, 'You can only delete your own posts.');
   await post.deleteOne();
+  notify.postGone(post._id);
+  if (!same(post.author, req.user)) notify.removed(post.author, 'Your post was removed by the PVO', post.text);
   res.json({ message: 'Post deleted.' });
 });
 
@@ -143,6 +155,8 @@ exports.toggleLike = asyncHandler(async (req, res) => {
     if (!post) throw new HttpError(404, 'This post was removed.');
     liked = false;
   }
+  if (liked) notify.liked(post, req.user);
+  else notify.unliked(post, req.user);
   res.json({ liked, likeCount: post.likes.length });
 });
 
@@ -151,6 +165,7 @@ exports.addComment = asyncHandler(async (req, res) => {
   const post = await loadPost(req.params.id);
   post.comments.push({ user: req.user._id, text: req.body.text });
   await post.save();
+  notify.commented(post, req.user, post.comments[post.comments.length - 1].text);
   await respond(res, post, req.user, 201);
 });
 
@@ -162,7 +177,11 @@ exports.deleteComment = asyncHandler(async (req, res) => {
   if (!same(c.user, req.user) && !same(post.author, req.user) && !isAdmin(req.user)) {
     throw new HttpError(403, 'You can only delete your own comments.');
   }
+  const removedByStaff = isAdmin(req.user) && !same(c.user, req.user);
+  const commentAuthor = c.user;
+  const commentText = c.text;
   c.deleteOne();
   await post.save();
+  if (removedByStaff) notify.removed(commentAuthor, 'Your comment was removed by the PVO', commentText);
   await respond(res, post, req.user);
 });

@@ -4,6 +4,7 @@
  */
 import { getUser, isAdmin, isOwner, clearSession } from './store.js';
 import { api } from './api.js';
+import { notificationsButton, setupNotifications } from './notifications.js';
 import { SITE } from './config.js';
 import { esc, initials, $, $$ } from './format.js';
 import { ICONS, BRAND_MARK } from './icons.js';
@@ -51,6 +52,7 @@ function headerHtml(active) {
       <div class="nav-tools">
         ${isAdmin() ? '' : `<a class="btn btn-primary btn-sm nav-report" href="report.html" ${active === 'report' ? 'aria-current="page"' : ''}>${ICONS.flag}Report</a>`}
         <button class="icon-btn" id="theme-toggle" type="button" aria-label="Switch colour theme">${ICONS.moon}</button>
+        ${notificationsButton()}
         ${accountHtml()}
         <button class="icon-btn menu-toggle" id="menu-btn" type="button" aria-label="Open menu" aria-controls="mobile-nav">${ICONS.menu}</button>
       </div>
@@ -106,6 +108,7 @@ function setupAccountMenu() {
     const open = menu.hidden;
     menu.hidden = !open;
     btn.setAttribute('aria-expanded', String(open));
+    if (open) document.getElementById('notif-panel')?.setAttribute('hidden', '');
     if (open) menu.querySelector('a, button')?.focus();
   });
   document.addEventListener('click', (e) => !menu.contains(e.target) && close());
@@ -144,4 +147,5 @@ export function renderHeader(active) {
   setupMobileMenu();
   $$('[data-logout]').forEach((b) => b.addEventListener('click', () => logout()));
   refreshUnread();
+  setupNotifications();
 }
