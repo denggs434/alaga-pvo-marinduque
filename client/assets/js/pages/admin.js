@@ -227,21 +227,20 @@ function boot() {
     const reg = $('#pet-reg').value;
     const rows = state.pets.filter((p) => (!sp || p.species === sp) && (!town || p.municipality === town) && (!reg || p.registrationStatus === reg)
       && (!term || `${p.name} ${p.breed} ${p.registrationNo} ${p.owner.name} ${p.owner.email}`.toLowerCase().includes(term)));
-    $('#pets-table').innerHTML = `<thead><tr><th>Pet</th><th>Owner</th><th>Species / breed</th><th>Municipality</th><th>Anti-rabies</th><th>Registration</th><th></th></tr></thead>
+    $('#pets-table').innerHTML = `<thead><tr><th>Pet</th><th>Owner</th><th>Species / breed</th><th>Municipality</th><th>Anti-rabies</th><th></th></tr></thead>
       <tbody>${rows.map((p) => `<tr class="${p.status === 'deceased' ? 'is-muted' : ''}">
         <td><div class="cell-pet">${petImg(p.photos?.[0], '', p.name)}<span><strong><a href="pet.html?id=${p._id}" target="_blank" rel="noopener">${esc(p.name)}</a></strong>
-          <span class="muted small mono">${esc(p.registrationNo)}</span>${p.status === 'missing' ? ' <span class="tag tag-solid-red">Missing</span>' : ''}${p.isPublic ? '' : ' <span class="tag">Private</span>'}</span></div></td>
+          <span class="muted small mono">${esc(p.registrationNo)}</span><span class="cell-tags">${p.registrationStatus === 'verified' ? '<span class="tag tag-green">Verified</span>' : '<span class="tag tag-amber">Pending</span>'}${p.status === 'missing' ? '<span class="tag tag-solid-red">Missing</span>' : ''}${p.isPublic ? '' : '<span class="tag">Private</span>'}</span></span></div></td>
         <td>${esc(p.owner.name)}<br><span class="muted small">${esc(p.owner.phone || p.owner.email || '')}</span></td>
         <td>${esc(SPECIES[p.species])}<br><span class="muted small">${esc(p.breed || '—')}</span></td>
         <td>${esc(p.municipality)}</td>
         <td>${rabiesCell(p.rabies)}</td>
-        <td>${p.registrationStatus === 'verified' ? '<span class="tag tag-green">Verified</span>' : '<span class="tag tag-amber">Pending</span>'}</td>
         <td><div class="cell-actions">
           ${p.registrationStatus === 'verified' ? '' : `<button class="btn btn-soft btn-sm" type="button" data-verify="${p._id}">Verify</button>`}
           <button class="btn btn-ghost btn-sm" type="button" data-vax="${p._id}" title="Record a PVO vaccination">${ICONS.syringe}<span class="sr-only">Record vaccination for ${esc(p.name)}</span></button>
           <a class="btn btn-ghost btn-sm" href="pet-form.html?id=${p._id}" title="Edit">${ICONS.edit}<span class="sr-only">Edit ${esc(p.name)}</span></a>
           <button class="btn btn-danger btn-sm" type="button" data-del-pet="${p._id}" title="Delete">${ICONS.trash}<span class="sr-only">Delete ${esc(p.name)}</span></button>
-        </div></td></tr>`).join('') || `<tr><td colspan="7">${emptyState('No pets match these filters')}</td></tr>`}</tbody>`;
+        </div></td></tr>`).join('') || `<tr><td colspan="6">${emptyState('No pets match these filters')}</td></tr>`}</tbody>`;
   }
 
   // Record a verified vaccination from the registry.

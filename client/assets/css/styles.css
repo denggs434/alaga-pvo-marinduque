@@ -335,7 +335,7 @@ dialog::backdrop { background: rgb(20 12 6 / 0.5); backdrop-filter: blur(2px); }
 .pager button[aria-current='true'] { background: var(--brand); border-color: var(--brand); color: var(--brand-ink); }
 
 /* Table */
-.table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: var(--r); background: var(--surface); }
+.table-wrap { position: relative; overflow-x: auto; border: 1px solid var(--line); border-radius: var(--r); background: var(--surface); }
 .table { width: 100%; border-collapse: collapse; font-size: 0.9375rem; }
 .table th { text-align: left; font: 800 0.75rem/1.2 var(--font-body); text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); padding: 12px 14px; background: var(--surface-2); border-bottom: 1px solid var(--line); white-space: nowrap; }
 .table td { padding: 12px 14px; border-bottom: 1px solid var(--line); vertical-align: middle; }
@@ -345,7 +345,10 @@ dialog::backdrop { background: rgb(20 12 6 / 0.5); backdrop-filter: blur(2px); }
 .cell-pet { display: flex; gap: 10px; align-items: center; min-width: 180px; }
 .cell-pet img, .cell-pet .pet-placeholder { width: 40px; height: 40px; border-radius: 10px; object-fit: cover; flex: none; }
 .cell-pet strong { display: block; }
+.cell-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
 .cell-actions { display: flex; gap: 6px; justify-content: flex-end; flex-wrap: nowrap; }
+/* Pets has four actions: let them wrap to two rows so the table fits laptop screens */
+#pets-table .cell-actions { flex-wrap: wrap; min-width: 116px; }
 
 /* ---------- Home: hero band ---------- */
 .hero { background: radial-gradient(1200px 400px at 85% -10%, color-mix(in srgb, var(--leaf) 45%, transparent), transparent 60%), linear-gradient(180deg, var(--brand-soft), var(--bg)); border-bottom: 1px solid var(--line); }
@@ -875,11 +878,18 @@ dialog::backdrop { background: rgb(20 12 6 / 0.5); backdrop-filter: blur(2px); }
   #species .choice svg { width: 22px; height: 22px; }
   #species .choice strong { font-size: 0.9375rem; }
 }
-/* Admin tables as stacked cards on phones */
+/* Admin tables as cards on phones and tablets (one per row on phones, two on tablets) */
 @media (max-width: 640px) {
   .console-main { padding-inline: 16px; }
   .console-top { align-items: stretch; }
   .console-top > .row, .console-top > .chips { width: 100%; }
+}
+@media (min-width: 641px) and (max-width: 1180px) {
+  .console .table tbody { display: grid !important; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; align-items: start; }
+  .console .table tr { margin-bottom: 0; }
+  .console .table tr:has(td[colspan]) { grid-column: 1 / -1; }
+}
+@media (max-width: 1180px) {
   .console .table-wrap { border: 0; background: none; overflow: visible; border-radius: 0; }
   .console .table, .console .table tbody { display: block; }
   .console .table thead { display: none; }
