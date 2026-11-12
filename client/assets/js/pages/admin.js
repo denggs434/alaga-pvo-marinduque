@@ -431,9 +431,21 @@ function boot() {
       const where = GROUPS[groupOf(to)].label;
       const message = to === r.status ? `Note added to ${r.reference}. The reporter can see it now.`
         : `${r.reference} is now ${REPORT_STATUSES[to].label.toLowerCase()} and moved to ${where}. The reporter can see it now.`;
-      const saved = await act(() => api(`/reports/${r._id}`, { method: 'PATCH', body }), message);
-      setBusy(btn, false);
-      if (saved) caseDialog.close();
+      let saved;
+      try {
+        saved = await api(`/reports/${r._id}`, { method: 'PATCH', body });
+      } catch (err) {
+        setBusy(btn, false);
+        toast(err.message, 'error'); // stay open so the admin can fix it and retry
+        return;
+      }
+      // Saved: close the details panel right away, then refresh the lists in the background.
+      caseDialog.close();
+      toast(message);
+      const i = state.reports.findIndex((x) => x._id === saved._id);
+      if (i >= 0) state.reports[i] = saved;
+      renderReports();
+      loadAll();
     });
     if (!caseDialog.open) caseDialog.showModal();
   }
