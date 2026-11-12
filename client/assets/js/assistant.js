@@ -1,11 +1,12 @@
 /**
- * Alagai: the AI pet-care assistant, available to logged-in users on every public page.
+ * Alagai: the pet-care helper, available to logged-in users on every public page.
+ * Answers come from the server's built-in pet-care topics and live PVO data (no AI).
  *  - a labelled "Ask Alagai" button opens a chat panel (a modal dialog: focus stays
  *    inside, Escape closes it, it fills the screen on phones)
  *  - the conversation is kept for this browser tab (sessionStorage) so it survives
  *    moving between pages; "New chat" clears it
  *  - the server adds an urgent flag for emergencies; the panel then shows the
- *    hotline banner whatever the reply says
+ *    hotline banner
  * Replies are escaped first, then a tiny Markdown subset (bold, bullet and
  * numbered lists, paragraphs) is turned into HTML.
  */
@@ -17,9 +18,9 @@ import { ICONS } from './icons.js';
 
 const SUGGESTIONS = [
   'What should I feed a 3-month-old puppy?',
-  'When is the next anti-rabies drive?',
-  'My cat keeps scratching her ears. What could it be?',
-  'How often should I deworm my dog?',
+  'When is the next vaccination drive?',
+  'Is my pets\' anti-rabies up to date?',
+  'My dog keeps scratching. What can I do?',
 ];
 const MAX_LEN = 1500;
 
@@ -65,7 +66,7 @@ function panelHtml() {
   return `<dialog class="alagai" id="alagai" aria-labelledby="alagai-title">
     <header class="alagai-head">
       <span class="alagai-mark" aria-hidden="true">${ICONS.sparkle}</span>
-      <div class="alagai-who"><h2 id="alagai-title">Alagai</h2><span>AI pet-care assistant · not a veterinarian</span></div>
+      <div class="alagai-who"><h2 id="alagai-title">Alagai</h2><span>Pet-care helper · not a veterinarian</span></div>
       <button class="btn btn-ghost btn-sm" type="button" id="alagai-new">New chat</button>
       <button class="icon-btn" type="button" id="alagai-close" aria-label="Close Alagai">${ICONS.close}</button>
     </header>
@@ -78,21 +79,21 @@ function panelHtml() {
       <textarea id="alagai-input" rows="1" maxlength="${MAX_LEN}" placeholder="Ask about feeding, vaccines, symptoms…" required></textarea>
       <button class="btn btn-primary alagai-send" type="submit" id="alagai-send" aria-label="Send">${ICONS.send}</button>
     </form>
-    <p class="alagai-foot">Alagai gives general information only. It cannot diagnose or prescribe. For anything serious, see a licensed vet.</p>
+    <p class="alagai-foot">Alagai gives general pet-care information only. It cannot diagnose or prescribe. For anything serious, see a licensed vet.</p>
   </dialog>`;
 }
 
 function introHtml(name) {
   return `<div class="alagai-intro">
     <p><strong>Hi ${esc(name)}! I'm Alagai.</strong> Ask me about feeding, grooming, vaccines, deworming, behaviour, or PVO services and schedules.</p>
-    <p class="muted small">I'm an AI assistant, not a veterinarian, so I can't diagnose or prescribe. In an emergency, go to a vet right away.</p>
+    <p class="muted small">I'm a pet-care helper, not a veterinarian, so I can't diagnose or prescribe. In an emergency, go to a vet right away.</p>
     <div class="alagai-suggest">${SUGGESTIONS.map((s) => `<button class="chip" type="button" data-ask="${esc(s)}">${esc(s)}</button>`).join('')}</div>
   </div>`;
 }
 
 const bubble = (m) => m.role === 'user'
   ? `<div class="msg msg-user"><p>${esc(m.content).replace(/\n/g, '<br>')}</p></div>`
-  : `<div class="msg msg-bot${m.error ? ' is-error' : ''}">${m.offline ? '<span class="msg-flag">Basic answer · Alagai is offline</span>' : ''}${m.error ? `<p>${esc(m.content)}</p>` : renderReply(m.content)}</div>`;
+  : `<div class="msg msg-bot${m.error ? ' is-error' : ''}">${m.error ? `<p>${esc(m.content)}</p>` : renderReply(m.content)}</div>`;
 
 export function setupAssistant() {
   const user = getUser();
@@ -127,8 +128,8 @@ export function setupAssistant() {
     scrollDown();
     try {
       const convo = history.filter((m) => !m.error).map(({ role, content }) => ({ role, content }));
-      const { reply, urgent, offline } = await api('/assistant/chat', { method: 'POST', body: { messages: convo } });
-      history.push({ role: 'assistant', content: reply, urgent, offline });
+      const { reply, urgent } = await api('/assistant/chat', { method: 'POST', body: { messages: convo } });
+      history.push({ role: 'assistant', content: reply, urgent });
     } catch (err) {
       history.push({ role: 'assistant', content: err.status === 401 ? 'Your session ended. Log in again to keep chatting.' : err.message, error: true });
     } finally {

@@ -13,7 +13,7 @@ Project write-up (target user, introduction, problem, objectives, scope, limitat
 - **Pet registration:** each pet gets a PVO registration number (`MQ-2026-00001`), up to 6 photos and a public profile; PVO staff verify registrations
 - **Health records:** vaccination record and medical history per pet, private to the owner and the PVO; anti-rabies status (up to date, overdue, none) computed from the record; owner entries are marked until the PVO verifies them
 - **Community wall:** opens with a welcome, other owners' pets, upcoming schedules, announcements and a mixed "For you" feed (or "Latest"); owners post text, up to 4 photos, or both, as one of their pets or as themselves; likes, comments and moderation by the PVO
-- **Alagai, the AI pet-care assistant:** a chat for logged-in users about feeding, grooming, vaccines, deworming, behaviour, symptoms and PVO services; it knows the user's pets and the PVO schedule, says it is not a veterinarian, never diagnoses or prescribes, and shows the emergency hotline for urgent questions
+- **Alagai, the pet-care helper:** a chat for logged-in users that answers from built-in pet-care topics (feeding, grooming, vaccines, deworming, ticks and fleas, behaviour, kapon, signs of sickness, PVO services) and live data (the next PVO activities, the user's pets' anti-rabies status); no AI; it says it is not a veterinarian, never diagnoses or prescribes, and shows the emergency hotline for urgent questions
 - **Messages:** staff answer contact messages with written replies that senders read under Account → Messages (with a new-reply dot); messages are archived and restored, never deleted
 - **Pet directory:** search and filter by species, municipality and sex, with sorting and paging; filter state lives in the URL so views can be shared
 - **Announcements and schedules:** vaccination drives, deworming days, free programs and advisories, with "add to my calendar" (.ics)
@@ -52,7 +52,6 @@ The repo deploys to Vercel as-is (`vercel.json`): `client/` is served as static 
 | `MONGODB_URI` | MongoDB Atlas integration from the Vercel Marketplace (or set `MONGO_URI` yourself) |
 | `JWT_SECRET` | A long random string, added as a sensitive variable |
 | `BLOB_READ_WRITE_TOKEN` | The connected Vercel Blob store; uploaded photos are saved there because Vercel's filesystem is read-only |
-| *(none for Alagai)* | Alagai calls Vercel AI Gateway with the project's OIDC token. AI Gateway needs a card on file on the Vercel team to unlock its free credits; until then Alagai gives labelled basic answers. `ALAGAI_API_URL`, `ALAGAI_API_KEY` and `ALAGAI_MODEL` switch it to any OpenAI-compatible provider |
 
 To load the demo data into the cloud database, run the seed once with that connection string: `MONGO_URI="<atlas uri>" npm run seed` (inside `server/`).
 

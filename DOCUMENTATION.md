@@ -55,7 +55,7 @@ The system includes the pages Community Wall (Home), Pets (directory), Pet Profi
 - Keep each pet's vaccination record and medical history; see whether the anti-rabies vaccine is up to date or overdue
 - See an active community wall right after logging in: other owners' pets, upcoming schedules, announcements and a mixed feed of posts
 - Post text, photos (up to four) or both on the wall, as one of their pets or as themselves, and like and comment on other posts
-- Ask Alagai, an AI pet-care assistant, about feeding, grooming, vaccination, deworming, behaviour, common symptoms and PVO services; Alagai says it is not a veterinarian, does not diagnose or prescribe, and sends urgent cases to a vet or the PVO hotline
+- Ask Alagai, a built-in pet-care helper (no AI), about feeding, grooming, vaccination, deworming, behaviour, common signs of sickness, PVO services, the next PVO activities and their pets' anti-rabies status; Alagai says it is not a veterinarian, does not diagnose or prescribe, and sends urgent cases to a vet or the PVO hotline
 - Read PVO announcements and upcoming schedules, and save scheduled activities to a phone calendar
 - File a report (animal bite, missing pet, stray, welfare concern) with photos, location and contact details, receive a reference number, follow the status timeline, and withdraw a report before the PVO starts on it; owners of missing pets can share a public alert on the wall
 - Send a message to the PVO through the contact form and read the office's written replies under Account → Messages
@@ -64,7 +64,7 @@ The system includes the pages Community Wall (Home), Pets (directory), Pet Profi
 ## 5. Limitations
 
 - No email or SMS notifications: owners see report updates, message replies and schedules when they open the site. Replies to visitors who were not logged in are saved, but staff must also answer them by email.
-- Alagai gives general information only and can be wrong; it is not a substitute for a veterinarian. It needs an AI provider (Vercel AI Gateway or another OpenAI-compatible API); without one it gives a short set of basic answers.
+- Alagai answers from a fixed set of pet-care topics, so questions outside them get a list of what it can help with. It gives general information only and is not a substitute for a veterinarian.
 - No real-time chat between owners and PVO staff.
 - No online payment, since the PVO's listed programs are free.
 - A single staff role: no separate permission levels for veterinarians, encoders or supervisors, and no audit log.
