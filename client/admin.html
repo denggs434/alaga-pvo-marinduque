@@ -29,7 +29,8 @@
     <div class="card auth-card">
       <h1 style="font-size:1.75rem">Staff only</h1>
       <p>You are signed in with a pet owner account. The admin console is for Provincial Veterinary Office staff.</p>
-      <div class="row"><a class="btn btn-primary" href="account.html">Go to my account</a><button class="btn btn-ghost" type="button" data-logout>Sign out</button></div>
+      <div class="row"><a class="btn btn-primary" href="account.html">Go to my account</a><a class="btn btn-ghost" href="index.html">Back to the community wall</a></div>
+      <p class="muted small">To switch accounts, log out from the account menu at the top right of the site.</p>
     </div>
   </main>
 
@@ -47,9 +48,18 @@
       </nav>
       <div class="console-foot">
         <a class="btn btn-ghost btn-sm" href="index.html" target="_blank" rel="noopener">View public site ↗</a>
-        <div class="console-user"><span class="avatar" id="admin-avatar"></span><span><strong id="admin-name"></strong><small>PVO staff</small></span>
-          <button class="icon-btn" id="theme-toggle" type="button" aria-label="Switch colour theme" style="margin-left:auto"></button></div>
-        <button class="btn btn-ghost btn-sm" type="button" data-logout>Sign out</button>
+        <div class="console-account">
+          <div class="popover console-menu" id="console-menu" hidden>
+            <div class="popover-head"><strong id="menu-name"></strong><span id="menu-email"></span></div>
+            <button type="button" data-logout class="popover-logout"><span data-icon="logout"></span>Log out</button>
+          </div>
+          <div class="console-user">
+            <button class="console-user-btn" type="button" id="console-account-btn" aria-expanded="false" aria-controls="console-menu">
+              <span class="avatar" id="admin-avatar"></span><span><strong id="admin-name"></strong><small>PVO staff · Account</small></span>
+            </button>
+            <button class="icon-btn" id="theme-toggle" type="button" aria-label="Switch colour theme"></button>
+          </div>
+        </div>
       </div>
     </aside>
 

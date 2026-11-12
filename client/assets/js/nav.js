@@ -30,12 +30,12 @@ function accountHtml() {
         <div class="popover-head"><strong>${esc(user.name)}</strong><span>${esc(user.email)}</span></div>
         ${isAdmin()
           ? `<a href="admin.html">${ICONS.shield}PVO admin console</a>`
-          : `<a href="account.html#pets">${ICONS.paw}My pets</a>
-             <a href="account.html#reports">${ICONS.flag}My reports</a>
+          : `<a href="account.html#pets">${ICONS.user}Profile<small class="popover-hint">My pets and reports</small></a>
              <a href="account.html#messages">${ICONS.inbox}Messages<span class="dot" data-unread hidden><span class="sr-only">new reply</span></span></a>
-             <a href="account.html#profile">${ICONS.user}Profile & password</a>
+             <a href="account.html#settings">${ICONS.gear}Settings</a>
              <button type="button" data-open-alagai>${ICONS.sparkle}Ask Alagai</button>`}
-        <button type="button" data-logout>${ICONS.logout}Log out</button>
+        <hr class="popover-sep">
+        <button type="button" data-logout class="popover-logout">${ICONS.logout}Log out</button>
       </div>
     </div>`;
 }
@@ -68,8 +68,10 @@ function headerHtml(active) {
         ? `<a href="admin.html">${ICONS.shield}PVO admin console</a>`
         : `<a href="report.html">${ICONS.flag}Report an incident</a>
            <a href="pet-form.html">${ICONS.plus}Register a pet</a>
-           <a href="account.html">${ICONS.user}${getUser() ? 'My pets & reports' : 'Log in or sign up'}</a>
-           ${getUser() ? `<a href="account.html#messages">${ICONS.inbox}Messages<span class="dot" data-unread hidden><span class="sr-only">new reply</span></span></a>
+           ${getUser() ? '' : `<a href="account.html">${ICONS.user}Log in or sign up</a>`}
+           ${getUser() ? `<a href="account.html#pets">${ICONS.user}Profile</a>
+           <a href="account.html#messages">${ICONS.inbox}Messages<span class="dot" data-unread hidden><span class="sr-only">new reply</span></span></a>
+           <a href="account.html#settings">${ICONS.gear}Settings</a>
            <a href="#alagai" data-open-alagai>${ICONS.sparkle}Ask Alagai</a>` : ''}`}
     </nav>
   </dialog>`;

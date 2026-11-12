@@ -261,6 +261,11 @@ select.input { appearance: none; padding-right: 40px; background-image: url("dat
 .popover a, .popover button { display: flex; gap: 10px; align-items: center; padding: 10px 12px; border-radius: var(--r-sm); text-decoration: none; color: var(--ink); background: none; border: 0; font-weight: 600; cursor: pointer; text-align: left; }
 .popover a:hover, .popover button:hover { background: var(--surface-2); color: var(--ink); }
 .popover svg { width: 18px; height: 18px; color: var(--muted); }
+.popover a { flex-wrap: wrap; }
+.popover-hint { flex-basis: 100%; margin: -6px 0 0 28px; color: var(--muted); font-size: 0.75rem; font-weight: 600; }
+.popover-sep { border: 0; border-top: 1px solid var(--line); margin: 4px 0; }
+.popover .popover-logout, .popover .popover-logout svg { color: var(--bad); }
+.popover .popover-logout:hover { background: var(--bad-soft); color: var(--bad); }
 .menu-toggle { display: none; }
 .staffbar { background: var(--ink); color: var(--bg); font-size: 0.875rem; }
 .staffbar .wrap { display: flex; justify-content: space-between; gap: 12px; padding-block: 8px; flex-wrap: wrap; }
@@ -618,6 +623,13 @@ dialog::backdrop { background: rgb(20 12 6 / 0.5); backdrop-filter: blur(2px); }
 .console-user { display: flex; gap: 10px; align-items: center; padding: 8px; border-radius: var(--r-sm); background: var(--surface-2); }
 .console-user span { display: grid; line-height: 1.25; font-size: 0.875rem; min-width: 0; }
 .console-user small { color: var(--muted); }
+.console-account { position: relative; }
+.console-menu { top: auto; bottom: calc(100% + 8px); left: 0; right: 0; min-width: 0; }
+.console-menu [data-icon] { display: inline-grid; }
+.console-menu svg { width: 18px; height: 18px; }
+.console-user-btn { display: flex; gap: 10px; align-items: center; flex: 1; min-width: 0; padding: 4px; margin: -4px; border: 0; border-radius: var(--r-sm); background: none; color: var(--ink); text-align: left; cursor: pointer; font: inherit; }
+.console-user-btn:hover, .console-user-btn[aria-expanded='true'] { background: var(--surface-3); }
+.console-user .icon-btn { margin-left: auto; flex: none; }
 .console-main { padding: 24px clamp(16px, 3vw, 36px) 48px; min-width: 0; }
 .console-top { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; flex-wrap: wrap; margin-bottom: 20px; }
 .console-top h1 { font-size: clamp(1.5rem, 2.6vw, 2rem); }
@@ -866,10 +878,10 @@ dialog::backdrop { background: rgb(20 12 6 / 0.5); backdrop-filter: blur(2px); }
   .brand-word small { display: none; }
   .hbars li { grid-template-columns: 84px minmax(0, 1fr) 30px; }
 }
-/* Account tabs: a 2 x 2 grid on phones, so all four stay visible */
+/* Profile tabs: one row of three equal buttons on phones */
 @media (max-width: 640px) {
-  .tabs.tabs-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; border-bottom: 0; overflow: visible; margin: 24px 0 16px; }
-  .tabs.tabs-grid .tab { justify-content: center; min-height: 46px; padding: 8px 10px; margin: 0; border: 1px solid var(--line); border-radius: var(--r-sm); background: var(--surface); }
+  .tabs.tabs-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; border-bottom: 0; overflow: visible; margin: 24px 0 16px; }
+  .tabs.tabs-grid .tab { justify-content: center; flex-wrap: wrap; gap: 4px; font-size: 0.875rem; min-height: 46px; padding: 6px 4px; margin: 0; border: 1px solid var(--line); border-radius: var(--r-sm); background: var(--surface); }
   .tabs.tabs-grid .tab[aria-selected='true'] { background: var(--brand-soft); border-color: var(--brand); color: var(--brand-strong); }
 }
 /* Pet form species picker: compact rows of three on phones */
@@ -920,3 +932,8 @@ dialog::backdrop { background: rgb(20 12 6 / 0.5); backdrop-filter: blur(2px); }
   .facts dt { flex: none; }
   .facts dd { margin: 0; text-align: right; min-width: 0; overflow-wrap: anywhere; }
 }
+
+/* Account → Settings page */
+.settings-head { display: grid; gap: 6px; margin: 8px 0 24px; }
+.settings-head h1 { font-size: clamp(1.75rem, 3vw, 2.25rem); }
+.settings-head p { margin: 0; }

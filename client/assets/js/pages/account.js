@@ -1,13 +1,16 @@
 /**
  * Account page.
  *  - logged out: log in / create an owner account
- *  - logged in (owner): My pets, My reports (status tracking), Messages (PVO replies), Profile & password
+ *  - logged in (owner):
+ *      Profile  (#pets, #reports, #messages): My pets, My reports (status tracking), Messages (PVO replies)
+ *      Settings (#settings): your details and password
+ *  - Log out lives only in the account menu in the header
  *  - PVO staff are sent to the admin console
  */
 import { api } from '../api.js';
 import { getUser, setSession, updateSessionUser, isAdmin } from '../store.js';
 import { MUNICIPALITIES, SPECIES, CONTACT_TOPICS } from '../config.js';
-import { logout, refreshUnread } from '../nav.js';
+import { refreshUnread } from '../nav.js';
 import { initPage, toast, showFieldErrors, setBusy, options, emptyState, errorState, skeleton, esc, initials, ageText, formatDate, formatDateTime, ICONS, $ } from '../ui.js';
 import { petImg, petTags, reportCard } from '../components.js';
 
@@ -107,7 +110,7 @@ function showAuth() {
 /* =========================================================================
    Logged in
    ========================================================================= */
-const TABS = ['pets', 'reports', 'messages', 'profile'];
+const TABS = ['pets', 'reports', 'messages'];
 function selectTab(which) {
   TABS.forEach((t) => {
     $(`#tab-${t}`).setAttribute('aria-selected', String(t === which));
@@ -115,6 +118,21 @@ function selectTab(which) {
   });
   history.replaceState(null, '', `#${which}`);
   if (which === 'messages') markMessagesRead();
+}
+
+/** #settings (or the old #profile link) shows Settings; anything else shows the Profile tabs. */
+function route() {
+  const hash = location.hash.slice(1);
+  const settings = hash === 'settings' || hash === 'profile';
+  $('#profile-view').hidden = settings;
+  $('#settings-view').hidden = !settings;
+  document.title = `${settings ? 'Settings' : 'My profile'} | Alaga · PVO Marinduque`;
+  if (settings) {
+    if (hash === 'profile') history.replaceState(null, '', '#settings');
+    window.scrollTo(0, 0);
+  } else {
+    selectTab(TABS.includes(hash) ? hash : 'pets');
+  }
 }
 
 /* ---------- Messages: what I sent the PVO, and the replies ---------- */
@@ -281,6 +299,7 @@ function paintHead(user) {
   $('#dash-avatar').textContent = initials(user.name);
   $('#dash-name').textContent = `Hi, ${user.name.split(' ')[0]}!`;
   $('#dash-who').textContent = `${user.email}${user.municipality ? ` · ${user.municipality}` : ''}`;
+  $('#settings-who').textContent = `Signed in as ${user.email}`;
 }
 
 async function showDashboard() {
@@ -299,9 +318,8 @@ async function showDashboard() {
   $('#dashboard').hidden = false;
   paintHead(user);
   TABS.forEach((t) => $(`#tab-${t}`).addEventListener('click', () => selectTab(t)));
-  selectTab(TABS.includes(location.hash.slice(1)) ? location.hash.slice(1) : 'pets');
-  addEventListener('hashchange', () => TABS.includes(location.hash.slice(1)) && selectTab(location.hash.slice(1)));
-  $('#logout').addEventListener('click', () => logout());
+  route();
+  addEventListener('hashchange', route);
   setupProfile(user);
   loadPets();
   loadReports();

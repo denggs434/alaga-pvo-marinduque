@@ -71,6 +71,21 @@ function boot() {
   $('#side-brand').innerHTML = brand;
   $$('[data-icon]').forEach((el) => (el.innerHTML = ICONS[el.dataset.icon] || ''));
   $('#admin-name').textContent = user.name;
+  $('#menu-name').textContent = user.name;
+  $('#menu-email').textContent = user.email;
+  // Account menu (the only place to log out)
+  const accBtn = $('#console-account-btn');
+  const accMenu = $('#console-menu');
+  const closeAcc = () => { accMenu.hidden = true; accBtn.setAttribute('aria-expanded', 'false'); };
+  accBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const open = accMenu.hidden;
+    accMenu.hidden = !open;
+    accBtn.setAttribute('aria-expanded', String(open));
+    if (open) accMenu.querySelector('a, button')?.focus();
+  });
+  document.addEventListener('click', (e) => { if (!accMenu.hidden && !accMenu.contains(e.target)) closeAcc(); });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !accMenu.hidden) { closeAcc(); accBtn.focus(); } });
   $('#greet-name').textContent = user.name.split(' ')[0];
   $('#admin-avatar').textContent = initials(user.name);
   $('#today-date').textContent = new Date().toLocaleDateString('en-PH', { weekday: 'long', month: 'long', day: 'numeric', timeZone: 'Asia/Manila' });

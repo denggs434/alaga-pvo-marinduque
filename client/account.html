@@ -50,19 +50,19 @@
 
     <!-- Logged in -->
     <section id="dashboard" hidden>
+      <div id="profile-view">
       <div class="dash-head">
         <div class="row" style="flex-wrap:nowrap">
           <span class="avatar" id="dash-avatar"></span>
           <div><h1 style="font-size:1.75rem" id="dash-name"></h1><p class="muted" id="dash-who"></p></div>
         </div>
-        <div class="row"><a class="btn btn-primary btn-sm" href="pet-form.html">+ Register a pet</a><a class="btn btn-ghost btn-sm" href="report.html">Report an incident</a><button class="btn btn-soft btn-sm" type="button" data-open-alagai>Ask Alagai</button><button class="btn btn-ghost btn-sm" type="button" id="logout">Log out</button></div>
+        <div class="row"><a class="btn btn-primary btn-sm" href="pet-form.html">+ Register a pet</a><a class="btn btn-ghost btn-sm" href="report.html">Report an incident</a><button class="btn btn-soft btn-sm" type="button" data-open-alagai>Ask Alagai</button></div>
       </div>
 
-      <div class="tabs tabs-grid" role="tablist" aria-label="Account sections">
+      <div class="tabs tabs-grid" role="tablist" aria-label="Profile sections">
         <button class="tab" role="tab" id="tab-pets" aria-controls="panel-pets" aria-selected="true">My pets <span class="tag" id="pets-count"></span></button>
         <button class="tab" role="tab" id="tab-reports" aria-controls="panel-reports" aria-selected="false">My reports <span class="tag" id="reports-count"></span></button>
         <button class="tab" role="tab" id="tab-messages" aria-controls="panel-messages" aria-selected="false">Messages <span class="tag" id="messages-count"></span></button>
-        <button class="tab" role="tab" id="tab-profile" aria-controls="panel-profile" aria-selected="false">Profile<span class="long" style="margin-left:-4px">&amp; password</span></button>
       </div>
 
       <section id="panel-pets" role="tabpanel" aria-labelledby="tab-pets"><div class="stack" id="my-pets"></div></section>
@@ -71,7 +71,14 @@
         <div class="row between" style="margin-bottom:12px"><p class="muted small" style="margin:0">Your messages to the PVO and the office's replies.</p><a class="btn btn-soft btn-sm" href="contact.html">New message</a></div>
         <div class="stack" id="my-messages"></div>
       </section>
-      <section id="panel-profile" role="tabpanel" aria-labelledby="tab-profile" hidden>
+      </div>
+
+      <section id="settings-view" aria-labelledby="settings-title" hidden>
+        <header class="settings-head">
+          <a class="small" href="#pets">← Back to my profile</a>
+          <h1 id="settings-title">Settings</h1>
+          <p class="muted" id="settings-who"></p>
+        </header>
         <div class="form-grid" style="align-items:start">
           <form class="card form-section" id="profile-form" novalidate>
             <h2>Your details</h2>
