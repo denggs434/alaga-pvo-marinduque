@@ -7,7 +7,7 @@ router.get('/mine', protect, c.myPets);
 router.route('/:id').get(optionalAuth, c.getPet).put(protect, c.updatePet).delete(protect, c.deletePet);
 router.patch('/:id/verify', protect, adminOnly, c.verifyPet);
 
-// Health records (owner or PVO; checked in the controller)
+// Health records: the owner adds and removes entries; PVO staff only approve or reject them
 router.post('/:id/vaccinations', protect, c.addVaccination);
 router.patch('/:id/vaccinations/:vid/verify', protect, adminOnly, c.verifyVaccination);
 router.delete('/:id/vaccinations/:vid', protect, c.removeVaccination);

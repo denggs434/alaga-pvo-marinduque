@@ -667,10 +667,11 @@ dialog::backdrop { background: rgb(20 12 6 / 0.5); backdrop-filter: blur(2px); }
 .queue strong { font-size: 0.9375rem; }
 .queue span { color: var(--muted); font-size: 0.8125rem; }
 .case { display: grid; gap: 16px; grid-template-columns: minmax(0, 1fr) 280px; }
-.case dl { display: grid; grid-template-columns: max-content 1fr; gap: 6px 14px; font-size: 0.9375rem; margin: 0; }
-.case dt { color: var(--muted); font-weight: 700; }
-.case dd { margin: 0; overflow-wrap: anywhere; }
+.case dl:not(.facts) { display: grid; grid-template-columns: max-content 1fr; gap: 6px 14px; font-size: 0.9375rem; margin: 0; }
+.case dl:not(.facts) dt { color: var(--muted); font-weight: 700; }
+.case dl:not(.facts) dd { margin: 0; overflow-wrap: anywhere; }
 .case-photos { display: flex; gap: 8px; flex-wrap: wrap; }
+.case .facts { font-size: 0.9375rem; }
 .case-photos img { width: 120px; height: 90px; object-fit: cover; border-radius: 10px; }
 .inbox { display: grid; gap: 12px; list-style: none; padding: 0; }
 .inbox li { padding: 16px; display: grid; gap: 8px; }
@@ -978,3 +979,13 @@ a.notif.is-unread:hover { background: color-mix(in srgb, var(--brand-soft) 70%, 
 /* Contact: send button with a one-line note beside it */
 .send-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; }
 .send-row p { margin: 0; }
+
+/* Admin: pet registration review */
+.review-case { grid-template-columns: minmax(0, 1fr) 340px; }
+.vax-review-list { list-style: none; padding: 0; margin: 0; display: grid; gap: 8px; }
+.vax-review { display: grid; gap: 6px; padding: 12px; border: 1px solid var(--line); border-radius: var(--r); background: var(--surface); }
+.vax-review-head { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.vax-review p { margin: 0; font-size: 0.875rem; color: var(--ink-2); }
+.vax-review-actions { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.vax-review-actions .btn svg { width: 15px; height: 15px; }
+@media (max-width: 1020px) { .review-case { grid-template-columns: 1fr; } }

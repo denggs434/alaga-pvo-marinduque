@@ -59,13 +59,13 @@ exports.getStats = asyncHandler(async (req, res) => {
     // Anti-rabies coverage: living pets whose latest rabies shot is still valid.
     Pet.aggregate([
       { $match: { status: { $ne: 'deceased' }, species: { $in: ['dog', 'cat'] } } },
-      { $project: { shots: { $filter: { input: '$vaccinations', as: 'v', cond: { $regexMatch: { input: '$$v.vaccine', regex: rabiesRx } } } } } },
+      { $project: { shots: { $filter: { input: '$vaccinations', as: 'v', cond: { $and: [{ $regexMatch: { input: '$$v.vaccine', regex: rabiesRx } }, { $ne: ['$$v.rejected', true] }] } } } } },
       { $project: { due: { $max: { $map: { input: '$shots', as: 'v', in: { $ifNull: ['$$v.nextDue', { $dateAdd: { startDate: '$$v.dateGiven', unit: 'year', amount: 1 } }] } } } } } },
       { $group: { _id: null, eligible: { $sum: 1 }, current: { $sum: { $cond: [{ $gte: ['$due', now] }, 1, 0] } } } },
     ]),
     Pet.aggregate([
       { $unwind: '$vaccinations' },
-      { $group: { _id: null, records: { $sum: 1 }, last30: { $sum: { $cond: [{ $gte: ['$vaccinations.dateGiven', days30] }, 1, 0] } }, unverified: { $sum: { $cond: ['$vaccinations.verified', 0, 1] } } } },
+      { $group: { _id: null, records: { $sum: 1 }, last30: { $sum: { $cond: [{ $gte: ['$vaccinations.dateGiven', days30] }, 1, 0] } }, unverified: { $sum: { $cond: [{ $or: ['$vaccinations.verified', '$vaccinations.rejected'] }, 0, 1] } } } },
     ]),
     Announcement.countDocuments({ published: true, 'event.startsAt': { $gte: now } }),
     Report.aggregate([{ $group: { _id: '$status', n: { $sum: 1 } } }]),

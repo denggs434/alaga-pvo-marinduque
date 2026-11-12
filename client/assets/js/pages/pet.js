@@ -29,12 +29,12 @@ function gallery(p) {
 }
 
 function ownerActions(p) {
+  // PVO staff review registrations in the admin console; they never edit the owner's details.
+  if (p.canReview) return `<div class="row"><a class="btn btn-primary btn-sm" href="admin.html#pets">${ICONS.shieldCheck}Review in the admin console</a></div>`;
   if (!p.canEdit) return '';
-  const staff = isAdmin();
   return `<div class="row">
-    <a class="btn btn-primary btn-sm" href="pet-form.html?id=${p._id}">${ICONS.edit}Edit profile</a>
-    ${!staff && p.status !== 'missing' ? `<a class="btn btn-ghost btn-sm" href="report.html?type=missing&pet=${p._id}">${ICONS.search}Report missing</a>` : ''}
-    ${staff ? `<button class="btn btn-soft btn-sm" type="button" id="verify-btn">${p.registrationStatus === 'verified' ? 'Mark as pending' : `${ICONS.check}Verify registration`}</button>` : ''}
+    <a class="btn btn-primary btn-sm" href="pet-form.html?id=${p._id}">${ICONS.edit}${p.registrationStatus === 'rejected' ? 'Edit and resubmit' : 'Edit profile'}</a>
+    ${p.status !== 'missing' ? `<a class="btn btn-ghost btn-sm" href="report.html?type=missing&pet=${p._id}">${ICONS.search}Report missing</a>` : ''}
     <button class="btn btn-danger btn-sm" type="button" id="delete-btn">${ICONS.trash}Delete</button>
   </div>`;
 }
@@ -58,7 +58,8 @@ function renderProfile(p) {
     <div class="profile-hero">
       ${gallery(p)}
       <div class="card profile-card">
-        <div class="row" style="gap:6px">${petTags(p)}${p.registrationStatus === 'pending' ? '<span class="tag tag-amber">Registration pending</span>' : ''}</div>
+        <div class="row" style="gap:6px">${petTags(p)}${p.registrationStatus === 'pending' ? '<span class="tag tag-amber">Registration pending</span>' : ''}${p.registrationStatus === 'rejected' ? '<span class="tag tag-red">Registration rejected</span>' : ''}</div>
+        ${p.registrationStatus === 'rejected' && (p.canEdit || p.canReview) ? `<p class="notice notice-error small" style="margin:0"><b>The PVO rejected this registration.</b> ${esc(p.rejectionReason || '')}${p.canEdit ? ' Fix the details with <b>Edit and resubmit</b> and it goes back for review.' : ''}</p>` : ''}
         <h1>${esc(p.name)} ${sexIcon(p.sex)}</h1>
         <p class="muted" style="margin-top:-8px">${esc(petSubtitle(p))} · ${esc(p.municipality)}</p>
         ${p.bio ? `<p>${esc(p.bio)}</p>` : ''}
@@ -89,15 +90,6 @@ function renderProfile(p) {
     }
   });
 
-  $('#verify-btn')?.addEventListener('click', async () => {
-    try {
-      pet = await api(`/pets/${p._id}/verify`, { method: 'PATCH', body: { verified: p.registrationStatus !== 'verified' } });
-      toast(pet.registrationStatus === 'verified' ? 'Registration verified.' : 'Registration set to pending.');
-      render();
-    } catch (err) {
-      toast(err.message, 'error');
-    }
-  });
 }
 
 /* ---------- Health records (owner / PVO) ---------- */
@@ -108,9 +100,8 @@ function renderHealth(p) {
         <div><strong>${esc(v.vaccine)}</strong>
           <p>Given ${formatDate(v.dateGiven)}${v.administeredBy ? ` by ${esc(v.administeredBy)}` : ''}${v.nextDue ? ` · next due ${formatDate(v.nextDue)}` : ''}</p></div>
         <div class="record-side">
-          ${v.verified ? `<span class="tag tag-green">${ICONS.shieldCheck}PVO verified</span>` : '<span class="tag">Owner entry</span>'}
-          ${isAdmin() && !v.verified ? `<button class="btn btn-soft btn-sm" type="button" data-verify-vax="${v._id}">Verify</button>` : ''}
-          ${isAdmin() || !v.verified ? `<button class="btn btn-danger btn-sm" type="button" data-del-vax="${v._id}" aria-label="Delete ${esc(v.vaccine)} record">${ICONS.trash}</button>` : ''}
+          ${v.verified ? `<span class="tag tag-green">${ICONS.shieldCheck}PVO verified</span>` : v.rejected ? '<span class="tag tag-red">Rejected by the PVO</span>' : '<span class="tag tag-amber">Waiting for PVO verification</span>'}
+          ${p.canEdit && !v.verified ? `<button class="btn btn-danger btn-sm" type="button" data-del-vax="${v._id}" aria-label="Delete ${esc(v.vaccine)} record">${ICONS.trash}</button>` : ''}
         </div></li>`).join('')
     : `<li>${emptyState('No vaccinations recorded', 'Add shots given at a clinic, or join a free PVO drive.')}</li>`;
 
@@ -119,7 +110,7 @@ function renderHealth(p) {
         <span class="record-icon">${ICONS.stethoscope}</span>
         <div><strong>${esc(m.title)}</strong> <span class="tag">${esc(MEDICAL_TYPES[m.type] || m.type)}</span>
           <p>${formatDate(m.date)}${m.vet ? ` · ${esc(m.vet)}` : ''}</p>${m.notes ? `<p style="color:var(--ink-2)">${esc(m.notes)}</p>` : ''}</div>
-        <div class="record-side"><button class="btn btn-danger btn-sm" type="button" data-del-med="${m._id}" aria-label="Delete record">${ICONS.trash}</button></div></li>`).join('')
+        ${p.canEdit ? `<div class="record-side"><button class="btn btn-danger btn-sm" type="button" data-del-med="${m._id}" aria-label="Delete record">${ICONS.trash}</button></div>` : ''}</li>`).join('')
     : `<li>${emptyState('No medical history yet', 'Check-ups, illnesses, surgeries and deworming go here.')}</li>`;
 }
 
@@ -128,8 +119,7 @@ $('#panel-health').addEventListener('click', async (e) => {
   if (!b) return;
   const d = b.dataset;
   try {
-    if (d.verifyVax) pet = await api(`/pets/${id}/vaccinations/${d.verifyVax}/verify`, { method: 'PATCH' });
-    else if (d.delVax && armed(b, 'Delete?')) pet = await api(`/pets/${id}/vaccinations/${d.delVax}`, { method: 'DELETE' });
+    if (d.delVax && armed(b, 'Delete?')) pet = await api(`/pets/${id}/vaccinations/${d.delVax}`, { method: 'DELETE' });
     else if (d.delMed && armed(b, 'Delete?')) pet = await api(`/pets/${id}/medical/${d.delMed}`, { method: 'DELETE' });
     else return;
     toast('Health record updated.');
@@ -178,7 +168,7 @@ $('#add-vax').addEventListener('click', () => {
   showFieldErrors(f, {});
   f.elements.dateGiven.max = today;
   f.elements.dateGiven.value = today;
-  $('#vax-note').textContent = isAdmin() ? 'Saved as PVO verified.' : 'Your entry is marked "Owner entry" until the PVO verifies it at your next visit.';
+  $('#vax-note').textContent = 'Your entry waits for PVO verification. Bring the vaccination card to your next visit or drive.';
   $('#vax-dialog').showModal();
 });
 $('#add-med').addEventListener('click', () => {
@@ -231,8 +221,11 @@ function render() {
   if (pet.postCount !== undefined) postCount = pet.postCount;
   renderProfile(pet);
   $('#post-count').textContent = postCount;
-  if (pet.canEdit) {
+  if (pet.canEdit || pet.canReview) {
     $('#tab-health').hidden = false;
+    // Staff see the record read-only; approving or rejecting entries happens in the admin console.
+    $('#add-vax').hidden = !pet.canEdit;
+    $('#add-med').hidden = !pet.canEdit;
     renderHealth(pet);
   }
 }
@@ -246,7 +239,7 @@ async function boot() {
     pet = await api(`/pets/${encodeURIComponent(id)}`);
     $('#tabs-wrap').hidden = false;
     render();
-    if (location.hash === '#health' && pet.canEdit) selectTab('health');
+    if (location.hash === '#health' && (pet.canEdit || pet.canReview)) selectTab('health');
     loadPosts();
   } catch (err) {
     root.innerHTML = `<div style="margin-top:32px">${emptyState(err.status === 404 ? 'Pet not found' : 'Could not load this pet', err.message, '<a class="btn btn-primary" href="pets.html">Browse pets</a>')}</div>`;

@@ -186,9 +186,10 @@ async function loadPets() {
       ? pets.map((p) => `<article class="card my-pet">
           <a href="pet.html?id=${p._id}">${petImg(p.photos?.[0], '', p.name)}</a>
           <div class="stack-sm" style="gap:4px">
-            <div class="row" style="gap:6px"><h3><a href="pet.html?id=${p._id}">${esc(p.name)}</a></h3>${petTags(p)}${p.registrationStatus === 'pending' ? '<span class="tag tag-amber">Verification pending</span>' : ''}</div>
+            <div class="row" style="gap:6px"><h3><a href="pet.html?id=${p._id}">${esc(p.name)}</a></h3>${petTags(p)}${p.registrationStatus === 'pending' ? '<span class="tag tag-amber">Verification pending</span>' : ''}${p.registrationStatus === 'rejected' ? '<span class="tag tag-red">Registration rejected</span>' : ''}</div>
             <span class="muted small">${esc(p.breed || SPECIES[p.species])}${p.birthDate ? ` · ${ageText(p.birthDate)}` : ''} · <span class="mono">${esc(p.registrationNo)}</span></span>
             <div class="row" style="gap:6px">${rabiesLine(p.rabies)}</div>
+            ${p.registrationStatus === 'rejected' ? `<p class="small" style="color:var(--bad);margin:0">PVO: ${esc(p.rejectionReason || 'Please check the details.')} Edit the pet to resubmit.</p>` : ''}
           </div>
           <div class="row" style="gap:6px">
             <a class="btn btn-ghost btn-sm" href="pet.html?id=${p._id}#health">Health records</a>

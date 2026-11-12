@@ -94,7 +94,8 @@
             <div class="search-box"><label class="sr-only" for="pet-q">Search pets</label><span data-icon="search"></span><input class="input" id="pet-q" type="search" placeholder="Name, breed, registration no. or owner"></div>
             <label><span class="sr-only">Species</span><select class="input" id="pet-species"></select></label>
             <label><span class="sr-only">Municipality</span><select class="input" id="pet-town"></select></label>
-            <label><span class="sr-only">Registration</span><select class="input" id="pet-reg"><option value="">All registrations</option><option value="pending">Pending verification</option><option value="verified">Verified</option></select></label>
+            <label><span class="sr-only">Registration</span><select class="input" id="pet-reg"><option value="">All registrations</option><option value="pending">Pending review</option><option value="verified">Approved</option><option value="rejected">Rejected</option></select></label>
+            <label><span class="sr-only">Anti-rabies</span><select class="input" id="pet-vax"><option value="">All anti-rabies</option><option value="vaccinated">Vaccinated</option><option value="pending">Pending verification</option><option value="not-vaccinated">Not vaccinated</option></select></label>
           </div>
           <div class="table-wrap"><table class="table" id="pets-table"></table></div>
         </section>
@@ -173,23 +174,10 @@
     </form>
   </dialog>
 
-  <!-- Verified vaccination -->
-  <dialog class="modal" id="vax-dialog" aria-labelledby="vax-title">
-    <form id="vax-form" novalidate>
-      <div class="modal-head"><h2 id="vax-title">Record vaccination</h2><button class="icon-btn" type="button" data-close aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>
-      <div class="modal-body">
-        <label class="field"><span>Vaccine</span><input class="input" name="vaccine" list="vax-names" value="Anti-rabies" required maxlength="60"><small class="field-error"></small></label>
-        <datalist id="vax-names"></datalist>
-        <div class="form-grid">
-          <label class="field"><span>Date given</span><input class="input" type="date" name="dateGiven" required><small class="field-error"></small></label>
-          <label class="field"><span>Next due</span><input class="input" type="date" name="nextDue"></label>
-        </div>
-        <label class="field"><span>Given by</span><input class="input" name="administeredBy" value="PVO Marinduque" maxlength="80"></label>
-        <p class="muted small">Saved as PVO verified on the pet's health record.</p>
-        <p class="notice notice-error" id="vax-error" hidden role="alert"></p>
-      </div>
-      <div class="modal-foot"><button class="btn btn-ghost" type="button" data-close>Cancel</button><button class="btn btn-primary" type="submit">Save</button></div>
-    </form>
+  <!-- Pet registration review (read-only details; approve or reject only) -->
+  <dialog class="modal modal-wide" id="review-dialog" aria-labelledby="review-title">
+    <div class="modal-head"><h2 id="review-title">Review registration</h2><button class="icon-btn" type="button" data-close aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>
+    <div class="modal-body" id="review-body"></div>
   </dialog>
 
   <script type="module" src="assets/js/pages/admin.js"></script>

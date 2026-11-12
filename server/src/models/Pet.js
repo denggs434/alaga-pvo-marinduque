@@ -24,8 +24,11 @@ const vaccinationSchema = new mongoose.Schema(
       },
     },
     administeredBy: { type: String, trim: true, maxlength: 80 },
-    // true when the PVO recorded or confirmed it; owner entries start unverified
+    // Owner entries start unverified; PVO staff approve (verified) or reject them.
+    // The entry itself is never changed by staff.
     verified: { type: Boolean, default: false },
+    rejected: { type: Boolean, default: false },
+    reviewedAt: Date,
   },
   { timestamps: true }
 );
@@ -59,8 +62,12 @@ const petSchema = new mongoose.Schema(
     municipality: { type: String, enum: MUNICIPALITIES, required: [true, 'Municipality is required.'] },
 
     registrationNo: { type: String, unique: true, sparse: true },
-    registrationStatus: { type: String, enum: ['pending', 'verified'], default: 'pending' },
+    // PVO review of the owner's submission: pending -> verified (approved) or rejected.
+    // Staff never edit the submitted details; a rejected pet goes back to pending when the owner edits it.
+    registrationStatus: { type: String, enum: ['pending', 'verified', 'rejected'], default: 'pending' },
     verifiedAt: Date,
+    rejectionReason: { type: String, trim: true, maxlength: 300 },
+    reviewedAt: Date,
 
     isPublic: { type: Boolean, default: true }, // shown on the community wall
     status: { type: String, enum: PET_STATUSES, default: 'active' },
@@ -87,8 +94,10 @@ petSchema.pre('save', async function assignNumber(next) {
  * Due date = nextDue if given, otherwise one year after the shot.
  * Returns { status: 'none' | 'current' | 'overdue', due }
  */
+const rabiesDue = (v) => (v.nextDue ? new Date(v.nextDue) : new Date(new Date(v.dateGiven).setFullYear(new Date(v.dateGiven).getFullYear() + 1)));
+
 function rabiesStatus(pet) {
-  const shots = (pet.vaccinations || []).filter((v) => /rabies/i.test(v.vaccine));
+  const shots = (pet.vaccinations || []).filter((v) => /rabies/i.test(v.vaccine) && !v.rejected);
   if (!shots.length) return { status: 'none' };
   const due = shots
     .map((v) => (v.nextDue ? new Date(v.nextDue) : new Date(new Date(v.dateGiven).setFullYear(new Date(v.dateGiven).getFullYear() + 1))))
@@ -97,5 +106,24 @@ function rabiesStatus(pet) {
 }
 
 petSchema.statics.rabiesStatus = rabiesStatus;
+
+/**
+ * Anti-rabies vaccination status for PVO review and the owner:
+ *  - vaccinated:     a PVO-verified shot that is still valid
+ *  - pending:        a valid shot entered by the owner, waiting for PVO verification
+ *  - not-vaccinated: no valid shot (expired: date the last verified shot ran out, if any)
+ * Rejected entries never count.
+ */
+function vaccinationStatus(pet) {
+  const now = new Date();
+  const shots = (pet.vaccinations || []).filter((v) => /rabies/i.test(v.vaccine) && !v.rejected);
+  const latest = (list) => list.map(rabiesDue).sort((a, b) => b - a)[0];
+  const verified = latest(shots.filter((v) => v.verified));
+  if (verified && verified >= now) return { status: 'vaccinated', due: verified };
+  const pending = latest(shots.filter((v) => !v.verified && rabiesDue(v) >= now));
+  if (pending) return { status: 'pending', due: pending };
+  return { status: 'not-vaccinated', expired: verified || undefined };
+}
+petSchema.statics.vaccinationStatus = vaccinationStatus;
 
 module.exports = mongoose.model('Pet', petSchema);

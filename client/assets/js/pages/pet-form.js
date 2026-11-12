@@ -15,9 +15,11 @@ const form = $('#pet-form');
 const id = new URLSearchParams(location.search).get('id');
 const user = requireLogin(id ? 'Log in to edit this pet.' : 'Log in or create an account to register your pet.');
 
-if (user && !id && isAdmin()) {
-  // Staff accounts do not own pets; send them to the console instead.
-  $('main').innerHTML = emptyState('PVO staff accounts do not register pets', 'Owners register their pets from their own accounts. You can edit and verify any pet from the admin console.', '<a class="btn btn-primary" href="admin.html#pets">Open the pets list</a>');
+if (user && isAdmin()) {
+  // Staff accounts do not own pets and never edit an owner's details: they review them.
+  $('main').innerHTML = id
+    ? emptyState("PVO staff can't edit pet details", "The owner's submitted information stays as they entered it. Review it and approve or reject the registration in the admin console.", '<a class="btn btn-primary" href="admin.html#pets">Open the pets list</a>')
+    : emptyState('PVO staff accounts do not register pets', 'Owners register their pets from their own accounts. Review registrations in the admin console.', '<a class="btn btn-primary" href="admin.html#pets">Open the pets list</a>');
 } else if (user) {
   boot();
 }

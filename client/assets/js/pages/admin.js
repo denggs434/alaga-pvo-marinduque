@@ -15,10 +15,10 @@
 import { api, qs } from '../api.js';
 import { getUser, isAdmin, setSession, clearSession } from '../store.js';
 import { setupThemeToggle } from '../nav.js';
-import { SPECIES, SPECIES_PLURAL, MUNICIPALITIES, CATEGORIES, REPORT_TYPES, REPORT_STATUSES, VACCINES, CONTACT_TOPICS } from '../config.js';
+import { SPECIES, SPECIES_PLURAL, MUNICIPALITIES, CATEGORIES, REPORT_TYPES, REPORT_STATUSES, CONTACT_TOPICS } from '../config.js';
 import {
   initAdminPage, toast, armed, setupModal, showFieldErrors, setBusy, options, createPhotoPicker, emptyState,
-  esc, initials, formatDate, formatDateTime, formatNumber, timeAgo, toDateInput, fromDateInput, toDateTimeInput, fromDateTimeInput, debounce,
+  esc, initials, formatDate, formatDateTime, formatNumber, timeAgo, toDateTimeInput, fromDateTimeInput, debounce,
   ICONS, BRAND_MARK, $, $$,
 } from '../ui.js';
 import { petImg, reportTypeTag, reportStatusTag, categoryTag, timeline, eventWhen } from '../components.js';
@@ -63,7 +63,7 @@ function showLogin() {
    Console
    ========================================================================= */
 function boot() {
-  const state = { stats: null, pets: [], reports: [], anns: [], users: [], messages: [], reportFilter: 'open', msgFilter: 'inbox', replying: null };
+  const state = { stats: null, pets: [], reports: [], anns: [], users: [], messages: [], reportFilter: 'pending', msgFilter: 'inbox', replying: null };
   const user = getUser();
 
   /* ---------- Chrome ---------- */
@@ -202,8 +202,8 @@ function boot() {
       ${r.priority === 'high' ? ' <span class="tag tag-red">High priority</span>' : ''} ${reportStatusTag(r.status)}<br>
       <span>${esc(r.location.barangay)}, ${esc(r.location.municipality)} · filed ${timeAgo(r.createdAt)}</span></span>
       <button class="btn btn-sm btn-primary" type="button" data-open-report="${r._id}">Open case</button></li>`));
-    if (s.pets.pending) q.push(`<li><span><strong>${s.pets.pending} pet registration${s.pets.pending === 1 ? '' : 's'} to verify</strong><br><span>Check the details and photos, then verify.</span></span><button class="btn btn-sm btn-ghost" type="button" data-goto-pending>Review</button></li>`);
-    if (s.vaccinations.unverified) q.push(`<li><span><strong>${s.vaccinations.unverified} owner-entered vaccination${s.vaccinations.unverified === 1 ? '' : 's'}</strong><br><span>Verify when the owner shows the vaccination card.</span></span></li>`);
+    if (s.pets.pending) q.push(`<li><span><strong>${s.pets.pending} pet registration${s.pets.pending === 1 ? '' : 's'} to review</strong><br><span>Check the owner's details and photos, then approve or reject.</span></span><button class="btn btn-sm btn-ghost" type="button" data-goto-pending>Review</button></li>`);
+    if (s.vaccinations.unverified) q.push(`<li><span><strong>${s.vaccinations.unverified} owner-entered vaccination${s.vaccinations.unverified === 1 ? '' : 's'}</strong><br><span>Approve or reject them in Pets → Review.</span></span><button class="btn btn-sm btn-ghost" type="button" data-goto-vax>Review</button></li>`);
     if (s.newMessages) q.push(`<li><span><strong>${s.newMessages} new message${s.newMessages === 1 ? '' : 's'}</strong><br><span>From the contact form.</span></span><a class="btn btn-sm btn-ghost" href="#messages">Read</a></li>`);
     $('#queue').innerHTML = q.join('') || '<li><span><strong>All clear.</strong><br><span>New reports and registrations will show up here.</span></span></li>';
 
@@ -232,66 +232,116 @@ function boot() {
   ['#pet-species', '#pet-town', '#pet-reg'].forEach((s) => $(s).addEventListener('change', renderPets));
   $('#pet-q').addEventListener('input', debounce(renderPets, 150));
 
-  const rabiesCell = (r) => (r.status === 'current' ? `<span class="tag tag-green">Until ${formatDate(r.due)}</span>`
-    : r.status === 'overdue' ? '<span class="tag tag-amber">Overdue</span>' : '<span class="tag">None</span>');
+  $('#pet-vax').addEventListener('change', renderPets);
+
+  /* Status labels shared by the list and the review screen */
+  const REG = {
+    pending: '<span class="tag tag-amber">Pending review</span>',
+    verified: `<span class="tag tag-green">${ICONS.check}Approved</span>`,
+    rejected: '<span class="tag tag-red">Rejected</span>',
+  };
+  const vaxTag = (v = {}) => (v.status === 'vaccinated' ? `<span class="tag tag-green">${ICONS.shieldCheck}Vaccinated · until ${formatDate(v.due)}</span>`
+    : v.status === 'pending' ? '<span class="tag tag-amber">Pending verification</span>'
+      : `<span class="tag tag-red">Not vaccinated${v.expired ? ` · expired ${formatDate(v.expired)}` : ''}</span>`);
+  const needsReview = (p) => p.registrationStatus === 'pending' || p.vaccinations?.some((v) => !v.verified && !v.rejected);
 
   function renderPets() {
     const term = $('#pet-q').value.trim().toLowerCase();
     const sp = $('#pet-species').value;
     const town = $('#pet-town').value;
     const reg = $('#pet-reg').value;
+    const vax = $('#pet-vax').value;
     const rows = state.pets.filter((p) => (!sp || p.species === sp) && (!town || p.municipality === town) && (!reg || p.registrationStatus === reg)
+      && (!vax || p.vaccinationStatus?.status === vax)
       && (!term || `${p.name} ${p.breed} ${p.registrationNo} ${p.owner.name} ${p.owner.email}`.toLowerCase().includes(term)));
     $('#pets-table').innerHTML = `<thead><tr><th>Pet</th><th>Owner</th><th>Species / breed</th><th>Municipality</th><th>Anti-rabies</th><th></th></tr></thead>
       <tbody>${rows.map((p) => `<tr class="${p.status === 'deceased' ? 'is-muted' : ''}">
         <td><div class="cell-pet">${petImg(p.photos?.[0], '', p.name)}<span><strong><a href="pet.html?id=${p._id}" target="_blank" rel="noopener">${esc(p.name)}</a></strong>
-          <span class="muted small mono">${esc(p.registrationNo)}</span><span class="cell-tags">${p.registrationStatus === 'verified' ? '<span class="tag tag-green">Verified</span>' : '<span class="tag tag-amber">Pending</span>'}${p.status === 'missing' ? '<span class="tag tag-solid-red">Missing</span>' : ''}${p.isPublic ? '' : '<span class="tag">Private</span>'}</span></span></div></td>
+          <span class="muted small mono">${esc(p.registrationNo)}</span><span class="cell-tags">${REG[p.registrationStatus] || ''}${p.status === 'missing' ? '<span class="tag tag-solid-red">Missing</span>' : ''}${p.isPublic ? '' : '<span class="tag">Private</span>'}</span></span></div></td>
         <td>${esc(p.owner.name)}<br><span class="muted small">${esc(p.owner.phone || p.owner.email || '')}</span></td>
         <td>${esc(SPECIES[p.species])}<br><span class="muted small">${esc(p.breed || '—')}</span></td>
         <td>${esc(p.municipality)}</td>
-        <td>${rabiesCell(p.rabies)}</td>
-        <td><div class="cell-actions">
-          ${p.registrationStatus === 'verified' ? '' : `<button class="btn btn-soft btn-sm" type="button" data-verify="${p._id}">Verify</button>`}
-          <button class="btn btn-ghost btn-sm" type="button" data-vax="${p._id}" title="Record a PVO vaccination">${ICONS.syringe}<span class="sr-only">Record vaccination for ${esc(p.name)}</span></button>
-          <a class="btn btn-ghost btn-sm" href="pet-form.html?id=${p._id}" title="Edit">${ICONS.edit}<span class="sr-only">Edit ${esc(p.name)}</span></a>
-          <button class="btn btn-danger btn-sm" type="button" data-del-pet="${p._id}" title="Delete">${ICONS.trash}<span class="sr-only">Delete ${esc(p.name)}</span></button>
-        </div></td></tr>`).join('') || `<tr><td colspan="6">${emptyState('No pets match these filters')}</td></tr>`}</tbody>`;
+        <td>${vaxTag(p.vaccinationStatus)}</td>
+        <td><div class="cell-actions"><button class="btn ${needsReview(p) ? 'btn-primary' : 'btn-ghost'} btn-sm" type="button" data-review="${p._id}">${needsReview(p) ? 'Review' : 'View'}</button></div></td></tr>`).join('') || `<tr><td colspan="6">${emptyState('No pets match these filters')}</td></tr>`}</tbody>`;
   }
 
-  // Record a verified vaccination from the registry.
-  const vaxDialog = setupModal($('#vax-dialog'));
-  const vaxForm = $('#vax-form');
-  $('#vax-names').innerHTML = options(VACCINES);
-  let vaxPet = null;
-  function openVax(pet) {
-    vaxPet = pet;
-    vaxForm.reset();
-    showFieldErrors(vaxForm, {});
-    $('#vax-error').hidden = true;
-    $('#vax-title').textContent = `Record vaccination: ${pet.name}`;
-    const today = new Date();
-    vaxForm.elements.dateGiven.value = toDateInput(today);
-    vaxForm.elements.dateGiven.max = toDateInput(today);
-    vaxForm.elements.nextDue.value = toDateInput(new Date(today.getTime() + 365 * 864e5));
-    vaxDialog.showModal();
+  /* Review: the owner's submission is read-only; staff approve or reject the
+     registration and each vaccination entry. */
+  const reviewDialog = setupModal($('#review-dialog'));
+  let reviewing = null;
+  function vaxEntry(v) {
+    const tag = v.verified ? `<span class="tag tag-green">${ICONS.shieldCheck}PVO verified</span>`
+      : v.rejected ? '<span class="tag tag-red">Rejected</span>' : '<span class="tag tag-amber">Waiting for review</span>';
+    return `<li class="vax-review">
+      <div class="vax-review-head"><strong>${esc(v.vaccine)}</strong>${/rabies/i.test(v.vaccine) ? '<span class="tag tag-blue">Anti-rabies</span>' : ''}</div>
+      <p>Given ${formatDate(v.dateGiven)}${v.administeredBy ? ` by ${esc(v.administeredBy)}` : ''}${v.nextDue ? `<br>Next due ${formatDate(v.nextDue)}` : ''}</p>
+      <div class="vax-review-actions">${tag}
+        ${!v.verified && !v.rejected ? `<button class="btn btn-soft btn-sm" type="button" data-vax-decide="approve" data-vid="${v._id}">${ICONS.check}Approve</button>
+          <button class="btn btn-ghost btn-sm" type="button" data-vax-decide="reject" data-vid="${v._id}">Reject</button>` : ''}
+      </div></li>`;
   }
-  vaxForm.addEventListener('submit', async (e) => {
+  function openReview(p) {
+    reviewing = p;
+    $('#review-title').textContent = `Review: ${p.name}`;
+    const facts = [
+      ['Registration no.', p.registrationNo], ['Species', SPECIES[p.species]], ['Breed', p.breed || 'Not given'],
+      ['Sex', p.sex === 'male' ? 'Male' : 'Female'], ['Birth date', p.birthDate ? formatDate(p.birthDate) : 'Not given'],
+      ['Colour', p.color || 'Not given'], ['Spayed / neutered', p.neutered ? 'Yes' : 'No'], ['Municipality', p.municipality],
+      ['Profile', p.isPublic ? 'Public' : 'Private'], ['Submitted', formatDate(p.createdAt)],
+    ];
+    const vaccines = [...(p.vaccinations || [])].sort((a, b) => /rabies/i.test(b.vaccine) - /rabies/i.test(a.vaccine) || new Date(b.dateGiven) - new Date(a.dateGiven));
+    $('#review-body').innerHTML = `
+      <div class="row" style="gap:6px">${REG[p.registrationStatus] || ''}${vaxTag(p.vaccinationStatus)}</div>
+      <p class="notice small">Submitted by the owner. PVO staff can't change these details: check them, then approve or reject.</p>
+      <div class="case review-case">
+        <div class="stack">
+          ${p.photos?.length ? `<div class="case-photos">${p.photos.map((src) => `<a href="${esc(src)}" target="_blank" rel="noopener"><img src="${esc(src)}" alt="Photo of ${esc(p.name)}"></a>`).join('')}</div>` : '<p class="muted">No photos submitted.</p>'}
+          <dl class="facts">${facts.map(([k, v]) => `<div><dt>${k}</dt><dd>${esc(v)}</dd></div>`).join('')}</dl>
+          ${p.bio ? `<p class="small" style="white-space:pre-line"><b>Bio:</b> ${esc(p.bio)}</p>` : ''}
+          <p class="small"><b>Owner:</b> ${esc(p.owner.name)} · ${esc(p.owner.email || '')}${p.owner.phone ? ` · ${esc(p.owner.phone)}` : ''}${p.owner.barangay ? ` · Brgy. ${esc(p.owner.barangay)}` : ''}</p>
+        </div>
+        <div class="stack">
+          <section class="panel stack-sm">
+            <h3 style="font-size:1rem">Anti-rabies vaccination</h3>
+            <div>${vaxTag(p.vaccinationStatus)}</div>
+            <ul class="vax-review-list">${vaccines.length ? vaccines.map(vaxEntry).join('') : '<li class="muted small">The owner has not entered any vaccinations.</li>'}</ul>
+          </section>
+          <form class="panel stack-sm" id="review-form" novalidate>
+            <h3 style="font-size:1rem">Registration decision</h3>
+            ${p.registrationStatus === 'rejected' && p.rejectionReason ? `<p class="notice notice-error small" style="margin:0">Rejected: ${esc(p.rejectionReason)}</p>` : ''}
+            ${p.registrationStatus === 'verified' ? `<p class="muted small" style="margin:0">Approved ${p.reviewedAt ? formatDate(p.reviewedAt) : ''}.</p>` : ''}
+            <label class="field"><span>Reason <span class="muted">(needed to reject; the owner sees it)</span></span><textarea class="input" name="reason" maxlength="300" style="min-height:80px" placeholder="e.g. The photos do not show the pet clearly. Please upload a clear photo."></textarea><small class="field-error"></small></label>
+            <div class="row">
+              ${p.registrationStatus === 'verified' ? '' : `<button class="btn btn-primary" type="submit" value="approve">${ICONS.check}Approve registration</button>`}
+              ${p.registrationStatus === 'rejected' ? '' : '<button class="btn btn-danger" type="submit" value="reject">Reject</button>'}
+            </div>
+          </form>
+        </div>
+      </div>`;
+    if (!reviewDialog.open) reviewDialog.showModal();
+  }
+  $('#review-body').addEventListener('submit', async (e) => {
     e.preventDefault();
-    const f = vaxForm.elements;
-    const btn = vaxForm.querySelector('[type=submit]');
-    setBusy(btn, true, 'Saving…');
-    try {
-      await api(`/pets/${vaxPet._id}/vaccinations`, { method: 'POST', body: { vaccine: f.vaccine.value.trim(), dateGiven: fromDateInput(f.dateGiven.value), nextDue: fromDateInput(f.nextDue.value), administeredBy: f.administeredBy.value.trim() } });
-      vaxDialog.close();
-      toast(`Vaccination recorded for ${vaxPet.name}.`);
-      loadAll();
-    } catch (err) {
-      $('#vax-error').textContent = err.message;
-      $('#vax-error').hidden = false;
-      if (err.details) showFieldErrors(vaxForm, Object.fromEntries(Object.entries(err.details).map(([k, v]) => [k.split('.').pop(), v])));
-    } finally {
-      setBusy(btn, false);
-    }
+    const form = e.target;
+    const decision = e.submitter?.value;
+    if (!decision) return;
+    const reason = form.elements.reason.value.trim();
+    if (decision === 'reject' && reason.length < 5) return showFieldErrors(form, { reason: 'Tell the owner why the registration was rejected.' });
+    setBusy(e.submitter, true, decision === 'approve' ? 'Approving…' : 'Rejecting…');
+    const name = reviewing.name;
+    const ok = await act(() => api(`/pets/${reviewing._id}/verify`, { method: 'PATCH', body: { decision, reason } }),
+      decision === 'approve' ? `${name}'s registration approved.` : `${name}'s registration rejected. The owner can see the reason.`);
+    if (ok) reviewDialog.close();
+    else setBusy(e.submitter, false);
+  });
+  $('#review-body').addEventListener('click', async (e) => {
+    const b = e.target.closest('[data-vax-decide]');
+    if (!b) return;
+    b.disabled = true;
+    const updated = await act(() => api(`/pets/${reviewing._id}/vaccinations/${b.dataset.vid}/verify`, { method: 'PATCH', body: { decision: b.dataset.vaxDecide } }),
+      b.dataset.vaxDecide === 'approve' ? 'Vaccination approved.' : 'Vaccination rejected.');
+    if (updated) openReview(updated);
+    else b.disabled = false;
   });
 
   /* ---------- Reports ---------- */
@@ -306,17 +356,26 @@ function boot() {
     renderReports();
   });
 
-  const OPEN = ['submitted', 'under-review', 'in-progress'];
+  // Pending: new, not yet picked up. In progress: under review or being worked on.
+  // History: resolved and closed (kept for reference). A saved update moves the report between them.
+  const GROUPS = {
+    pending: { label: 'Pending', statuses: ['submitted'] },
+    active: { label: 'In progress', statuses: ['under-review', 'in-progress'] },
+    history: { label: 'History', statuses: ['resolved', 'closed'] },
+    all: { label: 'All', statuses: Object.keys(REPORT_STATUSES) },
+  };
+  const groupOf = (status) => Object.keys(GROUPS).find((g) => g !== 'all' && GROUPS[g].statuses.includes(status));
+  const inGroup = (f) => (r) => GROUPS[f].statuses.includes(r.status);
   function renderReports() {
-    const count = (f) => state.reports.filter((r) => (f === 'open' ? OPEN.includes(r.status) : f === 'all' || r.status === f)).length;
-    $('#report-status-chips').innerHTML = [['open', 'Open'], ['all', 'All'], ...Object.entries(REPORT_STATUSES).map(([k, s]) => [k, s.label])]
-      .map(([k, l]) => `<button class="chip" type="button" data-rfilter="${k}" aria-pressed="${state.reportFilter === k}">${l} <b>${count(k)}</b></button>`).join('');
+    const count = (f) => state.reports.filter(inGroup(f)).length;
+    $('#report-status-chips').innerHTML = Object.entries(GROUPS)
+      .map(([k, g]) => `<button class="chip" type="button" data-rfilter="${k}" aria-pressed="${state.reportFilter === k}">${g.label} <b>${count(k)}</b></button>`).join('');
     const f = state.reportFilter;
     const type = $('#rep-type').value;
     const town = $('#rep-town').value;
     const term = $('#rep-q').value.trim().toLowerCase();
     const rows = state.reports
-      .filter((r) => (f === 'open' ? OPEN.includes(r.status) : f === 'all' || r.status === f))
+      .filter(inGroup(f))
       .filter((r) => (!type || r.type === type) && (!town || r.location.municipality === town)
         && (!term || `${r.reference} ${r.contact.name} ${r.location.barangay}`.toLowerCase().includes(term)))
       .sort((a, b) => (a.priority === b.priority ? 0 : a.priority === 'high' ? -1 : 1) || new Date(b.createdAt) - new Date(a.createdAt));
@@ -328,8 +387,8 @@ function boot() {
         <td>${formatDate(r.incidentDate)}</td>
         <td>${timeAgo(r.createdAt)}</td>
         <td>${reportStatusTag(r.status)}</td>
-        <td><div class="cell-actions"><button class="btn btn-primary btn-sm" type="button" data-open-report="${r._id}">Open</button></div></td>
-      </tr>`).join('') || `<tr><td colspan="7">${emptyState('No reports here', f === 'open' ? 'Every case is resolved or closed.' : '')}</td></tr>`}</tbody>`;
+        <td><div class="cell-actions"><button class="btn ${groupOf(r.status) === 'history' ? 'btn-ghost' : 'btn-primary'} btn-sm" type="button" data-open-report="${r._id}">${groupOf(r.status) === 'history' ? 'View' : 'Open'}</button></div></td>
+      </tr>`).join('') || `<tr><td colspan="7">${emptyState('No reports here', f === 'pending' ? 'No new reports. Cases being worked on are under In progress.' : f === 'active' ? 'No cases in progress.' : '')}</td></tr>`}</tbody>`;
   }
 
   const caseDialog = setupModal($('#case-dialog'));
@@ -368,9 +427,13 @@ function boot() {
       if (f.publicAlert && !f.publicAlert.disabled) body.publicAlert = f.publicAlert.checked;
       const btn = e.currentTarget.querySelector('[type=submit]');
       setBusy(btn, true, 'Saving…');
-      const saved = await act(() => api(`/reports/${r._id}`, { method: 'PATCH', body }), 'Case updated. The reporter can see it now.');
+      const to = body.status;
+      const where = GROUPS[groupOf(to)].label;
+      const message = to === r.status ? `Note added to ${r.reference}. The reporter can see it now.`
+        : `${r.reference} is now ${REPORT_STATUSES[to].label.toLowerCase()} and moved to ${where}. The reporter can see it now.`;
+      const saved = await act(() => api(`/reports/${r._id}`, { method: 'PATCH', body }), message);
       setBusy(btn, false);
-      if (saved) openCase(r._id); // show the new timeline entry
+      if (saved) caseDialog.close();
     });
     if (!caseDialog.open) caseDialog.showModal();
   }
@@ -557,10 +620,9 @@ function boot() {
     const pet = (id) => state.pets.find((p) => p._id === id);
 
     if (d.openReport) openCase(d.openReport);
-    if (d.gotoPending !== undefined) { $('#pet-reg').value = 'pending'; renderPets(); location.hash = 'pets'; }
-    if (d.verify) act(() => api(`/pets/${d.verify}/verify`, { method: 'PATCH', body: { verified: true } }), `${pet(d.verify).name}'s registration verified.`);
-    if (d.vax) openVax(pet(d.vax));
-    if (d.delPet && armed(b, 'Delete?')) act(() => api(`/pets/${d.delPet}`, { method: 'DELETE' }), 'Pet removed.');
+    if (d.gotoPending !== undefined) { $('#pet-reg').value = 'pending'; $('#pet-vax').value = ''; renderPets(); location.hash = 'pets'; }
+    if (d.gotoVax !== undefined) { $('#pet-reg').value = ''; $('#pet-vax').value = 'pending'; renderPets(); location.hash = 'pets'; }
+    if (d.review) openReview(pet(d.review));
     if (d.editAnn) openAnnouncement(state.anns.find((a) => a._id === d.editAnn));
     if (d.delAnn && armed(b, 'Delete?')) act(() => api(`/announcements/${d.delAnn}`, { method: 'DELETE' }), 'Announcement deleted.');
     if (d.ban && (d.to === 'false' || armed(b, 'Confirm'))) {

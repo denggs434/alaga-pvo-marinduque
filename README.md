@@ -18,7 +18,7 @@ Project write-up (target user, introduction, problem, objectives, scope, limitat
 - **Pet directory:** search and filter by species, municipality and sex, with sorting and paging; filter state lives in the URL so views can be shared
 - **Announcements and schedules:** vaccination drives, deworming days, free programs and advisories, with "add to my calendar" (.ics)
 - **Online reporting:** animal bites (always high priority), missing pets (with an optional public alert on the wall), strays and welfare concerns; each report gets a reference number and a status timeline the reporter can track, and can be withdrawn until the PVO starts on it
-- **PVO admin console:** dashboard (registrations, anti-rabies coverage, open reports, monthly charts), pet registry, case management with notes to the reporter, announcement editor, account moderation (suspend or delete) and contact inbox
+- **PVO admin console:** dashboard (registrations, anti-rabies coverage, open reports, monthly charts); pet registration review (the owner's details are read-only: staff approve or reject the registration and each vaccination entry, and see each pet's anti-rabies status as Vaccinated, Pending verification or Not vaccinated); case management with Pending, In progress and History stages and notes to the reporter; announcement editor, account moderation (suspend or delete) and contact inbox
 - **Privacy by default:** visitors see only a pet's profile and the owner's first name; health records and contact details stay private
 - **Security:** bcrypt passwords, JWT sessions that end when a password changes or an account is suspended, rate limits on login, posting, reports and uploads, a Content-Security-Policy, and uploads checked by their real file type
 - Responsive layout, light and dark themes, accessible forms, focus states and reduced-motion support
@@ -105,12 +105,12 @@ docs/                         Assignment instructions and rubric
 | GET | `/api/pets/mine` | User | Own pets |
 | GET | `/api/pets/:id` | Public* | Profile (*private pets: owner and PVO only) |
 | POST | `/api/pets` | Owner | Register a pet |
-| PUT / DELETE | `/api/pets/:id` | Owner / Admin | Edit / remove a pet |
-| PATCH | `/api/pets/:id/verify` | Admin | Verify a registration |
-| POST | `/api/pets/:id/vaccinations` | Owner / Admin | Add a vaccination |
-| PATCH | `/api/pets/:id/vaccinations/:vid/verify` | Admin | Verify a vaccination |
-| DELETE | `/api/pets/:id/vaccinations/:vid` | Owner / Admin | Remove a vaccination |
-| POST / DELETE | `/api/pets/:id/medical[/:mid]` | Owner / Admin | Add / remove a medical record |
+| PUT / DELETE | `/api/pets/:id` | Owner | Edit / remove a pet (a rejected pet goes back to review when edited) |
+| PATCH | `/api/pets/:id/verify` | Admin | Approve or reject a registration (`{ decision, reason }`) |
+| POST | `/api/pets/:id/vaccinations` | Owner | Add a vaccination (waits for PVO verification) |
+| PATCH | `/api/pets/:id/vaccinations/:vid/verify` | Admin | Approve or reject a vaccination entry (`{ decision }`) |
+| DELETE | `/api/pets/:id/vaccinations/:vid` | Owner | Remove an entry the PVO has not verified |
+| POST / DELETE | `/api/pets/:id/medical[/:mid]` | Owner | Add / remove a medical record |
 | GET | `/api/posts` | Public | Wall posts (`pet`, `page`, `limit`, `order=latest\|discover`, `seed`) |
 | POST | `/api/posts` | Owner | Post text, up to 4 `photos`, or both; `pet` optional |
 | DELETE | `/api/posts/:id` | Author / Admin | Delete a post |

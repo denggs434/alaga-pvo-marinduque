@@ -5,6 +5,9 @@
  *  - visitor / other owners: profile, rabies status, owner's public name + municipality
  *  - the owner:              + vaccination record and medical history
  *  - PVO admin:              + owner's contact details, private pets included
+ *
+ * PVO staff review registrations and vaccination entries (approve or reject);
+ * they never edit, add to or delete what the owner submitted.
  */
 const Pet = require('../models/Pet');
 const Post = require('../models/Post');
@@ -44,9 +47,13 @@ function serializePet(pet, viewer) {
     createdAt: pet.createdAt,
     rabies: Pet.rabiesStatus(pet),
     owner: { _id: owner._id, name: mine || staff ? owner.name : publicName(owner.name), municipality: owner.municipality },
-    canEdit: mine || staff,
+    canEdit: mine,
+    canReview: staff,
   };
   if (mine || staff) {
+    out.vaccinationStatus = Pet.vaccinationStatus(pet);
+    out.rejectionReason = pet.rejectionReason;
+    out.reviewedAt = pet.reviewedAt;
     out.vaccinations = [...(pet.vaccinations || [])].sort((a, b) => new Date(b.dateGiven) - new Date(a.dateGiven));
     out.medicalHistory = [...(pet.medicalHistory || [])].sort((a, b) => new Date(b.date) - new Date(a.date));
   }
@@ -54,11 +61,15 @@ function serializePet(pet, viewer) {
   return out;
 }
 
-/** Load a pet the current user may change (its owner or an admin). */
+/** Load a pet the current user may change: only its owner. PVO staff review, they do not edit. */
 async function loadEditable(req) {
   const pet = await Pet.findById(requireId(req.params.id, 'Pet'));
   if (!pet) throw new HttpError(404, 'Pet not found.');
-  if (!ownsPet(req.user, pet) && !isAdmin(req.user)) throw new HttpError(403, 'Only the owner or the PVO can change this pet.');
+  if (!ownsPet(req.user, pet)) {
+    throw new HttpError(403, isAdmin(req.user)
+      ? "PVO staff review registrations but cannot change the owner's pet details."
+      : 'Only the owner can change this pet.');
+  }
   return pet;
 }
 
@@ -132,60 +143,77 @@ exports.createPet = asyncHandler(async (req, res) => {
   await respond(res, pet, req.user, 201);
 });
 
-// PUT /api/pets/:id  (owner or admin)
+// PUT /api/pets/:id  (owner only)
 exports.updatePet = asyncHandler(async (req, res) => {
   const pet = await loadEditable(req);
   Object.assign(pet, pick(req.body, [...EDITABLE, 'status']));
+  // Fixing a rejected registration sends it back to the PVO for review.
+  if (pet.registrationStatus === 'rejected') {
+    pet.registrationStatus = 'pending';
+    pet.rejectionReason = undefined;
+  }
   await pet.save();
   await respond(res, pet, req.user);
 });
 
-// DELETE /api/pets/:id  (owner or admin) — also removes the pet's posts
+// DELETE /api/pets/:id  (owner only) — also removes the pet's posts
 exports.deletePet = asyncHandler(async (req, res) => {
   const pet = await loadEditable(req);
   await Promise.all([Post.deleteMany({ pet: pet._id }), pet.deleteOne()]);
   res.json({ message: `${pet.name}'s profile was removed.` });
 });
 
-// PATCH /api/pets/:id/verify  { verified: true|false }  (admin)
+// PATCH /api/pets/:id/verify  { decision: 'approve' | 'reject', reason? }  (admin)
+// Only the review fields change: the owner's submitted details stay exactly as they are.
 exports.verifyPet = asyncHandler(async (req, res) => {
-  const pet = await Pet.findById(requireId(req.params.id, 'Pet'));
+  const decision = req.body.decision || (req.body.verified === false ? 'reject' : 'approve');
+  if (!['approve', 'reject'].includes(decision)) throw new HttpError(400, 'Choose approve or reject.');
+  const reason = str(req.body.reason).slice(0, 300);
+  if (decision === 'reject' && reason.length < 5) {
+    throw new HttpError(400, 'Tell the owner why the registration was rejected.', { reason: 'Tell the owner why the registration was rejected.' });
+  }
+  const now = new Date();
+  const update = decision === 'approve'
+    ? { $set: { registrationStatus: 'verified', verifiedAt: now, reviewedAt: now }, $unset: { rejectionReason: 1 } }
+    : { $set: { registrationStatus: 'rejected', rejectionReason: reason, reviewedAt: now }, $unset: { verifiedAt: 1 } };
+  const pet = await Pet.findByIdAndUpdate(requireId(req.params.id, 'Pet'), update, { new: true });
   if (!pet) throw new HttpError(404, 'Pet not found.');
-  const verified = req.body.verified !== false;
-  pet.registrationStatus = verified ? 'verified' : 'pending';
-  pet.verifiedAt = verified ? new Date() : undefined;
-  await pet.save();
   await respond(res, pet, req.user);
 });
 
 /* ---------- Vaccination record ---------- */
 
-// POST /api/pets/:id/vaccinations  (owner: unverified entry; admin: verified entry)
+// POST /api/pets/:id/vaccinations  (owner; entries wait for PVO verification)
 exports.addVaccination = asyncHandler(async (req, res) => {
   const pet = await loadEditable(req);
   const entry = pick(req.body, ['vaccine', 'dateGiven', 'nextDue', 'administeredBy']);
   if (entry.nextDue === '') delete entry.nextDue;
-  pet.vaccinations.push({ ...entry, verified: isAdmin(req.user) });
+  pet.vaccinations.push({ ...entry, verified: false });
   await pet.save();
   await respond(res, pet, req.user, 201);
 });
 
-// PATCH /api/pets/:id/vaccinations/:vid/verify  (admin)
+// PATCH /api/pets/:id/vaccinations/:vid/verify  { decision: 'approve' | 'reject' }  (admin)
+// Marks the owner's entry verified or rejected; the entry itself is not changed.
 exports.verifyVaccination = asyncHandler(async (req, res) => {
-  const pet = await loadEditable(req);
-  const v = pet.vaccinations.id(requireId(req.params.vid, 'Vaccination'));
-  if (!v) throw new HttpError(404, 'Vaccination not found.');
-  v.verified = true;
-  await pet.save();
+  const decision = req.body.decision || 'approve';
+  if (!['approve', 'reject'].includes(decision)) throw new HttpError(400, 'Choose approve or reject.');
+  const approve = decision === 'approve';
+  const pet = await Pet.findOneAndUpdate(
+    { _id: requireId(req.params.id, 'Pet'), 'vaccinations._id': requireId(req.params.vid, 'Vaccination') },
+    { $set: { 'vaccinations.$.verified': approve, 'vaccinations.$.rejected': !approve, 'vaccinations.$.reviewedAt': new Date() } },
+    { new: true }
+  );
+  if (!pet) throw new HttpError(404, 'Vaccination not found.');
   await respond(res, pet, req.user);
 });
 
-// DELETE /api/pets/:id/vaccinations/:vid  (owner: own unverified entries; admin: any)
+// DELETE /api/pets/:id/vaccinations/:vid  (owner: own entries the PVO has not verified)
 exports.removeVaccination = asyncHandler(async (req, res) => {
   const pet = await loadEditable(req);
   const v = pet.vaccinations.id(requireId(req.params.vid, 'Vaccination'));
   if (!v) throw new HttpError(404, 'Vaccination not found.');
-  if (v.verified && !isAdmin(req.user)) throw new HttpError(403, 'PVO-verified vaccinations can only be removed by the PVO.');
+  if (v.verified) throw new HttpError(403, 'PVO-verified vaccinations stay on the record.');
   v.deleteOne();
   await pet.save();
   await respond(res, pet, req.user);
@@ -193,7 +221,7 @@ exports.removeVaccination = asyncHandler(async (req, res) => {
 
 /* ---------- Medical history ---------- */
 
-// POST /api/pets/:id/medical  (owner or admin)
+// POST /api/pets/:id/medical  (owner only)
 exports.addMedical = asyncHandler(async (req, res) => {
   const pet = await loadEditable(req);
   pet.medicalHistory.push(pick(req.body, ['date', 'type', 'title', 'notes', 'vet']));
@@ -201,7 +229,7 @@ exports.addMedical = asyncHandler(async (req, res) => {
   await respond(res, pet, req.user, 201);
 });
 
-// DELETE /api/pets/:id/medical/:mid  (owner or admin)
+// DELETE /api/pets/:id/medical/:mid  (owner only)
 exports.removeMedical = asyncHandler(async (req, res) => {
   const pet = await loadEditable(req);
   const m = pet.medicalHistory.id(requireId(req.params.mid, 'Record'));
