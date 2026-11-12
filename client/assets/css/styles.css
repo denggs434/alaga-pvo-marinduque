@@ -829,9 +829,9 @@ dialog::backdrop { background: rgb(20 12 6 / 0.5); backdrop-filter: blur(2px); }
   .wall-right > * { order: 2; }
   .wall-right > [data-order='first'] { order: -1; }
   .feed { order: 1; }
-  .console { grid-template-columns: 1fr; }
+  .console { grid-template-columns: minmax(0, 1fr); }
   .console-side { display: none; position: fixed; inset: 0 auto 0 0; width: min(280px, 85vw); z-index: 60; box-shadow: var(--shadow-lg); }
-  .console-side.is-open { display: flex; }
+  .console-side.is-open { display: flex; box-shadow: 0 0 0 100vmax rgb(20 12 6 / 0.4), var(--shadow-lg); }
   .console-mobilebar { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 16px; background: var(--surface); border-bottom: 1px solid var(--line); position: sticky; top: 0; z-index: 30; }
 }
 @media (max-width: 640px) {
@@ -860,6 +860,25 @@ dialog::backdrop { background: rgb(20 12 6 / 0.5); backdrop-filter: blur(2px); }
   .modal-body, .modal-head, .modal-foot { padding-inline: 16px; }
   .brand-word small { display: none; }
   .hbars li { grid-template-columns: 84px minmax(0, 1fr) 30px; }
+}
+/* Admin tables as stacked cards on phones */
+@media (max-width: 640px) {
+  .console-main { padding-inline: 16px; }
+  .console-top { align-items: stretch; }
+  .console-top > .row, .console-top > .chips { width: 100%; }
+  .console .table-wrap { border: 0; background: none; overflow: visible; border-radius: 0; }
+  .console .table, .console .table tbody { display: block; }
+  .console .table thead { display: none; }
+  .console .table tr { display: grid; gap: 8px; padding: 14px; margin-bottom: 10px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); box-shadow: var(--shadow-sm); }
+  .console .table td { display: block; position: relative; padding: 0 0 0 106px; border: 0; text-align: left; overflow-wrap: anywhere; min-height: 22px; }
+  .console .table td[data-label]::before { content: attr(data-label); position: absolute; left: 0; top: 2px; width: 96px; font: 800 0.6875rem/1.35 var(--font-body); text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); }
+  .console .table td:first-child, .console .table td:not([data-label]) { padding-left: 0; }
+  .console .table td:first-child::before { content: none; }
+  .console .table td:first-child { padding-bottom: 8px; border-bottom: 1px solid var(--line); font-size: 1rem; }
+  .console .table td:not([data-label]):empty { display: none; }
+  .console .table .num { text-align: left; }
+  .console .cell-actions { justify-content: flex-start; flex-wrap: wrap; padding-top: 4px; }
+  .console .cell-actions .btn { min-height: 40px; }
 }
 @media (max-width: 360px) {
   .facts { grid-template-columns: 1fr; }

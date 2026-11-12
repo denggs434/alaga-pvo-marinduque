@@ -77,10 +77,31 @@ function boot() {
   setupThemeToggle($('#theme-toggle'));
 
   const side = $('#console-side');
-  $('#side-toggle').addEventListener('click', () => {
-    const open = side.classList.toggle('is-open');
+  const setSide = (open) => {
+    side.classList.toggle('is-open', open);
     $('#side-toggle').setAttribute('aria-expanded', String(open));
+    if (open) side.querySelector('a, button')?.focus();
+  };
+  $('#side-toggle').addEventListener('click', (e) => {
+    e.stopPropagation();
+    setSide(!side.classList.contains('is-open'));
   });
+  // Phone menu: a tap outside or Escape closes it.
+  document.addEventListener('click', (e) => {
+    if (side.classList.contains('is-open') && !side.contains(e.target)) setSide(false);
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && side.classList.contains('is-open')) { setSide(false); $('#side-toggle').focus(); }
+  });
+
+  // On phones each table row becomes a card: give every cell its column name as a label.
+  const labelCells = (table) => {
+    const heads = [...table.querySelectorAll('thead th')].map((th) => th.textContent.trim());
+    table.querySelectorAll('tbody tr').forEach((tr) => [...tr.children].forEach((td, i) => {
+      if (heads[i] && !td.hasAttribute('colspan')) td.dataset.label = heads[i];
+    }));
+  };
+  $$('.console .table').forEach((t) => new MutationObserver(() => labelCells(t)).observe(t, { childList: true }));
 
   const VIEWS = ['overview', 'pets', 'reports', 'announcements', 'owners', 'messages'];
   function showView() {
