@@ -157,6 +157,9 @@ const REPORTS = [
     45, [['resolved', 'Good news: Kahel was found asleep in a neighbour\'s garage. Glad he is home!', 44]]],
 ];
 
+// More sample cases so every stage of the admin's report list (Pending, In progress, History) has some.
+REPORTS.push(...require('./moreReports'));
+
 const MESSAGES = [
   { name: 'Rosa Dimaano', email: 'rosa@example.com', topic: 'registration', message: 'Can I register a pet for my elderly mother who does not have an email address?', status: 'new', at: 1 },
   { name: 'Ben Torres', email: 'ben@example.com', phone: '0917 555 0199', topic: 'vaccination', message: 'Is the 5-in-1 vaccine also free during the Mogpog schedule, or only anti-rabies?', status: 'new', at: 2 },
