@@ -70,7 +70,8 @@ async function boot() {
       fill(p);
       picker.set(p.photos);
       document.title = `Edit ${p.name} | Alaga`;
-      $('#form-eyebrow').textContent = `${p.registrationNo} · ${p.registrationStatus === 'verified' ? 'PVO verified' : 'Verification pending'}`;
+      $('#form-eyebrow').textContent = `Registration no. ${p.registrationNo}, ${p.registrationStatus === 'verified' ? 'verified by the PVO' : p.registrationStatus === 'rejected' ? 'rejected by the PVO' : 'waiting for PVO review'}`;
+      $('#form-eyebrow').hidden = false;
       $('#form-title').textContent = `Edit ${p.name}'s profile`;
       $('#form-intro').textContent = 'Changes appear on the profile and the community wall right away.';
       $('#save').textContent = 'Save changes';

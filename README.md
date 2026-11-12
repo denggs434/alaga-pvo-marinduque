@@ -21,7 +21,8 @@ Project write-up (target user, introduction, problem, objectives, scope, limitat
 - **PVO admin console:** dashboard (registrations, anti-rabies coverage, open reports, monthly charts); pet registration review (the owner's details are read-only: staff approve or reject the registration and each vaccination entry, and see each pet's anti-rabies status as Vaccinated, Pending verification or Not vaccinated); case management with Pending, In progress and History stages and notes to the reporter; announcement editor, account moderation (suspend or delete) and contact inbox
 - **Privacy by default:** visitors see only a pet's profile and the owner's first name; health records and contact details stay private
 - **Security:** bcrypt passwords, JWT sessions that end when a password changes or an account is suspended, rate limits on login, posting, reports and uploads, a Content-Security-Policy, and uploads checked by their real file type
-- Responsive layout, light and dark themes, accessible forms, focus states and reduced-motion support
+- Design system in `styles.css` tokens: Poppins type on a 1.25 scale, slate ink on cool paper with one action orange, 8/12/16px shape scale, motion only in response to actions; responsive from 360px, light and dark themes, accessible forms and focus states, reduced-motion support
+- Brand mark and icons: one paw mark used in the header, footer, admin console, favicon (SVG + 16/32px PNG), Apple touch icon and installable web-app icons (`manifest.webmanifest`)
 
 ## Running it locally
 

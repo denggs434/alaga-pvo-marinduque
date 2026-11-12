@@ -1,6 +1,6 @@
 /**
  * Shared UI: page bootstrap, footer, toasts, form helpers, dialogs and the
- * photo picker. The header lives in nav.js, scroll animation in motion.js.
+ * photo picker. The header lives in nav.js.
  * Every public page calls initPage(); the admin console calls initAdminPage().
  */
 import { apiUpload } from './api.js';
@@ -9,7 +9,6 @@ import { SITE } from './config.js';
 import { esc, $, $$ } from './format.js';
 import { ICONS, BRAND_MARK } from './icons.js';
 import { renderHeader } from './nav.js';
-import { initMotion } from './motion.js';
 import { setupAssistant } from './assistant.js';
 
 export * from './format.js';
@@ -74,7 +73,6 @@ export function initPage(active) {
   renderHeader(active);
   document.body.prepend($('.skip-link')); // keep it first in tab order
   renderFooter();
-  initMotion();
   setupAssistant();
 }
 
@@ -82,7 +80,6 @@ export function initAdminPage() {
   const main = $('main');
   if (main && !main.id) main.id = 'main';
   document.body.classList.add('admin-body');
-  initMotion();
 }
 
 /** Send visitors to the login page and back here afterwards. Returns the user or null. */

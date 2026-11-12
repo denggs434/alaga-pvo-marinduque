@@ -4,8 +4,12 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>My account | Alaga · PVO Marinduque</title>
-  <meta name="theme-color" content="#c2410c">
+  <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#151d24" media="(prefers-color-scheme: dark)">
   <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="assets/img/favicon-32.png" sizes="32x32" type="image/png">
+  <link rel="apple-touch-icon" href="assets/img/apple-touch-icon.png">
+  <link rel="manifest" href="manifest.webmanifest">
   <link rel="stylesheet" href="assets/css/styles.css">
 </head>
 <body>
@@ -28,7 +32,7 @@
           <label class="field"><span>Password</span><input class="input" type="password" name="password" autocomplete="current-password" required></label>
           <p class="notice notice-error" id="login-error" hidden role="alert"></p>
           <button class="btn btn-primary btn-block" type="submit">Log in</button>
-          <p class="demo-logins">Demo accounts: pet owner <b>maria@example.com</b> / <b>Owner123!</b> · PVO admin <b>admin@alaga.ph</b> / <b>Admin123!</b></p>
+          <p class="demo-logins">Try the demo as a pet owner: <b>maria@example.com</b>, password <b>Owner123!</b></p>
         </form>
 
         <form id="register-form" class="stack" role="tabpanel" aria-labelledby="tab-register" novalidate hidden>

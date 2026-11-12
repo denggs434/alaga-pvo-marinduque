@@ -67,13 +67,14 @@ export const ICONS = {
   chat: s('<path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/>'),
 };
 
-/** Brand mark: a white paw in a leaf-green rounded square. */
+/** Brand mark: a balanced paw in the action orange. Same drawing as favicon.svg. */
 export const BRAND_MARK = `<svg class="brand-mark" viewBox="0 0 40 40" aria-hidden="true">
-  <rect width="40" height="40" rx="12" fill="var(--brand)"/>
-  <path d="M30 9c-8 0-15 4-17 12" stroke="var(--leaf)" stroke-width="2.5" fill="none" stroke-linecap="round" opacity=".55"/>
+  <rect width="40" height="40" rx="10" fill="var(--brand)"/>
   <g fill="var(--brand-ink)">
-    <ellipse cx="14.5" cy="15" rx="2.6" ry="3.2"/><ellipse cx="20" cy="12.5" rx="2.6" ry="3.2"/>
-    <ellipse cx="25.5" cy="15" rx="2.6" ry="3.2"/><ellipse cx="29" cy="20.5" rx="2.2" ry="2.8"/>
-    <path d="M20 19c-4.5 0-8 4.6-8 8.2 0 2.4 1.8 3.8 4 3.8 1.6 0 2.6-.8 4-.8s2.4.8 4 .8c2.2 0 4-1.4 4-3.8 0-3.6-3.5-8.2-8-8.2Z"/>
+    <ellipse cx="10.6" cy="18.2" rx="2.9" ry="3.6" transform="rotate(-24 10.6 18.2)"/>
+    <ellipse cx="16.4" cy="11.6" rx="3" ry="3.8" transform="rotate(-8 16.4 11.6)"/>
+    <ellipse cx="23.6" cy="11.6" rx="3" ry="3.8" transform="rotate(8 23.6 11.6)"/>
+    <ellipse cx="29.4" cy="18.2" rx="2.9" ry="3.6" transform="rotate(24 29.4 18.2)"/>
+    <path d="M20 19.4c-4.3 0-8.3 5-8.3 8.8 0 2.7 2 4.4 4.4 4.4 1.7 0 2.6-.9 3.9-.9s2.2.9 3.9.9c2.4 0 4.4-1.7 4.4-4.4 0-3.8-4-8.8-8.3-8.8Z"/>
   </g>
 </svg>`;

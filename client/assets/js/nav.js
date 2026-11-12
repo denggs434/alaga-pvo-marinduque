@@ -10,11 +10,10 @@ import { esc, initials, $, $$ } from './format.js';
 import { ICONS, BRAND_MARK } from './icons.js';
 
 const LINKS = [
-  { key: 'wall', href: 'index.html', label: 'Community wall', icon: 'home' },
+  { key: 'wall', href: 'index.html', label: 'Community', icon: 'home' },
   { key: 'pets', href: 'pets.html', label: 'Pets', icon: 'paw' },
   { key: 'announcements', href: 'announcements.html', label: 'Announcements', icon: 'megaphone' },
   { key: 'services', href: 'services.html', label: 'Services', icon: 'stethoscope' },
-  { key: 'about', href: 'about.html', label: 'About', icon: 'info' },
   { key: 'contact', href: 'contact.html', label: 'Contact', icon: 'mail' },
 ];
 
@@ -44,7 +43,7 @@ function accountHtml() {
 function headerHtml(active) {
   const link = (l) => `<a class="nav-link" href="${l.href}" ${l.key === active ? 'aria-current="page"' : ''}>${l.label}</a>`;
   return `
-  ${isAdmin() ? `<div class="staffbar"><div class="wrap"><span><b>PVO staff view.</b> You can moderate posts and see private records here.</span><a href="admin.html">Open admin console →</a></div></div>` : ''}
+  ${isAdmin() ? `<div class="staffbar"><div class="wrap"><span><b>PVO staff view.</b> You can moderate posts and see private records here.</span><a href="admin.html">Open admin console</a></div></div>` : ''}
   <header class="site-header" id="site-header">
     <div class="wrap nav">
       <a class="brand" href="index.html" aria-label="${SITE.name} home">${BRAND_MARK}<span class="brand-word">${SITE.name}<small>PVO ${SITE.province}</small></span></a>
@@ -65,6 +64,7 @@ function headerHtml(active) {
     </div>
     <nav class="drawer-body" aria-label="Mobile">
       ${LINKS.map((l) => `<a href="${l.href}" ${l.key === active ? 'aria-current="page"' : ''}>${ICONS[l.icon]}${l.label}</a>`).join('')}
+      <a href="about.html" ${active === 'about' ? 'aria-current="page"' : ''}>${ICONS.info}About the office</a>
       <hr>
       ${isAdmin()
         ? `<a href="admin.html">${ICONS.shield}PVO admin console</a>`

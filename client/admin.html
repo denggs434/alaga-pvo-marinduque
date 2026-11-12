@@ -5,8 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>PVO admin console | Alaga</title>
   <meta name="robots" content="noindex">
-  <meta name="theme-color" content="#c2410c">
+  <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#151d24" media="(prefers-color-scheme: dark)">
   <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="assets/img/favicon-32.png" sizes="32x32" type="image/png">
+  <link rel="apple-touch-icon" href="assets/img/apple-touch-icon.png">
+  <link rel="manifest" href="manifest.webmanifest">
   <link rel="stylesheet" href="assets/css/styles.css">
 </head>
 <body>
@@ -19,7 +23,6 @@
       <label class="field"><span>Password</span><input class="input" type="password" name="password" autocomplete="current-password" required></label>
       <p class="notice notice-error" id="admin-login-error" hidden role="alert"></p>
       <button class="btn btn-primary btn-block" type="submit">Sign in</button>
-      <p class="demo-logins">Demo: <b>admin@alaga.ph</b> / <b>Admin123!</b></p>
       <a class="small" href="index.html">← Back to the community wall</a>
     </form>
   </main>
@@ -47,7 +50,7 @@
         <a href="#messages" data-view="messages"><span data-icon="inbox"></span>Messages<span class="badge" data-badge="messages" hidden></span></a>
       </nav>
       <div class="console-foot">
-        <a class="btn btn-ghost btn-sm" href="index.html" target="_blank" rel="noopener">View public site ↗</a>
+        <a class="btn btn-ghost btn-sm" href="index.html" target="_blank" rel="noopener">View public site</a>
         <div class="console-account">
           <div class="popover console-menu" id="console-menu" hidden>
             <div class="popover-head"><strong id="menu-name"></strong><span id="menu-email"></span></div>
@@ -55,7 +58,7 @@
           </div>
           <div class="console-user">
             <button class="console-user-btn" type="button" id="console-account-btn" aria-expanded="false" aria-controls="console-menu">
-              <span class="avatar" id="admin-avatar"></span><span><strong id="admin-name"></strong><small>PVO staff · Account</small></span>
+              <span class="avatar" id="admin-avatar"></span><span><strong id="admin-name"></strong><small>Account menu</small></span>
             </button>
             <button class="icon-btn" id="theme-toggle" type="button" aria-label="Switch colour theme"></button>
           </div>
@@ -89,7 +92,7 @@
 
         <!-- Pets -->
         <section data-panel="pets" aria-labelledby="h-pets" hidden>
-          <div class="console-top"><div><span class="label">Registry</span><h1 id="h-pets">Registered pets</h1></div></div>
+          <div class="console-top"><div><h1 id="h-pets">Registered pets</h1></div></div>
           <div class="toolbar">
             <div class="search-box"><label class="sr-only" for="pet-q">Search pets</label><span data-icon="search"></span><input class="input" id="pet-q" type="search" placeholder="Name, breed, registration no. or owner"></div>
             <label><span class="sr-only">Species</span><select class="input" id="pet-species"></select></label>
@@ -102,7 +105,7 @@
 
         <!-- Reports -->
         <section data-panel="reports" aria-labelledby="h-reports-list" hidden>
-          <div class="console-top"><div><span class="label">Cases</span><h1 id="h-reports-list">Incident reports</h1></div></div>
+          <div class="console-top"><div><h1 id="h-reports-list">Incident reports</h1></div></div>
           <div class="chips" id="report-status-chips" style="margin-bottom:12px" role="group" aria-label="Status"></div>
           <div class="toolbar">
             <div class="search-box"><label class="sr-only" for="rep-q">Search reports</label><span data-icon="search"></span><input class="input" id="rep-q" type="search" placeholder="Reference, contact name or barangay"></div>
@@ -114,21 +117,21 @@
 
         <!-- Announcements -->
         <section data-panel="announcements" aria-labelledby="h-ann" hidden>
-          <div class="console-top"><div><span class="label">Publishing</span><h1 id="h-ann">Announcements & schedules</h1></div>
+          <div class="console-top"><div><h1 id="h-ann">Announcements & schedules</h1></div>
             <button class="btn btn-primary btn-sm" type="button" data-new-announcement>+ New announcement</button></div>
           <div class="table-wrap"><table class="table" id="ann-table"></table></div>
         </section>
 
         <!-- Owners -->
         <section data-panel="owners" aria-labelledby="h-owners" hidden>
-          <div class="console-top"><div><span class="label">Accounts</span><h1 id="h-owners">Pet owners</h1></div></div>
+          <div class="console-top"><div><h1 id="h-owners">Pet owners</h1></div></div>
           <div class="toolbar"><div class="search-box"><label class="sr-only" for="owner-q">Search owners</label><span data-icon="search"></span><input class="input" id="owner-q" type="search" placeholder="Name, email or municipality"></div></div>
           <div class="table-wrap"><table class="table" id="owners-table"></table></div>
         </section>
 
         <!-- Messages -->
         <section data-panel="messages" aria-labelledby="h-msg" hidden>
-          <div class="console-top"><div><span class="label">Inbox</span><h1 id="h-msg">Contact messages</h1></div>
+          <div class="console-top"><div><h1 id="h-msg">Contact messages</h1></div>
             <div class="chips" role="group" aria-label="Show"><button class="chip" type="button" data-mfilter="inbox" aria-pressed="true">Inbox <b data-mcount="inbox"></b></button><button class="chip" type="button" data-mfilter="new" aria-pressed="false">Needs reply <b data-mcount="new"></b></button><button class="chip" type="button" data-mfilter="archived" aria-pressed="false">Archived <b data-mcount="archived"></b></button></div></div>
           <p class="muted small" style="margin:-4px 0 14px">Replies are saved with the message. Senders who were logged in read them under Account → Messages; for others, also answer by email.</p>
           <ul class="inbox" id="messages-list"></ul>

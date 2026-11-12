@@ -50,7 +50,6 @@ form.addEventListener('submit', async (e) => {
       body: { name: f.name.value.trim(), email: f.email.value.trim(), phone: f.phone.value.trim(), topic: f.topic.value, message: f.message.value.trim() },
     });
     form.innerHTML = `<div class="stack" style="justify-items:start">
-      <span class="label">Message received</span>
       <h2>Thanks, ${esc(f.name.value.trim().split(' ')[0])}!</h2>
       <p>${sent.linked
         ? 'We usually reply within one working day. You will find the reply under Account → Messages.'

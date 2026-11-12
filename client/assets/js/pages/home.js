@@ -11,7 +11,7 @@ import { api, qs } from '../api.js';
 import { getUser, isOwner, isAdmin } from '../store.js';
 import { SPECIES } from '../config.js';
 import { initPage, toast, setBusy, emptyState, errorState, skeleton, createPhotoPicker, esc, initials, formatDate, ICONS, $, $$ } from '../ui.js';
-import { createPostList, petImg, scheduleItem, alertCard, categoryTag } from '../components.js';
+import { createPostList, petImg, scheduleItem, alertCard, categoryTag, dateTile } from '../components.js';
 
 initPage('wall');
 
@@ -39,14 +39,18 @@ function renderWelcome() {
   const hero = $('.hero');
   hero.classList.add('hero-compact');
   $('.hero-inner > div', hero).innerHTML = `
-    <span class="label">Community wall · PVO Marinduque</span>
-    <h1>${hello}, <em>${esc(user.name.split(' ')[0])}!</em></h1>
-    <p>${isAdmin() ? 'Here is what pet owners are sharing today.' : 'See what pets around the island are up to, share an update, and check the next PVO activity near you.'}</p>
-    <div class="hero-stats" aria-live="polite">
-      <div><strong data-stat="pets">–</strong><span>registered pets</span></div>
-      <div><strong data-stat="upcoming">–</strong><span>upcoming PVO activities</span></div>
-      <div><strong data-stat="posts">–</strong><span>posts on the wall</span></div>
-    </div>`;
+    <h1>${hello}, ${esc(user.name.split(' ')[0])}</h1>
+    <p>${isAdmin() ? 'Here is what pet owners are sharing today.' : 'Here is what pets around the island are up to.'}</p>
+    <a class="hero-next" id="hero-next" href="announcements.html?view=schedules" hidden></a>`;
+}
+
+/** "Next PVO activity" line in the hero, from the real schedule. */
+function renderNextActivity(item) {
+  const el = $('#hero-next');
+  if (!el || !item) return;
+  el.href = `announcements.html#a-${item._id}`;
+  el.innerHTML = `${dateTile(item.event.startsAt)}<span><strong>Next PVO activity</strong><br>${esc(item.title)}${item.event.venue ? `, ${esc(item.event.venue)}` : ''}${item.event.municipality && !`${item.title} ${item.event.venue || ''}`.includes(item.event.municipality) ? `, ${esc(item.event.municipality)}` : ''}</span>`;
+  el.hidden = false;
 }
 
 /* ---------- One post from a notification (index.html?post=<id>) ---------- */
@@ -74,7 +78,6 @@ async function loadPosts() {
   if (page === 1) postsEl.innerHTML = skeleton(3, 220);
   try {
     const data = await api(`/posts${qs({ page, limit: 8, order, seed: order === 'discover' ? seed : '' })}`);
-    $$('[data-stat="posts"]').forEach((el) => (el.textContent = data.total));
     if (page === 1) feed.clear();
     if (!data.items.length && page === 1) return showEmptyFeed();
     feed.append(data.items.filter((p) => p._id !== focusId)); // the opened post is already shown above
@@ -171,7 +174,6 @@ function renderComposer() {
       picker.set([]);
       photosEl.hidden = true;
       addBtn.setAttribute('aria-expanded', 'false');
-      $$('[data-stat="posts"]').forEach((el) => (el.textContent = Number(el.textContent || 0) + 1));
       toast('Published to the community wall.');
       $(`#post-${post._id}`)?.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'center' });
     } catch (err) {
@@ -185,6 +187,8 @@ function renderComposer() {
 /* ---------- Left column: who am I ---------- */
 function renderMeCard() {
   const card = $('#me-card');
+  // Visitors already get the join box in the feed; a second one here would repeat it.
+  card.hidden = !user;
   if (!user) {
     card.innerHTML = `<div class="me-card"><strong>Welcome to Alaga</strong><p class="muted small">Browse pets and PVO news as a visitor, or join to register your own pets.</p>
       <a class="btn btn-primary btn-sm" href="account.html?mode=register">Join now</a></div>`;
@@ -196,7 +200,7 @@ function renderMeCard() {
       ? '<a class="btn btn-soft btn-sm" href="admin.html">Open admin console</a>'
       : `<div class="me-pets">${myPets.map((p) => `<a href="pet.html?id=${p._id}" title="${esc(p.name)}">${petImg(p.photos?.[0], '', p.name)}</a>`).join('')}
          <a href="pet-form.html" title="Register a pet" aria-label="Register a pet" class="pet-placeholder" style="width:40px;height:40px;border-radius:999px">${ICONS.plus}</a></div>
-         <a class="small" href="account.html">My pets and reports →</a>`}
+         <a class="small" href="account.html">My pets and reports</a>`}
   </div>`;
 }
 
@@ -239,7 +243,7 @@ async function loadSide() {
   }
 
   if (upcoming.status === 'fulfilled') {
-    $$('[data-stat="upcoming"]').forEach((el) => (el.textContent = upcoming.value.total));
+    renderNextActivity(upcoming.value.items[0]);
     $('#schedules').innerHTML = upcoming.value.items.map(scheduleItem).join('') || '<li class="muted small">No activities scheduled right now.</li>';
   } else $('#schedules').innerHTML = '<li class="muted small">Could not load schedules.</li>';
 
@@ -250,7 +254,6 @@ async function loadSide() {
 
   if (pets.status === 'fulfilled') {
     const items = pets.value.items;
-    $$('[data-stat="pets"]').forEach((el) => (el.textContent = pets.value.total));
     $('#new-pets').innerHTML = items.slice(0, 8).map((p) => `<a href="pet.html?id=${p._id}">${petImg(p.photos?.[0], '', p.name)}<span>${esc(p.name)}</span></a>`).join('');
     if (!user) {
       $('#collage').innerHTML = items.filter((p) => p.photos?.length).slice(0, 5)

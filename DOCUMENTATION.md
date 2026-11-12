@@ -88,7 +88,7 @@ At a high level:
 
 ## 7. System Description
 
-**Frontend (what users see).** Plain HTML, CSS and JavaScript ES modules in `/client`, with no build step. Shared modules render the header and footer (`nav.js`, `ui.js`), pet cards, wall posts, schedules and report timelines (`components.js`). Each page has its own script in `assets/js/pages/`. The login session is kept in `localStorage`. The layout is responsive down to phone width, supports light and dark themes, and respects reduced-motion settings. All photos are free-licence images from Wikimedia Commons, credited on the About page.
+**Frontend (what users see).** Plain HTML, CSS and JavaScript ES modules in `/client`, with no build step. Shared modules render the header and footer (`nav.js`, `ui.js`), pet cards, wall posts, schedules and report timelines (`components.js`). Each page has its own script in `assets/js/pages/`. The login session is kept in `localStorage`. The visual system is defined as CSS tokens (Poppins type scale, slate and white surfaces with one orange for actions, status colours for meaning, an 8/12/16px shape scale) so every page shares one look. The layout is responsive down to phone width, supports light and dark themes, and respects reduced-motion settings. All photos are free-licence images from Wikimedia Commons, credited on the About page.
 
 **Backend (logic and API).** Node.js with Express.js in `/server/src`, organised as `models → controllers → routes`, with middleware for authentication (`protect`, `adminOnly`, `ownerOnly`, `optionalAuth`), rate limiting, security headers and central error handling. Passwords are hashed with bcrypt. Routes:
 

@@ -114,7 +114,6 @@ async function boot() {
 function showDone(r) {
   $('#report-root').innerHTML = `<div class="card form-section" style="text-align:center;justify-items:center">
     <span class="record-icon" style="width:56px;height:56px">${ICONS.check}</span>
-    <span class="label">Report received</span>
     <h2 style="font-size:1.75rem">Reference <span class="mono">${esc(r.reference)}</span></h2>
     <p class="muted" style="max-width:52ch">${r.type === 'bite'
       ? 'Bite reports are high priority. Our team will call you. If the wound is not yet treated, go to an Animal Bite Treatment Center today.'
