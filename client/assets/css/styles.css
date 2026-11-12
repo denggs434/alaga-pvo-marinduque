@@ -911,3 +911,12 @@ dialog::backdrop { background: rgb(20 12 6 / 0.5); backdrop-filter: blur(2px); }
   .facts div:nth-last-child(2) { border-bottom: 1px solid var(--line); }
   .stat-grid { grid-template-columns: 1fr; }
 }
+
+/* Pet details on phones: one line per fact, label left and value right */
+@media (max-width: 480px) {
+  .facts { grid-template-columns: minmax(0, 1fr); }
+  .facts div { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 10px 14px; border-right: 0 !important; border-bottom: 1px solid var(--line) !important; }
+  .facts div:last-child { border-bottom: 0 !important; }
+  .facts dt { flex: none; }
+  .facts dd { margin: 0; text-align: right; min-width: 0; overflow-wrap: anywhere; }
+}
