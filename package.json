@@ -1,0 +1,12 @@
+{
+  "name": "alaga-pvo-marinduque",
+  "private": true,
+  "description": "Alaga: pet community platform for the Marinduque Provincial Veterinary Office",
+  "workspaces": ["server"],
+  "scripts": {
+    "start": "npm start --workspace server",
+    "dev": "npm run dev --workspace server",
+    "seed": "npm run seed --workspace server"
+  },
+  "engines": { "node": ">=22" }
+}

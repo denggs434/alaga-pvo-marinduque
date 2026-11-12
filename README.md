@@ -26,11 +26,10 @@ Project write-up (target user, introduction, problem, objectives, scope, limitat
 **Requirements:** [Node.js 18+](https://nodejs.org) and MongoDB, either local ([Community Server](https://www.mongodb.com/try/download/community)) or a free [MongoDB Atlas](https://www.mongodb.com/atlas) cluster.
 
 ```bash
-cd server
-npm install
-cp .env.example .env      # then edit MONGO_URI and JWT_SECRET (16+ characters)
-npm run seed              # demo data: a PVO admin, 6 owners, 16 pets, posts, announcements, reports
-npm start                 # http://localhost:5000
+npm install                          # at the repo root (npm workspace: installs the server's packages)
+cp server/.env.example server/.env   # then edit MONGO_URI and JWT_SECRET (16+ characters)
+npm run seed                         # demo data: a PVO admin, 6 owners, 16 pets, posts, announcements, reports
+npm start                            # http://localhost:5000
 ```
 
 Open **http://localhost:5000**. The Express server serves the API under `/api` and the website from `/client`. `npm run seed` clears this app's collections first, so only run it on a database you can reset.
