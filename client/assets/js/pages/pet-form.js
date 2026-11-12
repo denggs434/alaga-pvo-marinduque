@@ -5,17 +5,11 @@
 import { api } from '../api.js';
 import { getUser, isAdmin } from '../store.js';
 import { SPECIES, MUNICIPALITIES } from '../config.js';
+import { breedsFor } from '../breeds.js';
 import { initPage, requireLogin, toast, setBusy, showFieldErrors, options, createPhotoPicker, emptyState, toDateInput, fromDateInput, ICONS, $ } from '../ui.js';
 
 initPage('pets');
 
-const BREEDS = {
-  dog: ['Aspin (Asong Pinoy)', 'Shih Tzu', 'Labrador Retriever', 'Golden Retriever', 'Beagle', 'Dachshund', 'Pomeranian', 'Chihuahua', 'Siberian Husky', 'German Shepherd', 'Poodle', 'Mixed breed'],
-  cat: ['Puspin (Pusang Pinoy)', 'Persian', 'Siamese', 'Maine Coon', 'British Shorthair', 'Mixed breed'],
-  rabbit: ['Holland Lop', 'Netherland Dwarf', 'Lionhead', 'Mixed breed'],
-  bird: ['Lovebird', 'Cockatiel', 'Budgerigar', 'Parrot', 'Dove'],
-  other: [],
-};
 
 const form = $('#pet-form');
 const id = new URLSearchParams(location.search).get('id');
@@ -28,7 +22,13 @@ if (user && !id && isAdmin()) {
   boot();
 }
 
-const fillBreeds = () => ($('#breeds').innerHTML = options(BREEDS[form.elements.species.value] || []));
+/** Breed suggestions follow the chosen species, A to Z. */
+const BREED_HINT = { dog: 'e.g. Aspin, Shih Tzu, Labrador Retriever', cat: 'e.g. Puspin, Persian, Siamese', rabbit: 'e.g. Holland Lop, Netherland Dwarf', bird: 'e.g. Lovebird, Cockatiel, Budgerigar', other: 'e.g. Guinea Pig, Hamster, Turtle' };
+function fillBreeds() {
+  const species = form.elements.species.value;
+  $('#breeds').innerHTML = options(breedsFor(species));
+  form.elements.breed.placeholder = species ? `${BREED_HINT[species] || ''} · type to see more` : 'Choose a species first to see breed suggestions';
+}
 
 function setupFields() {
   $('#species').innerHTML = Object.entries(SPECIES).map(([k, label]) =>
@@ -36,6 +36,7 @@ function setupFields() {
   form.elements.municipality.innerHTML = options(MUNICIPALITIES, user.municipality || '', 'Choose…');
   form.elements.birthDate.max = toDateInput(new Date());
   form.addEventListener('change', (e) => e.target.name === 'species' && fillBreeds());
+  fillBreeds();
   form.elements.bio.addEventListener('input', () => ($('#bio-count').textContent = `${form.elements.bio.value.length} / 500`));
 }
 
