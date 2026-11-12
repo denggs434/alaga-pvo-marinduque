@@ -101,18 +101,18 @@ const PETS = [
 
 // [pet, author key, days ago, text, photo?, likers, comments [[who, text]]]
 const POSTS = [
-  ['Tisay', 'maria', 1, 'Got my anti-rabies shot at the PVO drive today and I did not even cry. Much. Treats were provided. 10/10 would get vaccinated again. 💉🐕', null, ['jose', 'ana', 'carlo', 'liza'], [['ana', 'Brave girl! Muning still hides under the bed on vaccine day.'], ['jose', 'Cooper is scheduled for next week in Mogpog.']]],
-  ['Tiger', 'paolo', 2, 'Hello Alaga! New here. I was found under a jeepney in Poctoy and now I live like royalty. Registration pending, please approve me PVO 🙏', null, ['maria', 'ana', 'liza'], [['maria', 'Welcome Tiger! 🧡']]],
-  ['Goldie', 'liza', 3, 'Friday visit to the Buenavista day care. The kids read me a story about a carabao. I gave it two paws up.', img('goldie-profile'), ['maria', 'carlo', 'paolo', 'ana', 'jose'], [['carlo', 'Goldie is the best therapy dog on the island!']]],
-  ['Hotdog', 'carlo', 4, 'Playdate at the plaza with my beagle buddies. I may be short but I won the race (they let me).', img('hotdog-playdate'), ['jose', 'liza'], [['jose', 'Cooper says rematch next Sunday.']]],
-  ['Kahel', 'maria', 5, 'Walking the neighbourhood with my associate. We have inspected every doorstep on the street. All acceptable.', img('kahel-walk'), ['ana', 'paolo'], []],
-  ['Bun', 'paolo', 6, 'Garden time! Reminder from my human: rabbits need hay, fresh greens and shade, especially in this heat. 🥬', img('bun-garden'), ['liza', 'maria', 'ana'], [['liza', 'So fluffy!']]],
-  ['Cooper', 'jose', 8, 'Found a new hole in the fence. My human found it too. We are both disappointed for different reasons.', img('cooper-fence'), ['carlo', 'maria'], [['carlo', 'Hotdog approves of this hole.']]],
-  ['Mochi', 'ana', 9, 'First day home. I have claimed the laundry basket. It is mine now.', null, ['maria', 'liza', 'paolo', 'jose'], []],
-  ['Princess', 'ana', 12, 'Fiesta look 🎀 Also: got my 5-in-1 booster from the PVO. Feeling fabulous and protected.', null, ['carlo', 'liza'], [['liza', 'Love the bow!']]],
-  ['Choco', 'carlo', 15, 'Groomed and fluffy. Please do not ask about the bath. We do not talk about the bath.', null, ['ana'], []],
-  ['Blackie', 'jose', 18, 'Beach day in Balanacan before the rains. Best boy.', img('blackie-rest'), ['maria', 'ana', 'carlo', 'liza', 'paolo'], [['maria', 'Praying he comes home soon, Jose. Sharing the alert in our GC.']]],
-  ['Garfield', 'paolo', 21, 'Senior cat tip: a soft blanket in a sunny window is worth more than any expensive cat bed.', null, ['maria'], []],
+  ['Tisay', 'maria', 1, 'Tisay got her anti-rabies shot at the PVO drive today and she did not even cry. Much. The free treats helped. Thank you to the PVO team! 💉🐕', null, ['jose', 'ana', 'carlo', 'liza'], [['ana', 'Brave girl! Muning still hides under the bed on vaccine day.'], ['jose', 'Cooper is scheduled for next week in Mogpog.']]],
+  ['Tiger', 'paolo', 2, 'Hello Alaga! New here. We found Tiger hiding under a jeepney in Poctoy and now he lives like royalty. Just registered him, waiting for the PVO to verify 🙏', null, ['maria', 'ana', 'liza'], [['maria', 'Welcome Tiger! 🧡']]],
+  ['Goldie', 'liza', 3, 'Friday visit to the Buenavista day care with Goldie. The kids read her a story about a carabao and she listened to the whole thing. Two paws up.', img('goldie-profile'), ['maria', 'carlo', 'paolo', 'ana', 'jose'], [['carlo', 'Goldie is the best therapy dog on the island!']]],
+  ['Hotdog', 'carlo', 4, 'Playdate at the plaza with Hotdog and his beagle buddies. He may be short but he won the race (I think they let him).', img('hotdog-playdate'), ['jose', 'liza'], [['jose', 'Cooper says rematch next Sunday.']]],
+  ['Kahel', 'maria', 5, 'Kahel and his best friend walked the whole neighbourhood this morning and inspected every doorstep on the street. All acceptable, apparently.', img('kahel-walk'), ['ana', 'paolo'], []],
+  ['Bun', 'paolo', 6, 'Garden time with Bun! Reminder for rabbit owners: they need hay, fresh greens and shade, especially in this heat. 🥬', img('bun-garden'), ['liza', 'maria', 'ana'], [['liza', 'So fluffy!']]],
+  ['Cooper', 'jose', 8, 'Cooper found a new hole in the fence. I found it too. We are both disappointed for different reasons.', img('cooper-fence'), ['carlo', 'maria'], [['carlo', 'Hotdog approves of this hole.']]],
+  ['Mochi', 'ana', 9, 'Mochi\'s first day home. She has already claimed the laundry basket. It is hers now.', null, ['maria', 'liza', 'paolo', 'jose'], []],
+  ['Princess', 'ana', 12, 'Princess in her fiesta look 🎀 She also got her 5-in-1 booster from the PVO this week. Fabulous and protected.', null, ['carlo', 'liza'], [['liza', 'Love the bow!']]],
+  ['Choco', 'carlo', 15, 'Choco is groomed and fluffy again. Please do not ask how the bath went. We do not talk about the bath.', null, ['ana'], []],
+  ['Blackie', 'jose', 18, 'Beach day in Balanacan with Blackie before the rains. Best boy.', img('blackie-rest'), ['maria', 'ana', 'carlo', 'liza', 'paolo'], [['maria', 'Praying he comes home soon, Jose. Sharing the alert in our GC.']]],
+  ['Garfield', 'paolo', 21, 'Senior cat tip from Garfield\'s house: a soft blanket in a sunny window is worth more than any expensive cat bed.', null, ['maria'], []],
 ];
 
 const ANNOUNCEMENTS = [
