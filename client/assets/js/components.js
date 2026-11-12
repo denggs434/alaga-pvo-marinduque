@@ -75,20 +75,11 @@ function postPhotos(p, who) {
 
 export function postCard(p, open = false) {
   const user = getUser();
-  const pet = p.pet;
-  const who = pet ? pet.name : p.author.name;
-  const head = pet
-    ? `<a href="pet.html?id=${pet._id}">${petImg(pet.photo, 'pet-avatar', pet.name)}</a>
+  const who = p.author.name;
+  const head = `<span class="avatar pet-avatar" aria-hidden="true">${esc(initials(who))}</span>
       <div class="post-who">
-        <a href="pet.html?id=${pet._id}">${esc(pet.name)}${pet.status === 'missing' ? ' <span class="tag tag-solid-red">Missing</span>' : ''}</a>
-        <span class="post-meta">${esc(pet.breed || SPECIES[pet.species] || '')}${pet.municipality ? ` · ${esc(pet.municipality)}` : ''} · with ${esc(p.author.name)}</span>
-        <span class="post-meta"><time datetime="${p.createdAt}" title="${timeAgo(p.createdAt)}">${formatDateTime(p.createdAt)}</time></span>
-      </div>`
-    : `<span class="avatar pet-avatar">${esc(initials(p.author.name))}</span>
-      <div class="post-who">
-        <strong class="post-name">${esc(p.author.name)}</strong>
-        <span class="post-meta">Pet owner${p.author.municipality ? ` · ${esc(p.author.municipality)}` : ''}</span>
-        <span class="post-meta"><time datetime="${p.createdAt}" title="${timeAgo(p.createdAt)}">${formatDateTime(p.createdAt)}</time></span>
+        <strong class="post-name">${esc(who)}</strong>
+        <span class="post-meta">${p.author.municipality ? `${esc(p.author.municipality)} · ` : ''}<time datetime="${p.createdAt}" title="${timeAgo(p.createdAt)}">${formatDateTime(p.createdAt)}</time></span>
       </div>`;
   return `<article class="card post" data-post="${p._id}" id="post-${p._id}">
     <header class="post-head">
@@ -100,7 +91,6 @@ export function postCard(p, open = false) {
     <footer class="post-actions">
       <button class="post-action" type="button" data-like="${p._id}" aria-pressed="${p.liked}" aria-label="${p.liked ? 'Unlike' : 'Like'} (${p.likeCount} likes)">${ICONS.heart}<span>${p.likeCount}</span></button>
       <button class="post-action" type="button" data-toggle-comments="${p._id}" aria-expanded="${open}">${ICONS.comment}<span>${p.comments.length}</span><span class="sr-only">comments</span></button>
-      ${pet ? `<button class="post-action" type="button" data-share="${pet._id}" aria-label="Copy link to ${esc(pet.name)}'s profile">${ICONS.link}<span>Share</span></button>` : ''}
     </footer>
     <div class="comments" ${open ? '' : 'hidden'}>
       ${p.comments.map((c) => commentHtml(c, p._id)).join('') || '<p class="muted small">No comments yet. Say hello!</p>'}

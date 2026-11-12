@@ -2,7 +2,7 @@
  * Home: the Community Wall.
  *  - visitors: hero with live counts and a collage of newly registered pets
  *  - logged in: a short welcome instead, so the wall itself is the first thing seen
- *  - composer: owners post text, photos (up to 4) or both, as one of their pets or as themselves
+ *  - composer: owners post text, photos (up to 4) or both, under their own name
  *  - "Pets in the community": other owners' pets with photo, species and breed
  *  - feed: "For you" (a mixed order that changes each visit, today's posts first) or "Latest"
  *  - side widgets: missing-pet alerts, upcoming schedules, announcements, new pets
@@ -21,7 +21,6 @@ const moreEl = $('#feed-more');
 const MAX_PHOTOS = 4;
 let page = 1;
 let myPets = [];
-let active = []; // pets that can post (not marked deceased)
 let order = 'discover';
 let seed = 1 + Math.floor(Math.random() * 1000000);
 let loading = false;
@@ -105,23 +104,15 @@ function renderComposer() {
     return;
   }
 
-  const first = active[0];
-  const asOptions = [
-    ...active.map((p) => `<option value="${p._id}">Posting as ${esc(p.name)}</option>`),
-    `<option value="">Posting as myself</option>`,
-  ].join('');
   box.innerHTML = `<form class="card composer" id="composer-form" novalidate aria-labelledby="composer-title">
     <h3 class="composer-title" id="composer-title">${ICONS.edit}Create a post</h3>
     <div class="composer-top">
-      <span id="composer-avatar">${first ? petImg(first.photos?.[0], 'pet-avatar', first.name) : `<span class="avatar pet-avatar">${esc(initials(user.name))}</span>`}</span>
+      <span class="avatar pet-avatar" aria-hidden="true">${esc(initials(user.name))}</span>
       <label class="sr-only" for="post-text">Write a caption or update</label>
-      <textarea id="post-text" name="text" maxlength="1000" placeholder="${first ? `What's new with ${esc(first.name)}?` : 'Share a story, a question or a photo of your pet'}"></textarea>
+      <textarea id="post-text" name="text" maxlength="1000" placeholder="What's new with your pets, ${esc(user.name.split(' ')[0])}?"></textarea>
     </div>
     <div id="composer-photos" hidden></div>
-    ${active.length ? '' : `<p class="small muted composer-nudge">${ICONS.paw}<span>${myPets.length ? 'Your registered pets can no longer post.' : 'Register your pet to post as them and get a PVO registration number.'} <a href="pet-form.html">Register a pet</a></span></p>`}
     <div class="composer-bar">
-      <label class="sr-only" for="post-pet">Post as</label>
-      <select class="input" id="post-pet" name="pet">${asOptions}</select>
       <button class="btn btn-soft btn-sm" type="button" id="add-photo" aria-expanded="false" aria-controls="composer-photos">${ICONS.image}Photos</button>
       <span class="count" id="post-count">0 / 1000</span>
       <button class="btn btn-primary btn-sm" type="submit" id="post-btn">${ICONS.send}Publish post</button>
@@ -139,11 +130,6 @@ function renderComposer() {
     addBtn.setAttribute('aria-expanded', String(show));
     if (show && !picker.paths.length) $('input[type=file]', photosEl)?.click();
   });
-  form.elements.pet.addEventListener('change', () => {
-    const p = active.find((x) => x._id === form.elements.pet.value);
-    $('#composer-avatar').innerHTML = p ? petImg(p.photos?.[0], 'pet-avatar', p.name) : `<span class="avatar pet-avatar">${esc(initials(user.name))}</span>`;
-    form.elements.text.placeholder = p ? `What's new with ${p.name}?` : 'Share a story, a question or a photo of your pet';
-  });
   form.elements.text.addEventListener('input', () => ($('#post-count').textContent = `${form.elements.text.value.length} / 1000`));
 
   form.addEventListener('submit', async (e) => {
@@ -160,7 +146,7 @@ function renderComposer() {
     const btn = $('#post-btn');
     setBusy(btn, true, 'Publishing…');
     try {
-      const post = await api('/posts', { method: 'POST', body: { pet: form.elements.pet.value || undefined, text, photos } });
+      const post = await api('/posts', { method: 'POST', body: { text, photos } });
       if (!feed.size) postsEl.innerHTML = '';
       feed.prepend(post);
       form.elements.text.value = '';
@@ -264,7 +250,6 @@ async function boot() {
   renderWelcome();
   if (isOwner()) {
     try { myPets = await api('/pets/mine'); } catch { myPets = []; }
-    active = myPets.filter((p) => p.status !== 'deceased');
   }
   if (isAdmin()) $('#hero-register')?.setAttribute('href', 'admin.html#pets');
   renderMeCard();

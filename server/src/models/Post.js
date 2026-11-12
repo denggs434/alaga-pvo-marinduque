@@ -1,6 +1,6 @@
 /**
- * A community wall post: text, photos, or both. A post is usually written "as"
- * one of the author's pets; owners without a pet yet post as themselves.
+ * A community wall post: text, photos, or both, under the owner's own name.
+ * `pet` is only set on older posts that were written "as" a pet.
  * Likes and comments are embedded: a post is always read together with them.
  */
 const mongoose = require('mongoose');

@@ -12,7 +12,7 @@ Project write-up (target user, introduction, problem, objectives, scope, limitat
 
 - **Pet registration:** each pet gets a PVO registration number (`MQ-2026-00001`), up to 6 photos and a public profile; PVO staff verify registrations
 - **Health records:** vaccination record and medical history per pet, private to the owner and the PVO; anti-rabies status (up to date, overdue, none) computed from the record; owner entries are marked until the PVO verifies them
-- **Community wall:** opens with a welcome, other owners' pets, upcoming schedules, announcements and a mixed "For you" feed (or "Latest"); owners post text, up to 4 photos, or both, as one of their pets or as themselves; likes, comments and moderation by the PVO
+- **Community wall:** opens with a welcome, other owners' pets, upcoming schedules, announcements and a mixed "For you" feed (or "Latest"); owners post text, up to 4 photos, or both, under their own name; likes, comments and moderation by the PVO
 - **Alagai, the pet-care helper:** a chat for logged-in users that answers from built-in pet-care topics (feeding, grooming, vaccines, deworming, ticks and fleas, behaviour, kapon, signs of sickness, PVO services) and live data (the next PVO activities, the user's pets' anti-rabies status); no AI; it says it is not a veterinarian, never diagnoses or prescribes, and shows the emergency hotline for urgent questions
 - **Messages:** staff answer contact messages with written replies that senders read under Account → Messages (with a new-reply dot); messages are archived and restored, never deleted
 - **Pet directory:** search and filter by species, municipality and sex, with sorting and paging; filter state lives in the URL so views can be shared

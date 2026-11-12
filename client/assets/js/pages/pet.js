@@ -203,7 +203,7 @@ $('#tab-health').addEventListener('click', () => selectTab('health'));
 
 /* ---------- Posts ---------- */
 let postPage = 1;
-const postList = createPostList($('#pet-posts'), { onEmpty: () => ($('#pet-posts').innerHTML = emptyState(`${pet.name} has not posted yet`)) });
+const postList = createPostList($('#pet-posts'), { onEmpty: () => ($('#pet-posts').innerHTML = emptyState(`No posts about ${pet.name}`)) });
 async function loadPosts() {
   $('#posts-more').innerHTML = '';
   if (postPage === 1) $('#pet-posts').innerHTML = skeleton(2, 200);
@@ -211,7 +211,7 @@ async function loadPosts() {
     const data = await api(`/posts${qs({ pet: id, page: postPage, limit: 6 })}`);
     if (postPage === 1) $('#pet-posts').innerHTML = '';
     if (!data.items.length && postPage === 1) {
-      $('#pet-posts').innerHTML = emptyState(`${pet.name} has not posted yet`, pet.canEdit && !isAdmin() ? 'Share an update from the community wall.' : '', pet.canEdit && !isAdmin() ? '<a class="btn btn-primary" href="index.html">Go to the wall</a>' : '');
+      $('#pet-posts').innerHTML = emptyState(`No posts about ${pet.name}`, pet.canEdit && !isAdmin() ? 'Share photos and updates on the community wall.' : '', pet.canEdit && !isAdmin() ? '<a class="btn btn-primary" href="index.html">Go to the wall</a>' : '');
       return;
     }
     postList.append(data.items);

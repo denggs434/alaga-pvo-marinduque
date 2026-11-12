@@ -1,6 +1,6 @@
 /**
- * Community wall: posts (text, photos or both), usually written as a pet,
- * with likes and comments. Anyone can read the wall; posts from private pets
+ * Community wall: posts (text, photos or both) under the owner's own name,
+ * with likes and comments. (Older posts may still reference a pet.) Anyone can read the wall; posts from private pets
  * are hidden from everyone except the owner and the PVO. Owners post; any
  * logged-in account can like and comment.
  *
@@ -110,9 +110,8 @@ exports.listPosts = asyncHandler(async (req, res) => {
   });
 });
 
-// POST /api/posts  { pet?, text?, photos?: [] }  (owner; the pet, when given, must be theirs)
+// POST /api/posts  { text?, photos?: [] }  (owner; posts are under the owner's name, never a pet's)
 exports.createPost = asyncHandler(async (req, res) => {
-  const { pet: petId } = req.body;
   const text = typeof req.body.text === 'string' ? req.body.text.trim() : '';
   let photos = req.body.photos ?? (req.body.photo ? [req.body.photo] : []);
   if (!Array.isArray(photos) || photos.some((p) => typeof p !== 'string')) throw new HttpError(400, 'Upload the photos again.');
@@ -120,12 +119,7 @@ exports.createPost = asyncHandler(async (req, res) => {
   if (photos.length > Post.MAX_PHOTOS) throw new HttpError(400, `A post can have up to ${Post.MAX_PHOTOS} photos.`);
   if (!text && !photos.length) throw new HttpError(400, 'Write something or add a photo.', { text: 'Write something or add a photo.' });
 
-  let pet;
-  if (petId) {
-    pet = await Pet.findOne({ _id: requireId(String(petId), 'Pet'), owner: req.user._id, status: { $ne: 'deceased' } }).select('_id');
-    if (!pet) throw new HttpError(403, 'You can only post as one of your own pets.');
-  }
-  const post = await Post.create({ author: req.user._id, pet: pet?._id, text, photos });
+  const post = await Post.create({ author: req.user._id, text, photos });
   await respond(res, post, req.user, 201);
 });
 

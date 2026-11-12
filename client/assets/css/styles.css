@@ -308,6 +308,7 @@ dialog::backdrop { background: rgb(20 12 6 / 0.5); backdrop-filter: blur(2px); }
 
 .pet-avatar { width: 48px; height: 48px; border-radius: 999px; object-fit: cover; flex: none; background: var(--brand-soft); border: 2px solid var(--surface); box-shadow: 0 0 0 1px var(--line); }
 .pet-avatar-lg { width: 64px; height: 64px; }
+.avatar.pet-avatar { background: var(--brand); color: var(--brand-ink); font-size: 1rem; }
 .pet-placeholder { display: grid; place-items: center; color: var(--brand); background: var(--brand-soft); }
 .pet-placeholder svg { width: 55%; height: 55%; }
 

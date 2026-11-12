@@ -54,7 +54,7 @@ The system includes the pages Community Wall (Home), Pets (directory), Pet Profi
 - Create an owner account, register pets (photos, breed, sex, birth date, municipality), and receive a PVO registration number
 - Keep each pet's vaccination record and medical history; see whether the anti-rabies vaccine is up to date or overdue
 - See an active community wall right after logging in: other owners' pets, upcoming schedules, announcements and a mixed feed of posts
-- Post text, photos (up to four) or both on the wall, as one of their pets or as themselves, and like and comment on other posts
+- Post text, photos (up to four) or both on the wall under their own name, and like and comment on other posts
 - Ask Alagai, a built-in pet-care helper (no AI), about feeding, grooming, vaccination, deworming, behaviour, common signs of sickness, PVO services, the next PVO activities and their pets' anti-rabies status; Alagai says it is not a veterinarian, does not diagnose or prescribe, and sends urgent cases to a vet or the PVO hotline
 - Read PVO announcements and upcoming schedules, and save scheduled activities to a phone calendar
 - File a report (animal bite, missing pet, stray, welfare concern) with photos, location and contact details, receive a reference number, follow the status timeline, and withdraw a report before the PVO starts on it; owners of missing pets can share a public alert on the wall
