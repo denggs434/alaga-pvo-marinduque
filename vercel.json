@@ -3,6 +3,7 @@
   "framework": null,
   "buildCommand": "",
   "outputDirectory": "client",
+  "installCommand": "env -u npm_config_cache_dir -u NPM_CONFIG_CACHE_DIR npm install",
   "rewrites": [
     {
       "source": "/api/(.*)",
@@ -11,7 +12,8 @@
   ],
   "functions": {
     "api/index.js": {
-      "maxDuration": 30
+      "maxDuration": 30,
+      "excludeFiles": "client/**"
     }
   },
   "headers": [
