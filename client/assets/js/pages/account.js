@@ -1,14 +1,14 @@
 /**
  * Account page.
  *  - logged out: log in / create an owner account
- *  - logged in (owner): My pets, My reports (status tracking), Profile & password
+ *  - logged in (owner): My pets, My reports (status tracking), Messages (PVO replies), Profile & password
  *  - PVO staff are sent to the admin console
  */
 import { api } from '../api.js';
 import { getUser, setSession, updateSessionUser, isAdmin } from '../store.js';
-import { MUNICIPALITIES, SPECIES } from '../config.js';
-import { logout } from '../nav.js';
-import { initPage, toast, showFieldErrors, setBusy, options, emptyState, errorState, skeleton, esc, initials, ageText, formatDate, ICONS, $ } from '../ui.js';
+import { MUNICIPALITIES, SPECIES, CONTACT_TOPICS } from '../config.js';
+import { logout, refreshUnread } from '../nav.js';
+import { initPage, toast, showFieldErrors, setBusy, options, emptyState, errorState, skeleton, esc, initials, ageText, formatDate, formatDateTime, ICONS, $ } from '../ui.js';
 import { petImg, petTags, reportCard } from '../components.js';
 
 initPage('');
@@ -107,13 +107,49 @@ function showAuth() {
 /* =========================================================================
    Logged in
    ========================================================================= */
-const TABS = ['pets', 'reports', 'profile'];
+const TABS = ['pets', 'reports', 'messages', 'profile'];
 function selectTab(which) {
   TABS.forEach((t) => {
     $(`#tab-${t}`).setAttribute('aria-selected', String(t === which));
     $(`#panel-${t}`).hidden = t !== which;
   });
   history.replaceState(null, '', `#${which}`);
+  if (which === 'messages') markMessagesRead();
+}
+
+/* ---------- Messages: what I sent the PVO, and the replies ---------- */
+let unreadIds = new Set();
+async function loadMessages() {
+  const box = $('#my-messages');
+  box.innerHTML = skeleton(2, 120);
+  try {
+    const list = await api('/contact/mine');
+    unreadIds = new Set(list.filter((m) => m.unread).map((m) => m._id));
+    $('#messages-count').textContent = unreadIds.size ? `${unreadIds.size} new` : list.length;
+    $('#messages-count').classList.toggle('tag-solid-green', unreadIds.size > 0);
+    box.innerHTML = list.length
+      ? list.map((m) => `<article class="card thread${m.unread ? ' is-unread' : ''}">
+          <header class="row between"><div class="row" style="gap:8px"><span class="tag tag-blue">${esc(CONTACT_TOPICS[m.topic] || m.topic)}</span>
+            ${m.replies.length ? `<span class="tag tag-green">${ICONS.check}Replied</span>` : '<span class="tag">Waiting for a reply</span>'}${m.unread ? '<span class="tag tag-solid-green">New reply</span>' : ''}</div>
+            <time class="muted small" datetime="${m.createdAt}">${formatDateTime(m.createdAt)}</time></header>
+          <div class="thread-msg thread-mine"><span class="thread-who">You wrote</span><p>${esc(m.message)}</p></div>
+          ${m.replies.map((r) => `<div class="thread-msg thread-staff"><span class="thread-who">${ICONS.shield}${esc(r.by)} · PVO Marinduque <time datetime="${r.createdAt}">${formatDateTime(r.createdAt)}</time></span><p>${esc(r.text)}</p></div>`).join('')}
+          ${m.replies.length ? '' : '<p class="muted small" style="margin:0">The office usually replies within one working day. The reply will appear here.</p>'}
+        </article>`).join('')
+      : emptyState('No messages yet', 'Questions about registration, vaccination or a report? Send the PVO a message and the reply will appear here.', '<a class="btn btn-primary" href="contact.html">Message the PVO</a>');
+    if (!$('#panel-messages').hidden) markMessagesRead();
+  } catch (err) {
+    box.innerHTML = errorState(err.message);
+  }
+}
+
+async function markMessagesRead() {
+  if (!unreadIds.size) return;
+  unreadIds = new Set();
+  try {
+    await api('/contact/mine/read', { method: 'PATCH' });
+    refreshUnread();
+  } catch { /* try again next visit */ }
 }
 
 function rabiesLine(r) {
@@ -269,6 +305,7 @@ async function showDashboard() {
   setupProfile(user);
   loadPets();
   loadReports();
+  loadMessages();
 }
 
 /* ---------- Boot ---------- */

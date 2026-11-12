@@ -160,7 +160,13 @@ const REPORTS = [
 const MESSAGES = [
   { name: 'Rosa Dimaano', email: 'rosa@example.com', topic: 'registration', message: 'Can I register a pet for my elderly mother who does not have an email address?', status: 'new', at: 1 },
   { name: 'Ben Torres', email: 'ben@example.com', phone: '0917 555 0199', topic: 'vaccination', message: 'Is the 5-in-1 vaccine also free during the Mogpog schedule, or only anti-rabies?', status: 'new', at: 2 },
-  { name: 'Grace Lim', email: 'grace@example.com', topic: 'general', message: 'Thank you for the deworming drive last month. Will there be one in Buenavista soon?', status: 'replied', at: 9 },
+  { name: 'Grace Lim', email: 'grace@example.com', topic: 'general', message: 'Thank you for the deworming drive last month. Will there be one in Buenavista soon?', at: 9,
+    replies: [['Thank you, Grace! The next Buenavista deworming day is on our announcements page. Bring your pets before 11 AM.', 8]] },
+  // Sent while logged in, so Maria can read the reply under Account → Messages.
+  { owner: 'maria', topic: 'vaccination', message: 'Kisses is five months old. Can she get her first anti-rabies shot at the next Boac drive, or is she too young?', at: 4,
+    replies: [['Hi Maria! Puppies can get their first anti-rabies shot from three months old, so Kisses can join the next Boac drive. Bring her vaccination card if she has one.', 3]], unread: true },
+  { name: 'Archived Example', email: 'old@example.com', topic: 'general', message: 'Is the office open on holidays? I wanted to drop by with my cat.', at: 40,
+    replies: [['The office is closed on national holidays. For emergencies, call the animal bite hotline.', 39]], archived: true },
 ];
 
 async function seed() {
@@ -193,7 +199,7 @@ async function seed() {
       author: users[who]._id,
       pet: pets[petName]._id,
       text,
-      photo: photo || undefined,
+      photos: photo ? [photo] : [],
       likes: likers.map((k) => users[k]._id),
       comments: comments.map(([k, t], i) => ({ user: users[k]._id, text: t, createdAt: new Date(created.getTime() + (i + 1) * 36e5) })),
     }), created);
@@ -223,7 +229,19 @@ async function seed() {
     await saveAt(report, daysAgo(at));
   }
 
-  for (const { at, ...m } of MESSAGES) await saveAt(new ContactMessage(m), daysAgo(at));
+  for (const { at, owner, replies = [], unread, archived, ...m } of MESSAGES) {
+    const u = owner && users[owner];
+    const doc = new ContactMessage({
+      ...m,
+      ...(u && { user: u._id, name: u.name, email: u.email, phone: u.phone }),
+      status: replies.length ? 'replied' : 'new',
+      replies: replies.map(([text, ago]) => ({ by: admin._id, byName: admin.name, text, createdAt: daysAgo(ago, 15) })),
+      unreadByUser: !!unread,
+      archived: !!archived,
+      archivedAt: archived ? daysAgo(at - 2) : undefined,
+    });
+    await saveAt(doc, daysAgo(at));
+  }
 
   console.log(`Seeded ${OWNERS.length} owners, ${PETS.length} pets, ${POSTS.length} posts, ${ANNOUNCEMENTS.length} announcements, ${REPORTS.length} reports.`);
   console.log(`PVO admin login:  ${admin.email}`);

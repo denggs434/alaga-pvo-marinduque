@@ -29,6 +29,7 @@ app.use('/api/reports', require('./routes/reportRoutes'));
 app.use('/api/contact', require('./routes/contactRoutes'));
 app.use('/api/admin', require('./routes/adminRoutes'));
 app.use('/api/uploads', require('./routes/uploadRoutes'));
+app.use('/api/assistant', require('./routes/assistantRoutes'));
 app.use('/api', notFound);
 
 // --- Frontend (the /client folder) ---

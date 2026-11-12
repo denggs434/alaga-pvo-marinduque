@@ -65,24 +65,42 @@ function commentHtml(c, postId) {
   </div>`;
 }
 
+/** 1 photo full width; 2 side by side; 3 one tall + two; 4 a 2 x 2 grid. */
+function postPhotos(p, who) {
+  const photos = p.photos?.length ? p.photos : p.photo ? [p.photo] : [];
+  if (!photos.length) return '';
+  const imgs = photos.map((src, i) => `<a href="${esc(src)}" target="_blank" rel="noopener" class="post-photo-link"><img class="post-photo" src="${esc(src)}" alt="Photo ${photos.length > 1 ? `${i + 1} of ${photos.length} ` : ''}posted by ${esc(who)}" loading="lazy"></a>`).join('');
+  return `<div class="post-photos n-${photos.length}">${imgs}</div>`;
+}
+
 export function postCard(p, open = false) {
   const user = getUser();
+  const pet = p.pet;
+  const who = pet ? pet.name : p.author.name;
+  const head = pet
+    ? `<a href="pet.html?id=${pet._id}">${petImg(pet.photo, 'pet-avatar', pet.name)}</a>
+      <div class="post-who">
+        <a href="pet.html?id=${pet._id}">${esc(pet.name)}${pet.status === 'missing' ? ' <span class="tag tag-solid-red">Missing</span>' : ''}</a>
+        <span class="post-meta">${esc(pet.breed || SPECIES[pet.species] || '')}${pet.municipality ? ` · ${esc(pet.municipality)}` : ''} · with ${esc(p.author.name)}</span>
+        <span class="post-meta"><time datetime="${p.createdAt}" title="${timeAgo(p.createdAt)}">${formatDateTime(p.createdAt)}</time></span>
+      </div>`
+    : `<span class="avatar pet-avatar">${esc(initials(p.author.name))}</span>
+      <div class="post-who">
+        <strong class="post-name">${esc(p.author.name)}</strong>
+        <span class="post-meta">Pet owner${p.author.municipality ? ` · ${esc(p.author.municipality)}` : ''}</span>
+        <span class="post-meta"><time datetime="${p.createdAt}" title="${timeAgo(p.createdAt)}">${formatDateTime(p.createdAt)}</time></span>
+      </div>`;
   return `<article class="card post" data-post="${p._id}" id="post-${p._id}">
     <header class="post-head">
-      <a href="pet.html?id=${p.pet._id}">${petImg(p.pet.photo, 'pet-avatar', p.pet.name)}</a>
-      <div class="post-who">
-        <a href="pet.html?id=${p.pet._id}">${esc(p.pet.name)}${p.pet.status === 'missing' ? ' <span class="tag tag-solid-red">Missing</span>' : ''}</a>
-        <span class="post-meta">${esc(p.pet.breed || SPECIES[p.pet.species] || '')} · ${esc(p.pet.municipality || '')} · <time datetime="${p.createdAt}" title="${formatDateTime(p.createdAt)}">${timeAgo(p.createdAt)}</time></span>
-        <span class="post-meta">with ${esc(p.author.name)}</span>
-      </div>
+      ${head}
       ${p.canDelete ? `<button class="btn btn-danger btn-sm" type="button" data-del-post="${p._id}" aria-label="Delete post" style="margin-left:auto">${ICONS.trash}</button>` : ''}
     </header>
-    <p class="post-text">${esc(p.text)}</p>
-    ${p.photo ? `<img class="post-photo" src="${esc(p.photo)}" alt="Photo posted by ${esc(p.pet.name)}" loading="lazy">` : ''}
+    ${p.text ? `<p class="post-text">${esc(p.text)}</p>` : ''}
+    ${postPhotos(p, who)}
     <footer class="post-actions">
       <button class="post-action" type="button" data-like="${p._id}" aria-pressed="${p.liked}" aria-label="${p.liked ? 'Unlike' : 'Like'} (${p.likeCount} likes)">${ICONS.heart}<span>${p.likeCount}</span></button>
       <button class="post-action" type="button" data-toggle-comments="${p._id}" aria-expanded="${open}">${ICONS.comment}<span>${p.comments.length}</span><span class="sr-only">comments</span></button>
-      <button class="post-action" type="button" data-share="${p.pet._id}" aria-label="Copy link to ${esc(p.pet.name)}'s profile">${ICONS.link}<span>Share</span></button>
+      ${pet ? `<button class="post-action" type="button" data-share="${pet._id}" aria-label="Copy link to ${esc(pet.name)}'s profile">${ICONS.link}<span>Share</span></button>` : ''}
     </footer>
     <div class="comments" ${open ? '' : 'hidden'}>
       ${p.comments.map((c) => commentHtml(c, p._id)).join('') || '<p class="muted small">No comments yet. Say hello!</p>'}

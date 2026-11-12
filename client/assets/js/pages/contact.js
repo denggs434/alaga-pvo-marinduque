@@ -24,6 +24,9 @@ if (user) {
   form.elements.name.value = user.name;
   form.elements.email.value = user.email;
   form.elements.phone.value = user.phone || '';
+  $('#reply-note').innerHTML = `${ICONS.inbox}<span>The PVO's reply will appear in your account under <a href="account.html#messages">Messages</a>.</span>`;
+} else {
+  $('#reply-note').innerHTML = `${ICONS.info}<span><a href="account.html?next=contact.html">Log in</a> before sending to read the PVO's reply here on Alaga. Otherwise we reply by email.</span>`;
 }
 form.elements.message.addEventListener('input', () => ($('#msg-count').textContent = `${form.elements.message.value.length} / 2000`));
 
@@ -42,16 +45,17 @@ form.addEventListener('submit', async (e) => {
   $('#contact-error').hidden = true;
   setBusy(btn, true, 'Sending…');
   try {
-    await api('/contact', {
+    const sent = await api('/contact', {
       method: 'POST',
-      auth: false,
       body: { name: f.name.value.trim(), email: f.email.value.trim(), phone: f.phone.value.trim(), topic: f.topic.value, message: f.message.value.trim() },
     });
     form.innerHTML = `<div class="stack" style="justify-items:start">
       <span class="label">Message received</span>
       <h2>Thanks, ${esc(f.name.value.trim().split(' ')[0])}!</h2>
-      <p>We will reply to ${esc(f.email.value.trim())} within one working day.</p>
-      <a class="btn btn-ghost" href="index.html">Back to the community wall</a></div>`;
+      <p>${sent.linked
+        ? 'We usually reply within one working day. You will find the reply under Account → Messages.'
+        : `We will reply to ${esc(f.email.value.trim())} within one working day.`}</p>
+      <div class="row">${sent.linked ? '<a class="btn btn-primary" href="account.html#messages">Go to my messages</a>' : ''}<a class="btn btn-ghost" href="index.html">Back to the community wall</a></div></div>`;
     toast('Message sent.');
   } catch (err) {
     $('#contact-error').textContent = err.message;

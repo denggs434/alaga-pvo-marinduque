@@ -18,7 +18,7 @@ import { setupThemeToggle } from '../nav.js';
 import { SPECIES, SPECIES_PLURAL, MUNICIPALITIES, CATEGORIES, REPORT_TYPES, REPORT_STATUSES, VACCINES, CONTACT_TOPICS } from '../config.js';
 import {
   initAdminPage, toast, armed, setupModal, showFieldErrors, setBusy, options, createPhotoPicker, emptyState,
-  esc, initials, formatDate, formatNumber, timeAgo, toDateInput, fromDateInput, toDateTimeInput, fromDateTimeInput, debounce,
+  esc, initials, formatDate, formatDateTime, formatNumber, timeAgo, toDateInput, fromDateInput, toDateTimeInput, fromDateTimeInput, debounce,
   ICONS, BRAND_MARK, $, $$,
 } from '../ui.js';
 import { petImg, reportTypeTag, reportStatusTag, categoryTag, timeline, eventWhen } from '../components.js';
@@ -63,7 +63,7 @@ function showLogin() {
    Console
    ========================================================================= */
 function boot() {
-  const state = { stats: null, pets: [], reports: [], anns: [], users: [], messages: [], reportFilter: 'open', msgFilter: 'open' };
+  const state = { stats: null, pets: [], reports: [], anns: [], users: [], messages: [], reportFilter: 'open', msgFilter: 'inbox', replying: null };
   const user = getUser();
 
   /* ---------- Chrome ---------- */
@@ -105,7 +105,7 @@ function boot() {
         api(`/reports${qs({ limit: 500 })}`),
         api(`/announcements${qs({ all: 'true', limit: 100 })}`).then((d) => d.items),
         api('/users'),
-        api('/contact'),
+        api('/contact?box=all'),
       ]);
       Object.assign(state, { stats, pets, reports, anns, users, messages });
       renderAll();
@@ -444,25 +444,75 @@ function boot() {
       </tr>`).join('') || `<tr><td colspan="8">${emptyState('No accounts match')}</td></tr>`}</tbody>`;
   }
 
-  /* ---------- Messages ---------- */
+  /* ---------- Messages: reply, archive, restore (never delete) ---------- */
   $$('[data-mfilter]').forEach((c) => c.addEventListener('click', () => {
     state.msgFilter = c.dataset.mfilter;
     $$('[data-mfilter]').forEach((x) => x.setAttribute('aria-pressed', String(x === c)));
     renderMessages();
   }));
-  function renderMessages() {
-    const list = state.messages.filter((m) => state.msgFilter === 'all' || m.status !== 'closed');
-    $('#messages-list').innerHTML = list.map((m) => `<li class="card st-${m.status}">
-      <div class="row between"><div class="row" style="gap:8px"><span class="tag tag-blue">${esc(CONTACT_TOPICS[m.topic] || m.topic)}</span><strong>${esc(m.name)}</strong>
-        ${m.status === 'new' ? '<span class="tag tag-green">New</span>' : `<span class="tag">${esc(m.status)}</span>`}</div><time class="muted small">${timeAgo(m.createdAt)}</time></div>
+  const MBOX = {
+    inbox: (m) => !m.archived,
+    new: (m) => !m.archived && m.status === 'new',
+    archived: (m) => m.archived,
+  };
+  const MEMPTY = {
+    inbox: ['Inbox zero', 'Archived messages are under Archived.'],
+    new: ['Every message has a reply', 'New messages from the contact form appear here.'],
+    archived: ['Nothing archived', 'Archive a message once it is dealt with. You can restore it at any time.'],
+  };
+  function messageHtml(m) {
+    const replying = state.replying === m._id;
+    const sender = m.hasAccount
+      ? `<span class="tag tag-green" title="Reads replies under Account → Messages">${ICONS.user}Has an account</span>`
+      : '<span class="tag" title="Not logged in when sending: also reply by email">Visitor</span>';
+    return `<li class="card st-${m.archived ? 'archived' : m.status}" id="msg-${m._id}">
+      <div class="row between"><div class="row" style="gap:8px"><span class="tag tag-blue">${esc(CONTACT_TOPICS[m.topic] || m.topic)}</span><strong>${esc(m.name)}</strong>${sender}
+        ${m.archived ? `<span class="tag">${ICONS.archive}Archived ${m.archivedAt ? formatDate(m.archivedAt) : ''}</span>` : m.status === 'new' ? '<span class="tag tag-solid-green">New</span>' : `<span class="tag tag-green">${ICONS.check}Replied</span>`}</div>
+        <time class="muted small" datetime="${m.createdAt}" title="${formatDateTime(m.createdAt)}">${timeAgo(m.createdAt)}</time></div>
       <p style="white-space:pre-line">${esc(m.message)}</p>
       <div class="row small"><a href="mailto:${esc(m.email)}?subject=${encodeURIComponent('Re: your message to the PVO')}">${esc(m.email)}</a>${m.phone ? `<span class="muted">${esc(m.phone)}</span>` : ''}</div>
+      ${(m.replies || []).map((r) => `<div class="thread-msg thread-staff"><span class="thread-who">${ICONS.reply}${esc(r.byName || 'PVO staff')} replied <time datetime="${r.createdAt}">${formatDateTime(r.createdAt)}</time></span><p>${esc(r.text)}</p></div>`).join('')}
+      ${replying ? `<form class="reply-form stack-sm" data-reply-form="${m._id}" novalidate>
+          <label class="field"><span>Reply to ${esc(m.name.split(' ')[0])}</span><textarea class="input" name="text" maxlength="2000" required placeholder="Write your answer…"></textarea><small class="field-error"></small></label>
+          <p class="muted small" style="margin:0">${m.hasAccount ? 'They will see this under Account → Messages.' : 'This sender has no account: the reply is saved here, so also send it by email.'}</p>
+          <div class="row"><button class="btn btn-primary btn-sm" type="submit">${ICONS.send}Send reply</button><button class="btn btn-ghost btn-sm" type="button" data-cancel-reply>Cancel</button></div>
+        </form>` : ''}
       <div class="row">
-        ${m.status === 'new' ? `<button class="btn btn-primary btn-sm" type="button" data-msg="${m._id}" data-to="replied">Mark replied</button>` : ''}
-        ${m.status !== 'closed' ? `<button class="btn btn-ghost btn-sm" type="button" data-msg="${m._id}" data-to="closed">Close</button>` : `<button class="btn btn-ghost btn-sm" type="button" data-msg="${m._id}" data-to="new">Reopen</button>`}
-        <button class="btn btn-danger btn-sm" type="button" data-del-msg="${m._id}">Delete</button>
-      </div></li>`).join('') || `<li>${emptyState(state.msgFilter === 'open' ? 'Inbox zero' : 'No messages yet', state.msgFilter === 'open' ? 'Closed messages are under All.' : '')}</li>`;
+        ${!replying && !m.archived ? `<button class="btn ${m.status === 'new' ? 'btn-primary' : 'btn-soft'} btn-sm" type="button" data-reply-msg="${m._id}">${ICONS.reply}${m.replies?.length ? 'Reply again' : 'Reply'}</button>` : ''}
+        ${m.archived
+          ? `<button class="btn btn-ghost btn-sm" type="button" data-archive-msg="${m._id}" data-to="false">${ICONS.restore}Restore to inbox</button>`
+          : `<button class="btn btn-ghost btn-sm" type="button" data-archive-msg="${m._id}" data-to="true">${ICONS.archive}Archive</button>`}
+      </div></li>`;
   }
+  function renderMessages() {
+    Object.entries(MBOX).forEach(([k, f]) => {
+      const n = state.messages.filter(f).length;
+      const el = $(`[data-mcount="${k}"]`);
+      if (el) el.textContent = n || '';
+    });
+    const list = state.messages.filter(MBOX[state.msgFilter]);
+    const [title, text] = MEMPTY[state.msgFilter];
+    $('#messages-list').innerHTML = list.map(messageHtml).join('') || `<li>${emptyState(title, text)}</li>`;
+    if (state.replying) $(`[data-reply-form="${state.replying}"] textarea`)?.focus();
+  }
+  $('#messages-list').addEventListener('submit', async (e) => {
+    const form = e.target.closest('[data-reply-form]');
+    if (!form) return;
+    e.preventDefault();
+    const text = form.elements.text.value.trim();
+    if (text.length < 2) return showFieldErrors(form, { text: 'Write a reply first.' });
+    const btn = form.querySelector('[type=submit]');
+    setBusy(btn, true, 'Sending…');
+    try {
+      await api(`/contact/${form.dataset.replyForm}/replies`, { method: 'POST', body: { text } });
+      state.replying = null;
+      toast('Reply sent. The message is marked replied.');
+      await loadAll();
+    } catch (err) {
+      showFieldErrors(form, err.details || { text: err.message });
+      setBusy(btn, false);
+    }
+  });
 
   /* ---------- One click handler for every action ---------- */
   document.addEventListener('click', (e) => {
@@ -482,8 +532,12 @@ function boot() {
       act(() => api(`/users/${d.ban}/ban`, { method: 'PATCH', body: { banned: d.to === 'true' } }), d.to === 'true' ? 'Account suspended. They can no longer log in.' : 'Account restored.');
     }
     if (d.delUser && armed(b, 'Delete all?')) act(() => api(`/users/${d.delUser}`, { method: 'DELETE' }), 'Account deleted.');
-    if (d.msg) act(() => api(`/contact/${d.msg}`, { method: 'PATCH', body: { status: d.to } }), `Message marked ${d.to}.`);
-    if (d.delMsg && armed(b, 'Delete?')) act(() => api(`/contact/${d.delMsg}`, { method: 'DELETE' }), 'Message deleted.');
+    if (d.replyMsg) { state.replying = d.replyMsg; renderMessages(); }
+    if (d.cancelReply !== undefined) { state.replying = null; renderMessages(); }
+    if (d.archiveMsg) {
+      const archive = d.to === 'true';
+      act(() => api(`/contact/${d.archiveMsg}`, { method: 'PATCH', body: { archived: archive } }), archive ? 'Message archived. Find it under Archived.' : 'Message restored to the inbox.');
+    }
   });
 
   loadAll();

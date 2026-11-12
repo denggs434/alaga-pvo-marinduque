@@ -118,7 +118,8 @@
         <!-- Messages -->
         <section data-panel="messages" aria-labelledby="h-msg" hidden>
           <div class="console-top"><div><span class="label">Inbox</span><h1 id="h-msg">Contact messages</h1></div>
-            <div class="chips" role="group" aria-label="Filter"><button class="chip" type="button" data-mfilter="open" aria-pressed="true">Open</button><button class="chip" type="button" data-mfilter="all" aria-pressed="false">All</button></div></div>
+            <div class="chips" role="group" aria-label="Show"><button class="chip" type="button" data-mfilter="inbox" aria-pressed="true">Inbox <b data-mcount="inbox"></b></button><button class="chip" type="button" data-mfilter="new" aria-pressed="false">Needs reply <b data-mcount="new"></b></button><button class="chip" type="button" data-mfilter="archived" aria-pressed="false">Archived <b data-mcount="archived"></b></button></div></div>
+          <p class="muted small" style="margin:-4px 0 14px">Replies are saved with the message. Senders who were logged in read them under Account → Messages; for others, also answer by email.</p>
           <ul class="inbox" id="messages-list"></ul>
         </section>
       </main>

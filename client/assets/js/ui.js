@@ -10,6 +10,7 @@ import { esc, $, $$ } from './format.js';
 import { ICONS, BRAND_MARK } from './icons.js';
 import { renderHeader } from './nav.js';
 import { initMotion } from './motion.js';
+import { setupAssistant } from './assistant.js';
 
 export * from './format.js';
 export { ICONS, BRAND_MARK } from './icons.js';
@@ -74,6 +75,7 @@ export function initPage(active) {
   document.body.prepend($('.skip-link')); // keep it first in tab order
   renderFooter();
   initMotion();
+  setupAssistant();
 }
 
 export function initAdminPage() {

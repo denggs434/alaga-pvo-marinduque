@@ -1,9 +1,23 @@
-/** Messages sent from the Contact page. Anyone can send one; PVO staff triage them. */
+/**
+ * A message sent from the Contact page, and the PVO's replies to it.
+ *  - Anyone can send one. When the sender is logged in, the message is linked
+ *    to their account so they can read the replies under Account → Messages.
+ *  - Staff answer with a written reply (status becomes "replied" only then).
+ *  - Messages are never deleted: staff archive them and can restore them.
+ */
 const mongoose = require('mongoose');
 const { CONTACT_TOPICS, EMAIL, PHONE } = require('../config/constants');
 
+const replySchema = new mongoose.Schema({
+  by: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  byName: { type: String, trim: true, maxlength: 80 }, // kept even if the staff account is removed later
+  text: { type: String, required: [true, 'Write a reply first.'], trim: true, minlength: [2, 'Write a reply first.'], maxlength: [2000, 'Replies are limited to 2000 characters.'] },
+  createdAt: { type: Date, default: Date.now },
+});
+
 const contactSchema = new mongoose.Schema(
   {
+    user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', index: true },
     name: { type: String, required: [true, 'Name is required.'], trim: true, maxlength: 80 },
     email: {
       type: String,
@@ -21,7 +35,12 @@ const contactSchema = new mongoose.Schema(
       minlength: [10, 'Message must be at least 10 characters.'],
       maxlength: 2000,
     },
-    status: { type: String, enum: ['new', 'replied', 'closed'], default: 'new' },
+    status: { type: String, enum: ['new', 'replied'], default: 'new' },
+    replies: { type: [replySchema], validate: [(v) => v.length <= 50, 'This conversation is too long.'] },
+    // The sender has a reply they have not opened yet.
+    unreadByUser: { type: Boolean, default: false },
+    archived: { type: Boolean, default: false, index: true },
+    archivedAt: Date,
   },
   { timestamps: true }
 );

@@ -1,7 +1,11 @@
 /**
- * Community wall: posts written as a pet, with likes and comments.
- * Anyone can read the wall; posts from private pets are hidden from everyone
- * except the owner and the PVO. Owners post; any logged-in account can like/comment.
+ * Community wall: posts (text, photos or both), usually written as a pet,
+ * with likes and comments. Anyone can read the wall; posts from private pets
+ * are hidden from everyone except the owner and the PVO. Owners post; any
+ * logged-in account can like and comment.
+ *
+ * Feed order: "latest" (newest first) or "discover", a shuffled order that is
+ * stable for one `seed`, so paging never repeats or skips a post.
  */
 const Post = require('../models/Post');
 const Pet = require('../models/Pet');
@@ -11,7 +15,7 @@ const { str, paging, requireId, publicName } = require('../utils/validate');
 
 const POPULATE = [
   { path: 'pet', select: 'name species breed photos municipality isPublic owner status' },
-  { path: 'author', select: 'name' },
+  { path: 'author', select: 'name municipality' },
   { path: 'comments.user', select: 'name role' },
 ];
 
@@ -20,14 +24,16 @@ const same = (a, b) => !!a && !!b && String(a._id || a) === String(b._id || b);
 
 /** Shape a post for a viewer: counts instead of raw like lists, permission flags. */
 function serializePost(post, viewer) {
-  const pet = post.pet || {};
+  const pet = post.pet;
+  const photos = post.photos?.length ? post.photos : post.photo ? [post.photo] : [];
   return {
     _id: post._id,
-    text: post.text,
-    photo: post.photo,
+    text: post.text || '',
+    photos,
+    photo: photos[0], // older clients read a single photo
     createdAt: post.createdAt,
-    pet: { _id: pet._id, name: pet.name, species: pet.species, breed: pet.breed, photo: pet.photos?.[0], municipality: pet.municipality, status: pet.status },
-    author: { name: publicName(post.author?.name || 'Former member') },
+    pet: pet ? { _id: pet._id, name: pet.name, species: pet.species, breed: pet.breed, photo: pet.photos?.[0], municipality: pet.municipality, status: pet.status } : null,
+    author: { name: publicName(post.author?.name || 'Former member'), municipality: post.author?.municipality },
     likeCount: post.likes.length,
     liked: !!viewer && post.likes.some((id) => same(id, viewer)),
     comments: post.comments.map((c) => ({
@@ -52,7 +58,11 @@ async function respond(res, post, viewer, status = 200) {
   res.status(status).json(serializePost(post, viewer));
 }
 
-// GET /api/posts?pet=&page=&limit=
+/** Seeded shuffle key: ((ms since epoch mod P) * seed) mod P, P prime. Same seed, same order. */
+const P = 1000003;
+const shuffleKey = (seed) => ({ $mod: [{ $multiply: [{ $mod: [{ $toLong: '$createdAt' }, P] }, seed] }, P] });
+
+// GET /api/posts?pet=&page=&limit=&order=latest|discover&seed=
 exports.listPosts = asyncHandler(async (req, res) => {
   const filter = {};
   const petId = str(req.query.pet);
@@ -68,25 +78,54 @@ exports.listPosts = asyncHandler(async (req, res) => {
   }
 
   const { limit, page, skip } = paging(req.query, { limit: 8, max: 30 });
-  const [posts, total] = await Promise.all([
-    Post.find(filter).sort({ createdAt: -1, _id: -1 }).skip(skip).limit(limit).populate(POPULATE).lean(),
+  const discover = str(req.query.order) === 'discover' && !petId; // a pet's own page is always newest first
+  const seed = Math.min(Math.max(parseInt(req.query.seed, 10) || 1, 1), P - 1);
+  let ids;
+  if (discover) {
+    // Posts from the last day stay on top so new activity is seen first; older ones are mixed.
+    const dayAgo = new Date(Date.now() - 24 * 3600e3);
+    const rows = await Post.aggregate([
+      { $match: filter },
+      { $addFields: { fresh: { $cond: [{ $gte: ['$createdAt', dayAgo] }, 1, 0] }, mix: shuffleKey(seed) } },
+      { $sort: { fresh: -1, mix: 1, _id: 1 } },
+      { $skip: skip },
+      { $limit: limit },
+      { $project: { _id: 1 } },
+    ]);
+    ids = rows.map((r) => r._id);
+  }
+  const [found, total] = await Promise.all([
+    discover
+      ? Post.find({ _id: { $in: ids } }).populate(POPULATE).lean()
+      : Post.find(filter).sort({ createdAt: -1, _id: -1 }).skip(skip).limit(limit).populate(POPULATE).lean(),
     Post.countDocuments(filter),
   ]);
+  const posts = discover ? ids.map((id) => found.find((p) => String(p._id) === String(id))).filter(Boolean) : found;
   res.json({
-    items: posts.filter((p) => p.pet).map((p) => serializePost(p, req.user)),
+    // A post whose pet was removed comes back with pet: null; posts made without a pet have no pet at all.
+    items: posts.filter((p) => p.pet !== null).map((p) => serializePost(p, req.user)),
     total,
     page,
     pages: Math.ceil(total / limit) || 1,
   });
 });
 
-// POST /api/posts  { pet, text, photo? }  (owner; the pet must be theirs)
+// POST /api/posts  { pet?, text?, photos?: [] }  (owner; the pet, when given, must be theirs)
 exports.createPost = asyncHandler(async (req, res) => {
-  const { pet: petId, text, photo } = req.body;
-  if (!petId) throw new HttpError(400, 'Choose which pet is posting.', { pet: 'Choose which pet is posting.' });
-  const pet = await Pet.findOne({ _id: requireId(String(petId), 'Pet'), owner: req.user._id }).select('_id');
-  if (!pet) throw new HttpError(403, 'You can only post as one of your own pets.');
-  const post = await Post.create({ author: req.user._id, pet: pet._id, text, photo: photo || undefined });
+  const { pet: petId } = req.body;
+  const text = typeof req.body.text === 'string' ? req.body.text.trim() : '';
+  let photos = req.body.photos ?? (req.body.photo ? [req.body.photo] : []);
+  if (!Array.isArray(photos) || photos.some((p) => typeof p !== 'string')) throw new HttpError(400, 'Upload the photos again.');
+  photos = [...new Set(photos)];
+  if (photos.length > Post.MAX_PHOTOS) throw new HttpError(400, `A post can have up to ${Post.MAX_PHOTOS} photos.`);
+  if (!text && !photos.length) throw new HttpError(400, 'Write something or add a photo.', { text: 'Write something or add a photo.' });
+
+  let pet;
+  if (petId) {
+    pet = await Pet.findOne({ _id: requireId(String(petId), 'Pet'), owner: req.user._id, status: { $ne: 'deceased' } }).select('_id');
+    if (!pet) throw new HttpError(403, 'You can only post as one of your own pets.');
+  }
+  const post = await Post.create({ author: req.user._id, pet: pet?._id, text, photos });
   await respond(res, post, req.user, 201);
 });
 

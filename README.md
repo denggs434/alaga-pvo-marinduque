@@ -12,7 +12,9 @@ Project write-up (target user, introduction, problem, objectives, scope, limitat
 
 - **Pet registration:** each pet gets a PVO registration number (`MQ-2026-00001`), up to 6 photos and a public profile; PVO staff verify registrations
 - **Health records:** vaccination record and medical history per pet, private to the owner and the PVO; anti-rabies status (up to date, overdue, none) computed from the record; owner entries are marked until the PVO verifies them
-- **Community wall:** owners post as one of their pets (text + photo); likes, comments and moderation by the PVO
+- **Community wall:** opens with a welcome, other owners' pets, upcoming schedules, announcements and a mixed "For you" feed (or "Latest"); owners post text, up to 4 photos, or both, as one of their pets or as themselves; likes, comments and moderation by the PVO
+- **Alagai, the AI pet-care assistant:** a chat for logged-in users about feeding, grooming, vaccines, deworming, behaviour, symptoms and PVO services; it knows the user's pets and the PVO schedule, says it is not a veterinarian, never diagnoses or prescribes, and shows the emergency hotline for urgent questions
+- **Messages:** staff answer contact messages with written replies that senders read under Account → Messages (with a new-reply dot); messages are archived and restored, never deleted
 - **Pet directory:** search and filter by species, municipality and sex, with sorting and paging; filter state lives in the URL so views can be shared
 - **Announcements and schedules:** vaccination drives, deworming days, free programs and advisories, with "add to my calendar" (.ics)
 - **Online reporting:** animal bites (always high priority), missing pets (with an optional public alert on the wall), strays and welfare concerns; each report gets a reference number and a status timeline the reporter can track, and can be withdrawn until the PVO starts on it
@@ -50,6 +52,7 @@ The repo deploys to Vercel as-is (`vercel.json`): `client/` is served as static 
 | `MONGODB_URI` | MongoDB Atlas integration from the Vercel Marketplace (or set `MONGO_URI` yourself) |
 | `JWT_SECRET` | A long random string, added as a sensitive variable |
 | `BLOB_READ_WRITE_TOKEN` | The connected Vercel Blob store; uploaded photos are saved there because Vercel's filesystem is read-only |
+| *(none for Alagai)* | Alagai calls Vercel AI Gateway with the project's OIDC token. AI Gateway needs a card on file on the Vercel team to unlock its free credits; until then Alagai gives labelled basic answers. `ALAGAI_API_URL`, `ALAGAI_API_KEY` and `ALAGAI_MODEL` switch it to any OpenAI-compatible provider |
 
 To load the demo data into the cloud database, run the seed once with that connection string: `MONGO_URI="<atlas uri>" npm run seed` (inside `server/`).
 
@@ -70,6 +73,7 @@ client/                       Frontend (static)
   assets/js/config.js         Site details and labels for every enum
   assets/js/ui.js  nav.js     Page bootstrap, header, footer, toasts, forms
   assets/js/components.js     Pet cards, wall posts, schedules, report cards
+  assets/js/assistant.js      Alagai chat panel
   assets/js/pages/*.js        One script per page
   assets/img/                 Wikimedia Commons photos + credits.json
 server/                       Backend
@@ -108,8 +112,8 @@ docs/                         Assignment instructions and rubric
 | PATCH | `/api/pets/:id/vaccinations/:vid/verify` | Admin | Verify a vaccination |
 | DELETE | `/api/pets/:id/vaccinations/:vid` | Owner / Admin | Remove a vaccination |
 | POST / DELETE | `/api/pets/:id/medical[/:mid]` | Owner / Admin | Add / remove a medical record |
-| GET | `/api/posts` | Public | Wall posts (`pet`, `page`, `limit`) |
-| POST | `/api/posts` | Owner | Post as one of your pets |
+| GET | `/api/posts` | Public | Wall posts (`pet`, `page`, `limit`, `order=latest\|discover`, `seed`) |
+| POST | `/api/posts` | Owner | Post text, up to 4 `photos`, or both; `pet` optional |
 | DELETE | `/api/posts/:id` | Author / Admin | Delete a post |
 | POST | `/api/posts/:id/like` | User | Like / unlike |
 | POST / DELETE | `/api/posts/:id/comments[/:cid]` | User | Add / delete a comment |
@@ -122,8 +126,13 @@ docs/                         Assignment instructions and rubric
 | PATCH | `/api/reports/:id/withdraw` | Reporter | Withdraw before the PVO starts |
 | GET | `/api/reports` | Admin | All reports (`status`, `type`, `municipality`, `q`) |
 | PATCH | `/api/reports/:id` | Admin | Update status, add a note, toggle public alert |
-| POST | `/api/contact` | Public | Send a message |
-| GET / PATCH / DELETE | `/api/contact[/:id]` | Admin | Inbox |
+| POST | `/api/contact` | Public | Send a message (linked to the account when logged in) |
+| GET | `/api/contact/mine` | User | Own messages with the PVO's replies |
+| GET / PATCH | `/api/contact/mine/unread`, `/api/contact/mine/read` | User | New-reply count; mark replies read |
+| GET | `/api/contact` | Admin | Inbox (`box=inbox\|archived\|all`) |
+| POST | `/api/contact/:id/replies` | Admin | Send a written reply (marks the message replied) |
+| PATCH | `/api/contact/:id` | Admin | Archive or restore (`{ archived }`); there is no delete |
+| POST | `/api/assistant/chat` | User | Ask Alagai (`messages: [{ role, content }]`) |
 | GET | `/api/admin/stats` | Admin | Dashboard numbers and monthly series |
 | POST | `/api/uploads` | User | Upload a photo (multipart field `image`, JPG/PNG/WebP, 4 MB) |
 

@@ -2,7 +2,8 @@
  * Site header: brand, main links, "Report" button, theme toggle, account menu,
  * and the slide-in menu used on phones and tablets.
  */
-import { getUser, isAdmin, clearSession } from './store.js';
+import { getUser, isAdmin, isOwner, clearSession } from './store.js';
+import { api } from './api.js';
 import { SITE } from './config.js';
 import { esc, initials, $, $$ } from './format.js';
 import { ICONS, BRAND_MARK } from './icons.js';
@@ -23,6 +24,7 @@ function accountHtml() {
     <div class="account">
       <button class="avatar-btn" type="button" id="account-btn" aria-expanded="false" aria-controls="account-menu" aria-label="Account menu for ${esc(user.name)}">
         <span class="avatar">${esc(initials(user.name))}</span>
+        <span class="dot avatar-dot" data-unread hidden></span>
       </button>
       <div class="popover" id="account-menu" hidden>
         <div class="popover-head"><strong>${esc(user.name)}</strong><span>${esc(user.email)}</span></div>
@@ -30,7 +32,9 @@ function accountHtml() {
           ? `<a href="admin.html">${ICONS.shield}PVO admin console</a>`
           : `<a href="account.html#pets">${ICONS.paw}My pets</a>
              <a href="account.html#reports">${ICONS.flag}My reports</a>
-             <a href="account.html#profile">${ICONS.user}Profile & password</a>`}
+             <a href="account.html#messages">${ICONS.inbox}Messages<span class="dot" data-unread hidden><span class="sr-only">new reply</span></span></a>
+             <a href="account.html#profile">${ICONS.user}Profile & password</a>
+             <button type="button" data-open-alagai>${ICONS.sparkle}Ask Alagai</button>`}
         <button type="button" data-logout>${ICONS.logout}Log out</button>
       </div>
     </div>`;
@@ -64,7 +68,9 @@ function headerHtml(active) {
         ? `<a href="admin.html">${ICONS.shield}PVO admin console</a>`
         : `<a href="report.html">${ICONS.flag}Report an incident</a>
            <a href="pet-form.html">${ICONS.plus}Register a pet</a>
-           <a href="account.html">${ICONS.user}${getUser() ? 'My pets & reports' : 'Log in or sign up'}</a>`}
+           <a href="account.html">${ICONS.user}${getUser() ? 'My pets & reports' : 'Log in or sign up'}</a>
+           ${getUser() ? `<a href="account.html#messages">${ICONS.inbox}Messages<span class="dot" data-unread hidden><span class="sr-only">new reply</span></span></a>
+           <a href="#alagai" data-open-alagai>${ICONS.sparkle}Ask Alagai</a>` : ''}`}
     </nav>
   </dialog>`;
 }
@@ -118,10 +124,22 @@ export function logout(to = 'index.html') {
   location.href = to;
 }
 
+/** Show a dot on the account menu when the PVO replied to one of the owner's messages. */
+export async function refreshUnread() {
+  if (!isOwner()) return;
+  try {
+    const { count } = await api('/contact/mine/unread');
+    $$('[data-unread]').forEach((d) => (d.hidden = !count));
+    const btn = $('#account-btn');
+    if (btn) btn.setAttribute('aria-label', `Account menu for ${getUser()?.name || ''}${count ? `, ${count} new ${count === 1 ? 'reply' : 'replies'}` : ''}`);
+  } catch { /* the dot is a nicety */ }
+}
+
 export function renderHeader(active) {
   document.body.insertAdjacentHTML('afterbegin', headerHtml(active));
   setupThemeToggle();
   setupAccountMenu();
   setupMobileMenu();
   $$('[data-logout]').forEach((b) => b.addEventListener('click', () => logout()));
+  refreshUnread();
 }

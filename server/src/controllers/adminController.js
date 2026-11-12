@@ -85,7 +85,7 @@ exports.getStats = asyncHandler(async (req, res) => {
       .select('reference type status priority location incidentDate createdAt').lean(),
     Pet.countDocuments({ registrationStatus: 'pending' }),
     Post.countDocuments(),
-    ContactMessage.countDocuments({ status: 'new' }),
+    ContactMessage.countDocuments({ status: 'new', archived: { $ne: true } }),
   ]);
 
   const p = petTotals[0] || {};
