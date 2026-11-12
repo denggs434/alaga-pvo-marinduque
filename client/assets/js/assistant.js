@@ -99,6 +99,7 @@ export function setupAssistant() {
   const user = getUser();
   if (!user || document.getElementById('alagai')) return;
 
+  document.documentElement.classList.add('has-alagai'); // leaves room so the button never covers the footer
   document.body.insertAdjacentHTML('beforeend', `<button class="alagai-fab" type="button" id="alagai-open" aria-haspopup="dialog" aria-controls="alagai">${ICONS.sparkle}<span>Ask Alagai</span></button>${panelHtml()}`);
   const dialog = $('#alagai');
   const log = $('#alagai-log');

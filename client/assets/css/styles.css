@@ -747,6 +747,7 @@ dialog::backdrop { background: rgb(20 12 6 / 0.5); backdrop-filter: blur(2px); }
 .alagai-fab:hover { transform: translateY(-2px); }
 .alagai-fab:focus-visible { outline: 3px solid var(--brand); outline-offset: 3px; }
 .alagai-open .alagai-fab { visibility: hidden; }
+.has-alagai .site-footer { padding-bottom: 72px; }
 .alagai { position: fixed; inset: auto max(16px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom)) auto; margin: 0; width: min(420px, calc(100vw - 32px)); height: min(640px, calc(100dvh - 32px)); max-height: none; max-width: none; padding: 0; border: 1px solid var(--line); border-radius: var(--r-lg); background: var(--surface); color: var(--ink); box-shadow: var(--shadow-lg); display: none; flex-direction: column; overflow: hidden; }
 .alagai[open] { display: flex; animation: modal-in var(--dur-3) var(--ease-out); }
 .alagai::backdrop { background: rgb(20 12 6 / 0.25); }
@@ -860,6 +861,19 @@ dialog::backdrop { background: rgb(20 12 6 / 0.5); backdrop-filter: blur(2px); }
   .modal-body, .modal-head, .modal-foot { padding-inline: 16px; }
   .brand-word small { display: none; }
   .hbars li { grid-template-columns: 84px minmax(0, 1fr) 30px; }
+}
+/* Account tabs: a 2 x 2 grid on phones, so all four stay visible */
+@media (max-width: 640px) {
+  .tabs.tabs-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; border-bottom: 0; overflow: visible; margin: 24px 0 16px; }
+  .tabs.tabs-grid .tab { justify-content: center; min-height: 46px; padding: 8px 10px; margin: 0; border: 1px solid var(--line); border-radius: var(--r-sm); background: var(--surface); }
+  .tabs.tabs-grid .tab[aria-selected='true'] { background: var(--brand-soft); border-color: var(--brand); color: var(--brand-strong); }
+}
+/* Pet form species picker: compact rows of three on phones */
+@media (max-width: 640px) {
+  #species.choice-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+  #species .choice { justify-items: center; text-align: center; padding: 10px 6px; min-height: 64px; }
+  #species .choice svg { width: 22px; height: 22px; }
+  #species .choice strong { font-size: 0.9375rem; }
 }
 /* Admin tables as stacked cards on phones */
 @media (max-width: 640px) {
