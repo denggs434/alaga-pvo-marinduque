@@ -3,7 +3,6 @@
   "framework": null,
   "buildCommand": "",
   "outputDirectory": "client",
-  "installCommand": "echo DEBUG-npmrc; npm config ls -l 2>/dev/null | grep -n -i -E \"cache|; \\\"(user|global|project|builtin)\" || true; env | grep -i -E \"npm_config|npmrc\" | sed -E \"s/=.*//\" || true; npm install",
   "rewrites": [
     {
       "source": "/api/(.*)",
