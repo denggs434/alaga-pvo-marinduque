@@ -138,7 +138,7 @@ exports.deletePost = asyncHandler(async (req, res) => {
   const post = await loadPost(req.params.id);
   if (!same(post.author, req.user) && !isAdmin(req.user)) throw new HttpError(403, 'You can only delete your own posts.');
   await post.deleteOne();
-  notify.postGone(post._id);
+  await notify.postGone(post._id); // finish the cleanup before answering, so no stale notification points at it
   if (!same(post.author, req.user)) notify.removed(post.author, 'Your post was removed by the PVO', post.text);
   res.json({ message: 'Post deleted.' });
 });
