@@ -11,6 +11,9 @@ const { notFound, errorHandler } = require('./middleware/errorHandler');
 const app = express();
 
 app.disable('x-powered-by');
+// On Vercel requests arrive through its proxy: read the visitor's IP from
+// X-Forwarded-For so rate limits count each visitor, not the proxy.
+if (process.env.VERCEL) app.set('trust proxy', true);
 app.use(securityHeaders);
 // Only needed when the client is hosted elsewhere; same-origin requests never use it.
 if (process.env.CLIENT_ORIGIN) app.use(cors({ origin: process.env.CLIENT_ORIGIN }));

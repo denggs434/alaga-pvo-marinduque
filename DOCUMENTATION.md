@@ -66,7 +66,7 @@ The system includes the pages Community Wall (Home), Pets (directory), Pet Profi
 - No online payment, since the PVO's listed programs are free.
 - A single staff role: no separate permission levels for veterinarians, encoders or supervisors, and no audit log.
 - Owner-entered vaccinations remain "owner entries" until staff verify them in person; the system cannot check a paper vaccination card on its own.
-- Uploaded photos are stored on the server's disk, so a host with an ephemeral filesystem would need cloud storage such as S3 or Cloudinary.
+- Photos are limited to 4 MB each, because Vercel caps request bodies at 4.5 MB.
 - Rate limiting is kept in memory, which is enough for one server process but not for several.
 - People, pets, records, incidents and contact numbers in the demo are sample data.
 
@@ -109,4 +109,4 @@ At a high level:
 - `contactmessages`: name, email, phone, topic, message, status
 - `counters`: sequences for registration numbers and report references
 
-**Deployment (where it is hosted).** The Express server serves both the API and the `/client` folder, so the whole site deploys as one Node.js web service (for example on Render or Railway) connected to a free MongoDB Atlas cluster. The frontend can also be hosted separately on Vercel or Netlify by setting `window.ALAGA_API` to the API's URL and `CLIENT_ORIGIN` on the server.
+**Deployment (where it is hosted).** The site is deployed on **Vercel**. The `/client` folder is served as static files from Vercel's CDN, and the Express API runs as a single Vercel Function (`api/index.js`) that every `/api/*` request is rewritten to. Data lives in **MongoDB Atlas**, provisioned through the Vercel Marketplace, and uploaded photos are stored in **Vercel Blob** because a function's filesystem is read-only. Pushing to the `main` branch on GitHub deploys a new production version automatically. Locally, `npm start` runs the same Express app with a local MongoDB and saves photos to disk.

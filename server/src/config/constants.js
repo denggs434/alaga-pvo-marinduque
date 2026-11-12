@@ -19,8 +19,11 @@ module.exports = {
 
   CONTACT_TOPICS: ['general', 'registration', 'vaccination', 'report', 'other'],
 
-  /** Image paths the API accepts: files we ship or files saved by POST /api/uploads. */
-  IMAGE_PATH: /^assets\/img\/(uploads|pets)\/[\w.-]+\.(jpe?g|png|webp)$/,
+  /**
+   * Image paths the API accepts: files we ship, or files saved by POST /api/uploads
+   * (local disk, or the Vercel Blob store when deployed on Vercel).
+   */
+  IMAGE_PATH: /^(assets\/img\/(uploads|pets)\/[\w.-]+|https:\/\/[a-z0-9]+\.public\.blob\.vercel-storage\.com\/uploads\/[\w.-]+)\.(jpe?g|png|webp)$/,
   PHONE: /^[0-9+()\s-]{7,20}$/,
   EMAIL: /^\S+@\S+\.\S+$/,
 };

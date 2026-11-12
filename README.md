@@ -42,6 +42,18 @@ Open **http://localhost:5000**. The Express server serves the API under `/api` a
 
 Never commit `server/.env`: `.gitignore` excludes every `.env` file except the `.env.example` template.
 
+## Deploying on Vercel
+
+The repo deploys to Vercel as-is (`vercel.json`): `client/` is served as static files and every `/api/*` request runs the Express app as one Vercel Function (`api/index.js`). Pushing to `main` deploys to production.
+
+| Variable | Where it comes from |
+|---|---|
+| `MONGODB_URI` | MongoDB Atlas integration from the Vercel Marketplace (or set `MONGO_URI` yourself) |
+| `JWT_SECRET` | A long random string, added as a sensitive variable |
+| `BLOB_READ_WRITE_TOKEN` | The connected Vercel Blob store; uploaded photos are saved there because Vercel's filesystem is read-only |
+
+To load the demo data into the cloud database, run the seed once with that connection string: `MONGO_URI="<atlas uri>" npm run seed` (inside `server/`).
+
 ## Project structure
 
 ```
@@ -72,6 +84,8 @@ server/                       Backend
   src/utils/                  Input validation helpers
   seed/                       Demo data + seed script
   .env.example                Environment variables template
+api/index.js                  Vercel Function entry (wraps the Express app)
+vercel.json                   Vercel config: static client, /api rewrite, security headers
 docs/                         Assignment instructions and rubric
 ```
 
@@ -112,7 +126,7 @@ docs/                         Assignment instructions and rubric
 | POST | `/api/contact` | Public | Send a message |
 | GET / PATCH / DELETE | `/api/contact[/:id]` | Admin | Inbox |
 | GET | `/api/admin/stats` | Admin | Dashboard numbers and monthly series |
-| POST | `/api/uploads` | User | Upload a photo (multipart field `image`, JPG/PNG/WebP, 5 MB) |
+| POST | `/api/uploads` | User | Upload a photo (multipart field `image`, JPG/PNG/WebP, 4 MB) |
 
 Errors always come back as `{ "message": "...", "details": { field: message } }` with a matching HTTP status.
 

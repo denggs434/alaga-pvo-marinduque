@@ -189,7 +189,7 @@ export function setupModal(dialog) {
 }
 
 /* ---------- Photo picker ---------- */
-const MAX_PHOTO = 5 * 1024 * 1024;
+const MAX_PHOTO = 4 * 1024 * 1024; // Vercel caps request bodies at 4.5 MB
 const TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 
 /**
@@ -217,7 +217,7 @@ export function createPhotoPicker(root, { max = 1, label = 'Add photo', main = f
       </div>`).join('') +
       Array.from({ length: uploading }, () => '<div class="photo-tile is-uploading skeleton"></div>').join('') +
       (paths.length + uploading < max
-        ? `<label class="photo-add">${ICONS.camera}<span>${esc(label)}</span><small class="muted">JPG, PNG, WebP · 5 MB</small>
+        ? `<label class="photo-add">${ICONS.camera}<span>${esc(label)}</span><small class="muted">JPG, PNG, WebP · 4 MB</small>
             <input type="file" accept="image/jpeg,image/png,image/webp" ${max - paths.length > 1 ? 'multiple' : ''}></label>`
         : '');
   }
@@ -228,7 +228,7 @@ export function createPhotoPicker(root, { max = 1, label = 'Add photo', main = f
     if (files.length > room) toast(`You can add ${room} more photo${room === 1 ? '' : 's'}.`, 'error');
     for (const file of list) {
       if (!TYPES.includes(file.type)) { toast('Choose a JPG, PNG or WebP photo.', 'error'); continue; }
-      if (file.size > MAX_PHOTO) { toast(`${file.name} is over 5 MB. Choose a smaller photo.`, 'error'); continue; }
+      if (file.size > MAX_PHOTO) { toast(`${file.name} is over 4 MB. Choose a smaller photo.`, 'error'); continue; }
       uploading += 1;
       render();
       try {
