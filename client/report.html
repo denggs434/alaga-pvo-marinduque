@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Report an incident | Alaga · PVO Marinduque</title>
+  <meta name="description" content="Report an animal bite, a missing pet, a stray or abandoned animal, or an animal welfare concern to the Marinduque Provincial Veterinary Office.">
+  <meta name="theme-color" content="#c2410c">
+  <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="assets/css/styles.css">
+</head>
+<body>
+  <main class="wrap">
+    <header class="page-head">
+      <span class="label">Online reporting</span>
+      <h1>Report an animal incident</h1>
+      <p>Tell the Provincial Veterinary Office about an animal bite, a missing pet, a stray or abandoned animal, or a welfare concern. You will get a reference number and can follow the status from your account.</p>
+    </header>
+
+    <div class="report-layout">
+      <div id="report-root">
+        <form id="report-form" class="stack" novalidate hidden>
+          <section class="card form-section">
+            <h2><span class="step">1</span>What are you reporting?</h2>
+            <div class="choice-grid" id="types" role="radiogroup" aria-label="Report type"></div>
+            <small class="field-error" data-for="type"></small>
+          </section>
+
+          <section class="card form-section">
+            <h2><span class="step">2</span>What happened</h2>
+            <div class="form-grid">
+              <label class="field" id="pet-field" hidden><span>Which of your pets?</span><select class="input" name="pet" id="pet-select"></select><small class="hint">Choosing a registered pet adds its photos and details automatically.</small></label>
+              <label class="field" id="species-field"><span>Animal</span><select class="input" name="animalSpecies"><option value="dog">Dog</option><option value="cat">Cat</option><option value="rabbit">Rabbit</option><option value="bird">Bird</option><option value="other">Other animal</option><option value="unknown">Not sure</option></select></label>
+              <label class="field"><span id="date-label">When did it happen?</span><input class="input" type="datetime-local" name="incidentDate" required><small class="field-error"></small></label>
+              <label class="field span-2"><span>Description</span>
+                <textarea class="input" name="description" maxlength="3000" required placeholder=""></textarea>
+                <small class="hint" id="desc-count">0 / 3000 (at least 20 characters)</small><small class="field-error"></small></label>
+            </div>
+            <label class="check" id="alert-field" hidden><input type="checkbox" name="publicAlert" checked>
+              <span>Show a missing-pet alert on the community wall
+              <small>The alert shows the pet's photo, the barangay and municipality, the date and your description. Your name and phone number stay private; people who spot your pet call the PVO with your reference number.</small></span></label>
+          </section>
+
+          <section class="card form-section">
+            <h2><span class="step">3</span>Where</h2>
+            <div class="form-grid">
+              <label class="field"><span>Municipality</span><select class="input" name="municipality" required></select><small class="field-error"></small></label>
+              <label class="field"><span>Barangay</span><input class="input" name="barangay" maxlength="60" required><small class="field-error"></small></label>
+              <label class="field span-2"><span>Street or landmark <span class="muted">(optional)</span></span><input class="input" name="details" maxlength="200" placeholder="e.g. beside the elementary school gate"><small class="field-error"></small></label>
+            </div>
+          </section>
+
+          <section class="card form-section">
+            <h2><span class="step">4</span>Photos <span class="muted" style="font-weight:600;font-size:.9375rem">(optional, up to 4)</span></h2>
+            <p class="muted small">Photos of the animal or the place help our team. Do not photograph wounds or children's faces.</p>
+            <div id="photos"></div>
+          </section>
+
+          <section class="card form-section">
+            <h2><span class="step">5</span>How we can reach you</h2>
+            <div class="form-grid">
+              <label class="field"><span>Contact name</span><input class="input" name="name" maxlength="80" required autocomplete="name"><small class="field-error"></small></label>
+              <label class="field"><span>Mobile number</span><input class="input" name="phone" required autocomplete="tel" placeholder="0917 123 4567"><small class="field-error"></small></label>
+              <label class="field span-2"><span>Email <span class="muted">(optional)</span></span><input class="input" type="email" name="email" autocomplete="email"><small class="field-error"></small></label>
+            </div>
+            <label class="check"><input type="checkbox" name="confirm" required><span>The information in this report is true to the best of my knowledge.<small>False reports may be referred to the barangay.</small></span></label>
+            <small class="field-error" data-for="confirm"></small>
+          </section>
+
+          <p class="notice notice-error" id="form-error" hidden role="alert"></p>
+          <div class="row" style="justify-content:flex-end"><button class="btn btn-primary" type="submit" id="submit">Submit report</button></div>
+        </form>
+      </div>
+
+      <aside class="stack">
+        <div class="hotline">
+          <span class="label" style="color:var(--bad)">Bitten or scratched?</span>
+          <strong>Wash the wound with soap and running water for 15 minutes.</strong>
+          <p class="small">Then go to the nearest Animal Bite Treatment Center today. For emergencies call the PVO hotline <b id="hotline"></b>.</p>
+        </div>
+        <section class="panel stack-sm">
+          <h2 style="font-size:1.0625rem">What happens next</h2>
+          <ul class="help-list">
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span><b>Submitted</b> — you get a reference number right away.</span></li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span><b>Under review</b> — PVO staff check the report. Bites are handled first.</span></li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span><b>In progress</b> — a team or the barangay is acting on it.</span></li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span><b>Resolved</b> — we tell you the outcome in the report timeline.</span></li>
+          </ul>
+        </section>
+        <section class="panel stack-sm">
+          <h2 style="font-size:1.0625rem">Your privacy</h2>
+          <p class="small muted">Only you and PVO staff can see your report and contact details. The only public part is an optional missing-pet alert.</p>
+          <a class="small" href="account.html#reports">Track my reports →</a>
+        </section>
+      </aside>
+    </div>
+  </main>
+  <script type="module" src="assets/js/pages/report.js"></script>
+</body>
+</html>

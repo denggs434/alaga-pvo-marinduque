@@ -3,144 +3,76 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>Voltyard Motors | Tesla dealer, Mogpog, Marinduque</title>
-  <meta name="description" content="New and certified pre-owned Tesla Model 3, Model Y, Model S, Model X and Cybertruck in Mogpog, Marinduque. Battery health tested on every car.">
+  <title>Alaga | Pet community of Marinduque · Provincial Veterinary Office</title>
+  <meta name="description" content="Alaga is the pet community of the Marinduque Provincial Veterinary Office: register pets, keep vaccination records, follow vaccination drives and report animal incidents online.">
+  <meta name="theme-color" content="#c2410c">
   <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="assets/css/styles.css">
 </head>
 <body>
   <main>
-    <!-- Hero: the lot itself -->
     <section class="hero">
-      <div class="wrap">
-        <div class="hero-grid">
-          <div class="hero-copy">
-            <span class="label">Independent Tesla dealer · Mogpog, Marinduque</span>
-            <h1>Every Tesla on our lot, <em>battery-tested</em> and priced in pesos.</h1>
-            <p>New imports and certified pre-owned Model 3, Model Y, Model S, Model X and Cybertruck, right here on the island. No more RoRo trip to Manila just to see one. Reserve online and pay the balance at handover.</p>
-            <div class="hero-actions">
-              <a class="btn btn-accent" href="products.html">Browse inventory</a>
-              <a class="btn btn-ghost" href="contact.html?topic=test-drive">Book a test drive</a>
-            </div>
+      <div class="wrap hero-inner">
+        <div>
+          <span class="label">Provincial Veterinary Office · Marinduque</span>
+          <h1>Every pet on the island, <em>one caring community.</em></h1>
+          <p>Register your dogs, cats and other pets, keep their vaccination records in one place, follow free PVO vaccination drives and report animal incidents without leaving home.</p>
+          <div class="hero-actions">
+            <a class="btn btn-primary" href="pet-form.html" id="hero-register">Register your pet</a>
+            <a class="btn btn-ghost" href="report.html">Report an incident</a>
           </div>
-          <figure class="hero-photo" style="margin:0">
-            <img src="assets/img/cars/model3-highland-lr.jpg" alt="Red 2024 Tesla Model 3 Long Range on a showroom floor" width="1400" height="788">
-            <figcaption class="photo-credit">Photo: Chanokchon, CC BY-SA 4.0, via Wikimedia Commons</figcaption>
-          </figure>
+          <div class="hero-stats" aria-live="polite">
+            <div><strong data-stat="pets">–</strong><span>registered pets</span></div>
+            <div><strong data-stat="upcoming">–</strong><span>upcoming PVO activities</span></div>
+            <div><strong>6</strong><span>municipalities served</span></div>
+          </div>
         </div>
-        <div class="lot-strip" id="lot-strip" aria-live="polite">
-          <div><span class="label">Cars on the lot</span><strong id="stat-count">—</strong></div>
-          <div><span class="label">Prices from</span><strong id="stat-from">—</strong></div>
-          <div><span class="label">Longest range</span><strong id="stat-range">—</strong></div>
-          <div><span class="label">Lowest odometer, pre-owned</span><strong id="stat-km">—</strong></div>
-        </div>
+        <div class="hero-collage" id="collage" aria-label="Recently registered pets"></div>
       </div>
     </section>
 
-    <!-- Shop by model -->
-    <section class="section">
-      <div class="wrap">
-        <div class="section-head" data-reveal>
-          <h2>Shop by model</h2>
-          <a class="link-arrow" href="products.html">All vehicles</a>
-        </div>
-        <nav class="model-row" id="model-row" aria-label="Models" data-reveal>
-          <a href="products.html?model=Model%203"><strong>Model 3</strong><span class="label" data-model="Model 3">—</span></a>
-          <a href="products.html?model=Model%20Y"><strong>Model Y</strong><span class="label" data-model="Model Y">—</span></a>
-          <a href="products.html?model=Model%20S"><strong>Model S</strong><span class="label" data-model="Model S">—</span></a>
-          <a href="products.html?model=Model%20X"><strong>Model X</strong><span class="label" data-model="Model X">—</span></a>
-          <a href="products.html?model=Cybertruck"><strong>Cybertruck</strong><span class="label" data-model="Cybertruck">—</span></a>
-          <a href="products.html?model=Roadster"><strong>Roadster</strong><span class="label" data-model="Roadster">—</span></a>
+    <div class="wrap wall">
+      <aside class="wall-left" aria-label="Your profile and shortcuts">
+        <div class="card" id="me-card"></div>
+        <nav class="card side-nav" aria-label="Shortcuts">
+          <a href="index.html" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/></svg>Community wall</a>
+          <a href="pets.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="4" r="2"/><circle cx="18" cy="8" r="2"/><circle cx="20" cy="16" r="2"/><path d="M9 10a5 5 0 0 1 5 5v3.5a3.5 3.5 0 0 1-6.84 1.05Q6.52 17.48 4.46 16.84A3.5 3.5 0 0 1 5.5 10Z"/></svg>Browse pets</a>
+          <a href="announcements.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 11 18-5v12L3 14v-3z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/></svg>Announcements</a>
+          <a href="report.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><path d="M4 22v-7"/></svg>Report an incident</a>
+          <a href="services.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.8 2.3A.3.3 0 1 0 5 2H4a2 2 0 0 0-2 2v5a6 6 0 0 0 12 0V4a2 2 0 0 0-2-2h-1a.2.2 0 1 0 .3.3"/><path d="M8 15v1a6 6 0 0 0 12 0v-4"/><circle cx="20" cy="10" r="2"/></svg>PVO services</a>
         </nav>
-      </div>
-    </section>
+      </aside>
 
-    <!-- Featured -->
-    <section class="section" style="padding-top:0">
-      <div class="wrap">
-        <div class="section-head" data-reveal>
-          <div class="stack" style="gap:8px">
-            <h2>Picked this week</h2>
-            <p>Cars our team would buy themselves, from a 12 km Model 3 to a 3,200 km Cybertruck.</p>
-          </div>
+      <section class="feed" aria-labelledby="feed-title">
+        <div class="feed-head">
+          <h2 id="feed-title">Community wall</h2>
+          <a href="pets.html">Browse all pets →</a>
         </div>
-        <div class="grid-cards" id="featured"></div>
-      </div>
-    </section>
+        <div id="composer"></div>
+        <div id="posts" class="stack" aria-live="polite"></div>
+        <div id="feed-more" class="row" style="justify-content:center"></div>
+      </section>
 
-    <!-- Roadster pre-order band -->
-    <section class="roadster-band" id="roadster-band">
-      <div class="wrap roadster-grid">
-        <figure class="roadster-figure" data-parallax="0.1" style="margin:0">
-          <div class="float-stage">
-            <div class="float"><img src="assets/img/cars/roadster-2gen.jpg" alt="Red second-generation Tesla Roadster prototype on display" loading="lazy" width="1400" height="952"></div>
-            <span class="float-shadow" aria-hidden="true"></span>
-          </div>
-          <figcaption class="photo-credit">Photo: Steve Jurvetson, CC BY 2.0, via Wikimedia Commons</figcaption>
-        </figure>
-        <div class="stack" data-reveal>
-          <span class="label">Pre-order · Not yet in production</span>
-          <h2>The Tesla that might fly.</h2>
-          <p>The second-generation Roadster with the SpaceX Package uses cold-gas thrusters where the rear seats would be. Tesla says it will be the quickest production car ever made. Elon Musk has hinted it may hover.</p>
-          <dl class="sticker">
-            <div><dt>0–100</dt><dd>1.9<small> s*</small></dd></div>
-            <div><dt>Range</dt><dd>1,000<small> km*</small></dd></div>
-            <div><dt>Deposit</dt><dd>₱500k</dd></div>
-          </dl>
-          <p class="photo-credit">* Manufacturer claims for the prototype. No delivery date confirmed. Deposit fully refundable.</p>
-          <div class="row">
-            <a class="btn btn-accent" id="roadster-link" href="products.html?condition=pre-order">Reserve a build slot</a>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- How buying works: a real sequence, so numbered -->
-    <section class="section">
-      <div class="wrap">
-        <div class="section-head" data-reveal><h2>How buying works</h2></div>
-        <ol class="steps">
-          <li data-reveal><h3>Reserve online</h3><p>Pay a ₱50,000 refundable deposit. The car comes off the site for everyone else.</p></li>
-          <li data-reveal><h3>Inspect and drive</h3><p>Visit the showroom. We print the battery health report and you take it for a drive.</p></li>
-          <li data-reveal><h3>Finance or pay</h3><p>Pay the balance by bank transfer, or let us arrange bank financing for you.</p></li>
-          <li data-reveal><h3>Handover</h3><p>Pick up at our Mogpog showroom or we deliver anywhere in Marinduque, LTO papers ready.</p></li>
-        </ol>
-      </div>
-    </section>
-
-    <!-- Battery inspection -->
-    <section class="section" style="padding-top:0">
-      <div class="wrap split">
-        <figure style="margin:0">
-          <img src="assets/img/site/interior-model3.jpg" alt="Tesla Model 3 interior with central touchscreen" loading="lazy" width="1400" height="947">
-          <figcaption class="photo-credit">Photo: Steve Jurvetson, CC BY 2.0, via Wikimedia Commons</figcaption>
-        </figure>
-        <div class="split-copy" data-reveal>
-          <span class="label">The Voltyard inspection</span>
-          <h2>We test the battery before we price the car.</h2>
-          <p>A Tesla's value lives in its battery pack. Every pre-owned car gets a capacity test, and the result is printed on the listing as a percentage of the original pack.</p>
-          <ul class="checklist">
-            <li>Battery capacity test, shown on every listing</li>
-            <li>Over 150 inspection points, including suspension and drive units</li>
-            <li>Odometer and service history checked against Tesla records</li>
-            <li>7-day return window if the car is not as described</li>
-          </ul>
-        </div>
-      </div>
-    </section>
-
-    <!-- Accessories -->
-    <section class="section" style="padding-top:0">
-      <div class="wrap">
-        <div class="section-head" data-reveal>
-          <h2>Charging & parts</h2>
-          <a class="link-arrow" href="products.html?category=accessory">All accessories</a>
-        </div>
-        <div class="grid-cards" id="accessories"></div>
-      </div>
-    </section>
+      <aside class="wall-right" aria-label="PVO updates">
+        <section class="panel" id="alerts-panel" data-order="first" hidden aria-labelledby="alerts-title">
+          <div class="panel-head"><h2 id="alerts-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>Missing pets</h2></div>
+          <div class="alert-list" id="alerts"></div>
+        </section>
+        <section class="panel" aria-labelledby="sched-title">
+          <div class="panel-head"><h2 id="sched-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>Upcoming schedules</h2><a href="announcements.html?view=schedules">All</a></div>
+          <ul class="sched" id="schedules"><li class="skeleton" style="height:56px"></li></ul>
+        </section>
+        <section class="panel" aria-labelledby="news-title">
+          <div class="panel-head"><h2 id="news-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 11 18-5v12L3 14v-3z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/></svg>Announcements</h2><a href="announcements.html">All</a></div>
+          <ul class="mini-list" id="news"><li class="skeleton" style="height:48px"></li></ul>
+        </section>
+        <section class="panel" aria-labelledby="new-title">
+          <div class="panel-head"><h2 id="new-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="4" r="2"/><circle cx="18" cy="8" r="2"/><circle cx="20" cy="16" r="2"/><path d="M9 10a5 5 0 0 1 5 5v3.5a3.5 3.5 0 0 1-6.84 1.05Q6.52 17.48 4.46 16.84A3.5 3.5 0 0 1 5.5 10Z"/></svg>New on Alaga</h2><a href="pets.html">All pets</a></div>
+          <div class="new-pets" id="new-pets"></div>
+        </section>
+      </aside>
+    </div>
   </main>
-
   <script type="module" src="assets/js/pages/home.js"></script>
 </body>
 </html>

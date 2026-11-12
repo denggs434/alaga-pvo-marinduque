@@ -1,7 +1,7 @@
 {
-  "name": "voltyard-server",
+  "name": "alaga-pvo-server",
   "version": "1.0.0",
-  "description": "REST API for the Voltyard Motors Tesla shop (Express + MongoDB)",
+  "description": "REST API for Alaga, the Provincial Veterinary Office pet community and management platform (Express + MongoDB)",
   "main": "src/server.js",
   "type": "commonjs",
   "scripts": {

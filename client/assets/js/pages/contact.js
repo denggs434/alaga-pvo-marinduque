@@ -1,44 +1,31 @@
 /**
- * Contact form -> POST /api/contact.
- * Supports ?topic=test-drive&product=<id> links from product pages.
+ * Contact form -> POST /api/contact. Supports ?topic=<topic> links.
  */
-import { api, qs } from '../api.js';
+import { api } from '../api.js';
 import { getUser } from '../store.js';
-import { initPage, esc, toast, showFieldErrors, setBusy, $ } from '../ui.js';
+import { SITE, CONTACT_TOPICS } from '../config.js';
+import { initPage, toast, showFieldErrors, setBusy, options, esc, ICONS, $ } from '../ui.js';
 
 initPage('contact');
 
 const form = $('#contact-form');
-const params = new URLSearchParams(location.search);
-const topic = params.get('topic');
-if (topic && form.querySelector(`input[name=topic][value="${CSS.escape(topic)}"]`)) form.elements.topic.value = topic;
+const topic = new URLSearchParams(location.search).get('topic');
+form.elements.topic.innerHTML = options(CONTACT_TOPICS, CONTACT_TOPICS[topic] ? topic : 'general');
+$('#hotline').textContent = SITE.hotline;
+$('#office').innerHTML = [
+  [ICONS.pin, SITE.address],
+  [ICONS.clock, SITE.hours],
+  [ICONS.phone, SITE.phone],
+  [ICONS.mail, `<a href="mailto:${SITE.email}">${SITE.email}</a>`],
+].map(([icon, text]) => `<li>${icon}<span>${text}</span></li>`).join('');
 
-// Prefill from the logged-in account.
 const user = getUser();
 if (user) {
   form.elements.name.value = user.name;
   form.elements.email.value = user.email;
   form.elements.phone.value = user.phone || '';
 }
-
-// Earliest test-drive date is tomorrow.
-const tomorrow = new Date(Date.now() + 864e5).toISOString().slice(0, 10);
-form.elements.preferredDate.min = tomorrow;
-const syncDate = () => ($('#date-field').hidden = !['test-drive', 'trade-in'].includes(form.elements.topic.value));
-form.addEventListener('change', (e) => e.target.name === 'topic' && syncDate());
-syncDate();
-
-// Vehicle dropdown from the API.
-api(`/products${qs({ category: 'vehicle', limit: 100, sort: 'price-asc' })}`)
-  .then(({ items }) => {
-    const sel = form.elements.product;
-    sel.insertAdjacentHTML(
-      'beforeend',
-      items.map((p) => `<option value="${p._id}">${esc(p.name)} · ${esc(p.stockNumber)}</option>`).join('')
-    );
-    if (params.get('product')) sel.value = params.get('product');
-  })
-  .catch(() => {});
+form.elements.message.addEventListener('input', () => ($('#msg-count').textContent = `${form.elements.message.value.length} / 2000`));
 
 form.addEventListener('submit', async (e) => {
   e.preventDefault();
@@ -46,6 +33,7 @@ form.addEventListener('submit', async (e) => {
   const errors = {};
   if (!f.name.value.trim()) errors.name = 'Enter your name.';
   if (!/^\S+@\S+\.\S+$/.test(f.email.value.trim())) errors.email = 'Enter a valid email so we can reply.';
+  if (f.phone.value.trim() && !/^[0-9+()\s-]{7,20}$/.test(f.phone.value.trim())) errors.phone = 'Enter a valid mobile number.';
   if (f.message.value.trim().length < 10) errors.message = 'Tell us a little more (at least 10 characters).';
   showFieldErrors(form, errors);
   if (Object.keys(errors).length) return;
@@ -57,21 +45,13 @@ form.addEventListener('submit', async (e) => {
     await api('/contact', {
       method: 'POST',
       auth: false,
-      body: {
-        topic: f.topic.value,
-        name: f.name.value.trim(),
-        email: f.email.value.trim(),
-        phone: f.phone.value.trim(),
-        product: f.product.value || undefined,
-        preferredDate: $('#date-field').hidden ? undefined : f.preferredDate.value || undefined,
-        message: f.message.value.trim(),
-      },
+      body: { name: f.name.value.trim(), email: f.email.value.trim(), phone: f.phone.value.trim(), topic: f.topic.value, message: f.message.value.trim() },
     });
-    form.innerHTML = `<div class="stack">
+    form.innerHTML = `<div class="stack" style="justify-items:start">
       <span class="label">Message received</span>
-      <h2 style="font-size:var(--step-2)">Thanks, ${esc(f.name.value.trim().split(' ')[0])}.</h2>
-      <p>We will reply to ${esc(f.email.value.trim())} within one business day.</p>
-      <a class="btn btn-ghost" href="products.html" style="justify-self:start">Back to inventory</a></div>`;
+      <h2>Thanks, ${esc(f.name.value.trim().split(' ')[0])}!</h2>
+      <p>We will reply to ${esc(f.email.value.trim())} within one working day.</p>
+      <a class="btn btn-ghost" href="index.html">Back to the community wall</a></div>`;
     toast('Message sent.');
   } catch (err) {
     $('#contact-error').textContent = err.message;

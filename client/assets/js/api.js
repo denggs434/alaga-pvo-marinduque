@@ -1,15 +1,15 @@
 /**
- * Thin wrapper around fetch() for the Voltyard REST API.
+ * Thin wrapper around fetch() for the Alaga REST API.
  * - Sends/receives JSON
  * - Adds the JWT from localStorage when the user is logged in
  * - Throws an Error with the server's message on non-2xx responses
  *
- * If the client is hosted separately from the API, set window.VOLTYARD_API
- * before this script loads, e.g. <script>window.VOLTYARD_API='https://api.example.com/api'</script>
+ * If the client is hosted separately from the API, set window.ALAGA_API
+ * before this script loads, e.g. <script>window.ALAGA_API='https://api.example.com/api'</script>
  */
 import { getToken, clearSession } from './store.js';
 
-const BASE = window.VOLTYARD_API || '/api';
+const BASE = window.ALAGA_API || '/api';
 
 export async function api(path, { method = 'GET', body, auth = true } = {}) {
   const headers = { Accept: 'application/json' };

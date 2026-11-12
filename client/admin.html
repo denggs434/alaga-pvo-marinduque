@@ -3,229 +3,184 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>Admin | Voltyard Motors</title>
+  <title>PVO admin console | Alaga</title>
   <meta name="robots" content="noindex">
+  <meta name="theme-color" content="#c2410c">
   <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="assets/css/styles.css">
 </head>
-<body class="admin-body">
-  <main>
-    <!-- Guests: admin sign-in -->
-    <section id="admin-login" class="admin-login wrap" hidden>
-      <form id="admin-login-form" class="panel stack" novalidate>
-        <div class="stack" style="gap:6px">
-          <span class="label">Staff only</span>
-          <h1 style="font-size:var(--step-3)">Admin sign in</h1>
-          <p class="muted">Manage the lot, orders and customer messages for the Mogpog showroom.</p>
-        </div>
-        <label class="field"><span>Email</span><input class="input" type="email" id="admin-email" name="email" autocomplete="username" required><small class="field-error"></small></label>
-        <label class="field"><span>Password</span><input class="input" type="password" id="admin-password" name="password" autocomplete="current-password" required><small class="field-error"></small></label>
-        <p class="notice notice-error" id="admin-login-error" hidden></p>
-        <button class="btn btn-accent btn-block" type="submit">Sign in to admin</button>
-        <p class="muted" style="font-size:.8125rem">Demo admin: <span class="mono">admin@voltyard.ph</span> / <span class="mono">Admin123!</span></p>
-      </form>
-    </section>
-
-    <!-- Signed in, but not an admin -->
-    <div id="denied" class="empty admin-login wrap" hidden>
-      <h2 style="font-size:var(--step-2)">This account is not an admin</h2>
-      <p class="muted">You are signed in as a customer. Sign out, then sign in with an admin account.</p>
-      <div class="row"><button class="btn btn-accent" type="button" data-logout>Sign out</button><a class="btn btn-ghost" href="index.html">Back to the store</a></div>
-    </div>
-
-    <!-- The panel -->
-    <div class="console" id="admin" hidden>
-      <aside class="console-side" aria-label="Admin sections">
-        <a class="console-brand" href="admin.html#today">
-          <svg viewBox="0 0 32 32" aria-hidden="true"><rect x="1" y="1" width="30" height="30" rx="7" fill="#e8ebea"/><path d="M8 9h4.2L16 19.5 19.8 9H24l-6 15h-4z" fill="#101315"/><path d="M17.5 4.5 15 10h3l-2.5 5.5" fill="none" stroke="#8098ff" stroke-width="1.6" stroke-linejoin="round"/></svg>
-          <span>Voltyard<small>Lot console</small></span>
-        </a>
-        <p class="console-status" id="console-status"><i></i><span></span></p>
-        <nav class="console-nav">
-          <a href="#today" data-view="today"><kbd>1</kbd>Today</a>
-          <a href="#sales" data-view="sales"><kbd>2</kbd>Sales</a>
-          <a href="#lot" data-view="lot"><kbd>3</kbd>Lot<b data-badge="lot"></b></a>
-          <a href="#orders" data-view="orders"><kbd>4</kbd>Orders<b data-badge="orders"></b></a>
-          <a href="#messages" data-view="messages"><kbd>5</kbd>Messages<b data-badge="messages"></b></a>
-          <a href="#customers" data-view="customers"><kbd>6</kbd>Customers</a>
-        </nav>
-        <div class="console-foot">
-          <div class="console-user"><span class="avatar" id="admin-avatar"></span><span><strong id="admin-name"></strong><small>Mogpog showroom</small></span></div>
-          <div class="console-actions">
-            <a href="index.html" target="_blank" rel="noopener">View store</a>
-            <button type="button" id="console-theme">Theme</button>
-            <button type="button" data-logout>Log out</button>
-          </div>
-        </div>
-      </aside>
-
-      <section class="console-main">
-        <!-- Today -->
-        <div class="view" data-panel="today">
-          <header class="view-head">
-            <span class="label" id="admin-date"></span>
-            <h1 id="today-line">Loading the lot…</h1>
-          </header>
-          <div class="lotbar-wrap">
-            <div class="lotbar" id="lotbar" role="img" aria-label="Vehicle status"></div>
-            <ul class="lotbar-legend" id="lotbar-legend"></ul>
-          </div>
-          <div class="today-grid">
-            <section class="queue" aria-labelledby="queue-title">
-              <h2 id="queue-title">Needs attention</h2>
-              <ul id="queue" class="queue-list"></ul>
-            </section>
-            <aside class="ledger" aria-label="Money">
-              <div><span class="label">Deposits &amp; sales booked</span><strong id="money-collected">—</strong></div>
-              <div><span class="label">Value of open orders</span><strong id="money-booked">—</strong></div>
-              <div><span class="label">Customer accounts</span><strong id="money-customers">—</strong></div>
-            </aside>
-          </div>
-        </div>
-
-        <!-- Sales -->
-        <div class="view" data-panel="sales" hidden>
-          <header class="view-head row between">
-            <div class="stack" style="gap:4px"><span class="label">Performance</span><h1>Sales</h1></div>
-            <div class="chips" role="group" aria-label="Time range">
-              <button type="button" class="chip" data-weeks="4" aria-pressed="false">4 weeks</button>
-              <button type="button" class="chip" data-weeks="12" aria-pressed="true">12 weeks</button>
-              <button type="button" class="chip" data-weeks="26" aria-pressed="false">26 weeks</button>
-            </div>
-          </header>
-
-          <dl class="kpis" id="kpis"></dl>
-
-          <section class="chart-card" aria-labelledby="weekly-title">
-            <header class="chart-head">
-              <div><h2 id="weekly-title">Sales booked per week</h2><p>Value of orders placed each week. Cancelled orders are left out.</p></div>
-              <ul class="chart-legend">
-                <li><i class="sw-done"></i>Completed</li>
-                <li><i class="sw-open"></i>Still open</li>
-              </ul>
-            </header>
-            <div class="chart" id="weekly-chart"></div>
-            <div class="chart-tip" id="chart-tip" hidden></div>
-          </section>
-
-          <div class="sales-split">
-            <section class="chart-card" aria-labelledby="model-title">
-              <header class="chart-head"><div><h2 id="model-title">Revenue by model</h2><p>All time, cancelled orders left out.</p></div></header>
-              <ul class="hbars" id="by-model"></ul>
-            </section>
-            <section class="chart-card" aria-labelledby="status-title">
-              <header class="chart-head"><div><h2 id="status-title">Orders by status</h2><p>Count and value, all time.</p></div></header>
-              <ul class="status-rows" id="by-status"></ul>
-            </section>
-          </div>
-
-          <details class="chart-card table-toggle">
-            <summary>Show weekly numbers as a table</summary>
-            <div class="table-wrap"><table id="weekly-table"></table></div>
-          </details>
-        </div>
-
-        <!-- Lot -->
-        <div class="view" data-panel="lot" hidden>
-          <header class="view-head row between">
-            <div class="stack" style="gap:4px"><span class="label">Inventory</span><h1>The lot</h1></div>
-            <button class="btn btn-accent" type="button" id="add-product">Add listing</button>
-          </header>
-          <div class="lot-tools">
-            <input class="input" type="search" id="inv-search" placeholder="Search name or stock no." aria-label="Search the lot">
-            <div class="chips" role="group" aria-label="Show">
-              <button type="button" class="chip" data-filter="all" aria-pressed="true">All</button>
-              <button type="button" class="chip" data-filter="available" aria-pressed="false">Available</button>
-              <button type="button" class="chip" data-filter="reserved" aria-pressed="false">Reserved</button>
-              <button type="button" class="chip" data-filter="sold" aria-pressed="false">Sold</button>
-              <button type="button" class="chip" data-filter="accessory" aria-pressed="false">Parts</button>
-            </div>
-          </div>
-          <div class="lot-list" id="inv-table"></div>
-        </div>
-
-        <!-- Orders pipeline -->
-        <div class="view" data-panel="orders" hidden>
-          <header class="view-head"><span class="label">Pipeline</span><h1>Orders</h1></header>
-          <div class="pipeline" id="orders-table"></div>
-        </div>
-
-        <!-- Messages inbox -->
-        <div class="view" data-panel="messages" hidden>
-          <header class="view-head row between">
-            <div class="stack" style="gap:4px"><span class="label">Inbox</span><h1>Messages</h1></div>
-            <div class="chips" role="group" aria-label="Show messages">
-              <button type="button" class="chip" data-mfilter="open" aria-pressed="true">Open</button>
-              <button type="button" class="chip" data-mfilter="all" aria-pressed="false">All</button>
-            </div>
-          </header>
-          <ul class="inbox" id="messages-table"></ul>
-        </div>
-
-        <!-- Customers -->
-        <div class="view" data-panel="customers" hidden>
-          <header class="view-head"><span class="label">Accounts</span><h1>Customers</h1></header>
-          <div class="table-wrap"><table id="customers-table"></table></div>
-        </div>
-      </section>
-    </div>
-
-    <dialog id="product-dialog" aria-labelledby="dialog-title">
-      <form id="product-form" method="dialog" novalidate>
-        <div class="dialog-head"><h3 id="dialog-title">Add listing</h3><button class="btn btn-ghost btn-sm" type="button" data-close>Close</button></div>
-        <div class="dialog-body">
-          <div class="form-grid">
-            <div class="field full">
-              <span>Photo</span>
-              <label class="dropzone" id="dropzone">
-                <input type="file" id="f-file" accept="image/jpeg,image/png,image/webp">
-                <span id="photo-preview" class="dz-preview" role="img" aria-label="Selected photo" hidden></span>
-                <span class="dz-text"><strong>Drop a photo here or click to upload</strong><small>JPG, PNG or WebP, up to 5 MB. Landscape 4:3 looks best.</small></span>
-              </label>
-              <details class="dz-existing">
-                <summary>Or use a photo already on the site</summary>
-                <input class="input" id="f-image" name="image" list="image-paths" placeholder="assets/img/cars/…" aria-label="Existing photo path">
-              </details>
-              <small class="field-error"></small>
-            </div>
-            <label class="field full"><span>Name</span><input class="input" id="f-name" name="name" required><small class="field-error"></small></label>
-            <label class="field"><span>Category</span><select class="input" id="f-category" name="category"><option value="vehicle">Vehicle</option><option value="accessory">Accessory</option></select></label>
-            <label class="field"><span>Price (PHP)</span><input class="input" type="number" id="f-price" name="price" min="0" step="1000" required><small class="field-error"></small></label>
-            <label class="field" data-v><span>Model</span><select class="input" id="f-model" name="model"><option>Model 3</option><option>Model Y</option><option>Model S</option><option>Model X</option><option>Cybertruck</option><option>Roadster</option></select></label>
-            <label class="field" data-v><span>Stock number</span><input class="input" id="f-stockNumber" name="stockNumber" placeholder="VY-0000"></label>
-            <label class="field" data-v><span>Condition</span><select class="input" id="f-condition" name="condition"><option value="new">New</option><option value="pre-owned">Pre-owned</option><option value="pre-order">Pre-order</option></select></label>
-            <label class="field" data-v><span>Status</span><select class="input" id="f-status" name="status"><option value="available">Available</option><option value="reserved">Reserved</option><option value="sold">Sold</option></select></label>
-            <label class="field" data-v><span>Year</span><input class="input" type="number" id="f-year" name="year" min="2008" max="2030"></label>
-            <label class="field" data-v><span>Trim</span><input class="input" id="f-trim" name="trim"></label>
-            <label class="field" data-v><span>Colour</span><input class="input" id="f-color" name="color"></label>
-            <label class="field" data-v><span>Deposit (PHP, blank = ₱50,000)</span><input class="input" type="number" id="f-deposit" name="deposit" min="0" step="1000"></label>
-            <label class="field" data-a><span>Units in stock</span><input class="input" type="number" id="f-stock" name="stock" min="0"></label>
-            <label class="field" data-a><span>Fits (comma separated)</span><input class="input" id="f-compatibleWith" name="compatibleWith" placeholder="Model 3, Model Y"></label>
-            
-            <datalist id="image-paths"></datalist>
-            <label class="field full"><span>Summary (one line)</span><input class="input" id="f-summary" name="summary" maxlength="200"></label>
-            <label class="field full"><span>Description</span><textarea class="input" id="f-description" name="description"></textarea></label>
-            <label class="field full"><span>Features (one per line)</span><textarea class="input" id="f-features" name="features" style="min-height:90px"></textarea></label>
-            <label class="field full" data-v><span>Disclaimer (pre-orders)</span><textarea class="input" id="f-disclaimer" name="disclaimer" style="min-height:70px"></textarea></label>
-          </div>
-          <fieldset class="form-grid" data-v style="border:0;padding:0;margin:0;grid-template-columns:repeat(auto-fit,minmax(130px,1fr))">
-            <legend class="label" style="margin-bottom:8px">Specs</legend>
-            <label class="field"><span>Range km</span><input class="input" type="number" id="s-rangeKm" name="s-rangeKm"></label>
-            <label class="field"><span>0–100 s</span><input class="input" type="number" step="0.1" id="s-zeroTo100" name="s-zeroTo100"></label>
-            <label class="field"><span>Top km/h</span><input class="input" type="number" id="s-topSpeedKph" name="s-topSpeedKph"></label>
-            <label class="field"><span>Battery kWh</span><input class="input" type="number" id="s-batteryKwh" name="s-batteryKwh"></label>
-            <label class="field"><span>Drive</span><select class="input" id="s-drive" name="s-drive"><option>AWD</option><option>RWD</option></select></label>
-            <label class="field"><span>Seats</span><input class="input" type="number" id="s-seats" name="s-seats"></label>
-            <label class="field"><span>Odometer km</span><input class="input" type="number" id="s-odometerKm" name="s-odometerKm"></label>
-            <label class="field"><span>Battery health %</span><input class="input" type="number" min="0" max="100" id="s-batteryHealth" name="s-batteryHealth"></label>
-          </fieldset>
-          <label class="check"><input type="checkbox" id="f-featured" name="featured"> Show in “Picked this week” on the home page</label>
-          <p class="notice notice-error" id="product-error" hidden></p>
-        </div>
-        <div class="dialog-foot"><button class="btn btn-ghost" type="button" data-close>Cancel</button><button class="btn btn-accent" type="submit" id="save-product">Save listing</button></div>
-      </form>
-    </dialog>
+<body>
+  <!-- Not signed in -->
+  <main class="wrap auth-wrap" id="admin-login" hidden>
+    <form class="card auth-card" id="admin-login-form" novalidate>
+      <a class="brand" href="index.html" id="login-brand"></a>
+      <div class="stack-sm"><h1 style="font-size:1.75rem">PVO staff sign in</h1><p class="muted">Manage pets, announcements, schedules and reports.</p></div>
+      <label class="field"><span>Email</span><input class="input" type="email" name="email" autocomplete="username" required></label>
+      <label class="field"><span>Password</span><input class="input" type="password" name="password" autocomplete="current-password" required></label>
+      <p class="notice notice-error" id="admin-login-error" hidden role="alert"></p>
+      <button class="btn btn-primary btn-block" type="submit">Sign in</button>
+      <p class="demo-logins">Demo: <b>admin@alaga.ph</b> / <b>Admin123!</b></p>
+      <a class="small" href="index.html">← Back to the community wall</a>
+    </form>
   </main>
+
+  <!-- Signed in, but not staff -->
+  <main class="wrap auth-wrap" id="denied" hidden>
+    <div class="card auth-card">
+      <h1 style="font-size:1.75rem">Staff only</h1>
+      <p>You are signed in with a pet owner account. The admin console is for Provincial Veterinary Office staff.</p>
+      <div class="row"><a class="btn btn-primary" href="account.html">Go to my account</a><button class="btn btn-ghost" type="button" data-logout>Sign out</button></div>
+    </div>
+  </main>
+
+  <!-- Console -->
+  <div class="console" id="console" hidden>
+    <aside class="console-side" id="console-side" aria-label="Admin navigation">
+      <a class="brand" href="admin.html" id="side-brand"></a>
+      <nav class="console-nav" aria-label="Sections">
+        <a href="#overview" data-view="overview"><span data-icon="chart"></span>Overview</a>
+        <a href="#pets" data-view="pets"><span data-icon="paw"></span>Pets<span class="badge" data-badge="pets" hidden></span></a>
+        <a href="#reports" data-view="reports"><span data-icon="flag"></span>Reports<span class="badge" data-badge="reports" hidden></span></a>
+        <a href="#announcements" data-view="announcements"><span data-icon="megaphone"></span>Announcements</a>
+        <a href="#owners" data-view="owners"><span data-icon="users"></span>Pet owners</a>
+        <a href="#messages" data-view="messages"><span data-icon="inbox"></span>Messages<span class="badge" data-badge="messages" hidden></span></a>
+      </nav>
+      <div class="console-foot">
+        <a class="btn btn-ghost btn-sm" href="index.html" target="_blank" rel="noopener">View public site ↗</a>
+        <div class="console-user"><span class="avatar" id="admin-avatar"></span><span><strong id="admin-name"></strong><small>PVO staff</small></span>
+          <button class="icon-btn" id="theme-toggle" type="button" aria-label="Switch colour theme" style="margin-left:auto"></button></div>
+        <button class="btn btn-ghost btn-sm" type="button" data-logout>Sign out</button>
+      </div>
+    </aside>
+
+    <div>
+      <div class="console-mobilebar">
+        <button class="icon-btn" type="button" id="side-toggle" aria-label="Open navigation" aria-controls="console-side" aria-expanded="false"><span data-icon="menu"></span></button>
+        <strong id="mobile-title">Overview</strong>
+        <a class="btn btn-ghost btn-sm" href="index.html">Site</a>
+      </div>
+
+      <main class="console-main" id="main">
+        <!-- Overview -->
+        <section data-panel="overview" aria-labelledby="h-overview">
+          <div class="console-top">
+            <div><span class="label" id="today-date"></span><h1 id="h-overview">Good day, <span id="greet-name"></span></h1></div>
+            <a class="btn btn-primary btn-sm" href="#announcements" data-new-announcement>+ New announcement</a>
+          </div>
+          <div class="stat-grid" id="stats"></div>
+          <div class="chart-grid">
+            <section class="panel" aria-labelledby="h-attn"><div class="panel-head"><h2 id="h-attn">Needs attention</h2></div><ul class="queue" id="queue"></ul></section>
+            <section class="panel" aria-labelledby="h-rabies"><div class="panel-head"><h2 id="h-rabies">Anti-rabies coverage</h2></div><div id="rabies-meter"></div>
+              <h3 style="font-size:.9375rem;margin:18px 0 10px">Registered pets by species</h3><ul class="hbars" id="species-bars"></ul></section>
+            <section class="panel" aria-labelledby="h-activity"><div class="panel-head"><h2 id="h-activity">Registrations & vaccinations per month</h2><button class="link-btn small" type="button" data-table-toggle="activity">View as table</button></div><div id="chart-activity"></div></section>
+            <section class="panel" aria-labelledby="h-reports"><div class="panel-head"><h2 id="h-reports">Reports filed per month</h2><button class="link-btn small" type="button" data-table-toggle="reports">View as table</button></div><div id="chart-reports"></div></section>
+          </div>
+        </section>
+
+        <!-- Pets -->
+        <section data-panel="pets" aria-labelledby="h-pets" hidden>
+          <div class="console-top"><div><span class="label">Registry</span><h1 id="h-pets">Registered pets</h1></div></div>
+          <div class="toolbar">
+            <div class="search-box"><label class="sr-only" for="pet-q">Search pets</label><span data-icon="search"></span><input class="input" id="pet-q" type="search" placeholder="Name, breed, registration no. or owner"></div>
+            <label><span class="sr-only">Species</span><select class="input" id="pet-species"></select></label>
+            <label><span class="sr-only">Municipality</span><select class="input" id="pet-town"></select></label>
+            <label><span class="sr-only">Registration</span><select class="input" id="pet-reg"><option value="">All registrations</option><option value="pending">Pending verification</option><option value="verified">Verified</option></select></label>
+          </div>
+          <div class="table-wrap"><table class="table" id="pets-table"></table></div>
+        </section>
+
+        <!-- Reports -->
+        <section data-panel="reports" aria-labelledby="h-reports-list" hidden>
+          <div class="console-top"><div><span class="label">Cases</span><h1 id="h-reports-list">Incident reports</h1></div></div>
+          <div class="chips" id="report-status-chips" style="margin-bottom:12px" role="group" aria-label="Status"></div>
+          <div class="toolbar">
+            <div class="search-box"><label class="sr-only" for="rep-q">Search reports</label><span data-icon="search"></span><input class="input" id="rep-q" type="search" placeholder="Reference, contact name or barangay"></div>
+            <label><span class="sr-only">Type</span><select class="input" id="rep-type"></select></label>
+            <label><span class="sr-only">Municipality</span><select class="input" id="rep-town"></select></label>
+          </div>
+          <div class="table-wrap"><table class="table" id="reports-table"></table></div>
+        </section>
+
+        <!-- Announcements -->
+        <section data-panel="announcements" aria-labelledby="h-ann" hidden>
+          <div class="console-top"><div><span class="label">Publishing</span><h1 id="h-ann">Announcements & schedules</h1></div>
+            <button class="btn btn-primary btn-sm" type="button" data-new-announcement>+ New announcement</button></div>
+          <div class="table-wrap"><table class="table" id="ann-table"></table></div>
+        </section>
+
+        <!-- Owners -->
+        <section data-panel="owners" aria-labelledby="h-owners" hidden>
+          <div class="console-top"><div><span class="label">Accounts</span><h1 id="h-owners">Pet owners</h1></div></div>
+          <div class="toolbar"><div class="search-box"><label class="sr-only" for="owner-q">Search owners</label><span data-icon="search"></span><input class="input" id="owner-q" type="search" placeholder="Name, email or municipality"></div></div>
+          <div class="table-wrap"><table class="table" id="owners-table"></table></div>
+        </section>
+
+        <!-- Messages -->
+        <section data-panel="messages" aria-labelledby="h-msg" hidden>
+          <div class="console-top"><div><span class="label">Inbox</span><h1 id="h-msg">Contact messages</h1></div>
+            <div class="chips" role="group" aria-label="Filter"><button class="chip" type="button" data-mfilter="open" aria-pressed="true">Open</button><button class="chip" type="button" data-mfilter="all" aria-pressed="false">All</button></div></div>
+          <ul class="inbox" id="messages-list"></ul>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <!-- Report case dialog -->
+  <dialog class="modal modal-wide" id="case-dialog" aria-labelledby="case-title">
+    <div class="modal-head"><h2 id="case-title">Report</h2><button class="icon-btn" type="button" data-close aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>
+    <div class="modal-body" id="case-body"></div>
+  </dialog>
+
+  <!-- Announcement editor -->
+  <dialog class="modal modal-wide" id="ann-dialog" aria-labelledby="ann-title">
+    <form id="ann-form" novalidate>
+      <div class="modal-head"><h2 id="ann-title">New announcement</h2><button class="icon-btn" type="button" data-close aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>
+      <div class="modal-body">
+        <div class="form-grid">
+          <label class="field span-2"><span>Title</span><input class="input" name="title" maxlength="140" required><small class="field-error"></small></label>
+          <label class="field"><span>Category</span><select class="input" name="category" id="ann-category"></select><small class="field-error"></small></label>
+          <div class="row" style="align-self:end;padding-bottom:10px;gap:18px">
+            <label class="check"><input type="checkbox" name="published" checked><span>Published</span></label>
+            <label class="check"><input type="checkbox" name="pinned"><span>Pinned to top</span></label>
+          </div>
+          <label class="field span-2"><span>Text</span><textarea class="input" name="body" maxlength="5000" required style="min-height:160px"></textarea><small class="field-error"></small></label>
+        </div>
+        <fieldset class="panel stack" style="margin:0">
+          <legend class="field-label" style="padding:0 6px">Schedule <span class="muted">(for drives and programs)</span></legend>
+          <label class="check"><input type="checkbox" name="hasEvent" id="has-event"><span>This announcement is a scheduled activity</span></label>
+          <div class="form-grid" id="event-fields" hidden>
+            <label class="field"><span>Starts</span><input class="input" type="datetime-local" name="startsAt"><small class="field-error"></small></label>
+            <label class="field"><span>Ends <span class="muted">(optional)</span></span><input class="input" type="datetime-local" name="endsAt"><small class="field-error"></small></label>
+            <label class="field"><span>Venue</span><input class="input" name="venue" maxlength="120"><small class="field-error"></small></label>
+            <label class="field"><span>Municipality</span><select class="input" name="municipality" id="ann-town"></select></label>
+          </div>
+        </fieldset>
+        <div class="field"><span class="field-label">Image <span class="muted">(optional)</span></span><div id="ann-image"></div></div>
+        <p class="notice notice-error" id="ann-error" hidden role="alert"></p>
+      </div>
+      <div class="modal-foot"><button class="btn btn-ghost" type="button" data-close>Cancel</button><button class="btn btn-primary" type="submit" id="ann-save">Publish</button></div>
+    </form>
+  </dialog>
+
+  <!-- Verified vaccination -->
+  <dialog class="modal" id="vax-dialog" aria-labelledby="vax-title">
+    <form id="vax-form" novalidate>
+      <div class="modal-head"><h2 id="vax-title">Record vaccination</h2><button class="icon-btn" type="button" data-close aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>
+      <div class="modal-body">
+        <label class="field"><span>Vaccine</span><input class="input" name="vaccine" list="vax-names" value="Anti-rabies" required maxlength="60"><small class="field-error"></small></label>
+        <datalist id="vax-names"></datalist>
+        <div class="form-grid">
+          <label class="field"><span>Date given</span><input class="input" type="date" name="dateGiven" required><small class="field-error"></small></label>
+          <label class="field"><span>Next due</span><input class="input" type="date" name="nextDue"></label>
+        </div>
+        <label class="field"><span>Given by</span><input class="input" name="administeredBy" value="PVO Marinduque" maxlength="80"></label>
+        <p class="muted small">Saved as PVO verified on the pet's health record.</p>
+        <p class="notice notice-error" id="vax-error" hidden role="alert"></p>
+      </div>
+      <div class="modal-foot"><button class="btn btn-ghost" type="button" data-close>Cancel</button><button class="btn btn-primary" type="submit">Save</button></div>
+    </form>
+  </dialog>
+
   <script type="module" src="assets/js/pages/admin.js"></script>
 </body>
 </html>

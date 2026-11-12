@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Register a pet | Alaga · PVO Marinduque</title>
+  <meta name="theme-color" content="#c2410c">
+  <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="assets/css/styles.css">
+</head>
+<body>
+  <main class="wrap" style="max-width:860px">
+    <header class="page-head">
+      <span class="label" id="form-eyebrow">Pet registration</span>
+      <h1 id="form-title">Register a pet</h1>
+      <p id="form-intro">You will get a PVO registration number right away. Staff verify registrations and record vaccinations given at PVO drives on your pet's profile.</p>
+    </header>
+
+    <form id="pet-form" class="stack" novalidate hidden>
+      <section class="card form-section">
+        <h2><span class="step">1</span>About your pet</h2>
+        <div class="form-grid">
+          <label class="field span-2"><span>Name</span><input class="input" name="name" maxlength="40" required autocomplete="off"><small class="field-error"></small></label>
+        </div>
+        <fieldset class="field" style="border:0;padding:0;margin:0">
+          <legend class="field-label" style="margin-bottom:6px">Species</legend>
+          <div class="choice-grid" id="species"></div>
+          <small class="field-error" data-for="species"></small>
+        </fieldset>
+        <div class="form-grid">
+          <label class="field"><span>Breed</span><input class="input" name="breed" list="breeds" maxlength="60" placeholder="e.g. Aspin, Puspin, Shih Tzu"><small class="field-error"></small></label>
+          <datalist id="breeds"></datalist>
+          <label class="field"><span>Colour / markings</span><input class="input" name="color" maxlength="40" placeholder="e.g. Brown with white chest"><small class="field-error"></small></label>
+          <fieldset class="field" style="border:0;padding:0;margin:0">
+            <legend class="field-label" style="margin-bottom:6px">Sex</legend>
+            <div class="choice-grid" style="grid-template-columns:1fr 1fr">
+              <label class="choice"><input type="radio" name="sex" value="male" required><strong>Male</strong></label>
+              <label class="choice"><input type="radio" name="sex" value="female"><strong>Female</strong></label>
+            </div>
+            <small class="field-error"></small>
+          </fieldset>
+          <label class="field"><span>Birth date <span class="muted">(approximate is fine)</span></span><input class="input" type="date" name="birthDate"><small class="field-error"></small></label>
+          <label class="field"><span>Municipality</span><select class="input" name="municipality" required></select><small class="field-error"></small></label>
+          <label class="check" style="align-self:end;padding-bottom:10px"><input type="checkbox" name="neutered"><span>Spayed / neutered</span></label>
+          <label class="field span-2"><span>Bio <span class="muted">(optional, shown on the profile)</span></span><textarea class="input" name="bio" maxlength="500" placeholder="Personality, favourite snacks, funny habits…"></textarea><small class="hint" id="bio-count">0 / 500</small><small class="field-error"></small></label>
+        </div>
+      </section>
+
+      <section class="card form-section">
+        <h2><span class="step">2</span>Photos</h2>
+        <p class="muted small">Up to 6 photos. The first one is the profile picture; tap the star on another photo to make it the main one.</p>
+        <div id="photos"></div>
+      </section>
+
+      <section class="card form-section">
+        <h2><span class="step">3</span>Privacy</h2>
+        <label class="check"><input type="checkbox" name="isPublic" checked><span>Show this pet on the community wall and in the pet directory
+          <small>Visitors see the photos, name, breed, age, municipality, rabies status and your first name. Your email, phone, barangay and the health records are never public.</small></span></label>
+        <label class="field" id="status-field" hidden><span>Status</span>
+          <select class="input" name="status"><option value="active">Active</option><option value="missing">Missing</option><option value="deceased">Passed away (in memory)</option></select>
+          <small class="hint">To report a missing pet with a public alert, use <a href="report.html?type=missing">Report an incident</a>.</small></label>
+      </section>
+
+      <p class="notice notice-error" id="form-error" hidden role="alert"></p>
+      <div class="row" style="justify-content:flex-end">
+        <a class="btn btn-ghost" href="account.html" id="cancel">Cancel</a>
+        <button class="btn btn-primary" type="submit" id="save">Register pet</button>
+      </div>
+    </form>
+  </main>
+  <script type="module" src="assets/js/pages/pet-form.js"></script>
+</body>
+</html>

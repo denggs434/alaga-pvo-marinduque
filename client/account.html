@@ -3,62 +3,90 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>Account | Voltyard Motors</title>
+  <title>My account | Alaga · PVO Marinduque</title>
+  <meta name="theme-color" content="#c2410c">
   <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="assets/css/styles.css">
 </head>
 <body>
   <main class="wrap">
-    <header class="page-head">
-      <p class="crumbs"><a href="index.html">Home</a> / Account</p>
-      <h1 id="account-title">Your account</h1>
-    </header>
-
     <!-- Logged out -->
-    <section id="auth" class="panel" style="max-width:520px" hidden>
-      <div class="tabs" role="tablist">
-        <button type="button" role="tab" id="tab-login" aria-selected="true" aria-controls="login-form">Log in</button>
-        <button type="button" role="tab" id="tab-register" aria-selected="false" aria-controls="register-form">Create account</button>
+    <section class="auth-wrap" id="auth" hidden>
+      <div class="card auth-card">
+        <div class="stack-sm" style="text-align:center">
+          <h1 style="font-size:1.875rem" id="auth-title">Welcome back</h1>
+          <p class="muted">Pet owners log in here. PVO staff are taken to the admin console.</p>
+        </div>
+        <p class="notice" id="flash" hidden></p>
+        <div class="seg" role="tablist" aria-label="Log in or sign up">
+          <button type="button" role="tab" id="tab-login" aria-selected="true" aria-controls="login-form">Log in</button>
+          <button type="button" role="tab" id="tab-register" aria-selected="false" aria-controls="register-form">Create account</button>
+        </div>
+
+        <form id="login-form" class="stack" role="tabpanel" aria-labelledby="tab-login" novalidate>
+          <label class="field"><span>Email</span><input class="input" type="email" name="email" autocomplete="email" required></label>
+          <label class="field"><span>Password</span><input class="input" type="password" name="password" autocomplete="current-password" required></label>
+          <p class="notice notice-error" id="login-error" hidden role="alert"></p>
+          <button class="btn btn-primary btn-block" type="submit">Log in</button>
+          <p class="demo-logins">Demo accounts: pet owner <b>maria@example.com</b> / <b>Owner123!</b> · PVO admin <b>admin@alaga.ph</b> / <b>Admin123!</b></p>
+        </form>
+
+        <form id="register-form" class="stack" role="tabpanel" aria-labelledby="tab-register" novalidate hidden>
+          <label class="field"><span>Full name</span><input class="input" name="name" autocomplete="name" maxlength="80" required><small class="field-error"></small></label>
+          <label class="field"><span>Email</span><input class="input" type="email" name="email" autocomplete="email" required><small class="field-error"></small></label>
+          <div class="form-grid">
+            <label class="field"><span>Mobile <span class="muted">(optional)</span></span><input class="input" name="phone" autocomplete="tel" placeholder="0917 123 4567"><small class="field-error"></small></label>
+            <label class="field"><span>Municipality</span><select class="input" name="municipality" required></select><small class="field-error"></small></label>
+            <label class="field span-2"><span>Barangay <span class="muted">(optional)</span></span><input class="input" name="barangay" maxlength="60"><small class="field-error"></small></label>
+          </div>
+          <label class="field"><span>Password</span><input class="input" type="password" name="password" autocomplete="new-password" minlength="8" maxlength="72" required><small class="hint">At least 8 characters.</small><small class="field-error"></small></label>
+          <label class="check"><input type="checkbox" name="agree" required><span>I agree that the PVO may store my details to manage pet registrations and reports. <a href="about.html#privacy" target="_blank" rel="noopener">How we use your data</a></span></label>
+          <small class="field-error" data-for="agree"></small>
+          <p class="notice notice-error" id="register-error" hidden role="alert"></p>
+          <button class="btn btn-primary btn-block" type="submit">Create account</button>
+        </form>
       </div>
-
-      <form id="login-form" class="stack" role="tabpanel" aria-labelledby="tab-login" novalidate>
-        <label class="field"><span>Email</span><input class="input" type="email" id="login-email" name="email" autocomplete="email" required><small class="field-error"></small></label>
-        <label class="field"><span>Password</span><input class="input" type="password" id="login-password" name="password" autocomplete="current-password" required><small class="field-error"></small></label>
-        <p class="notice notice-error" id="login-error" hidden></p>
-        <button class="btn btn-accent btn-block" type="submit">Log in</button>
-        <p class="muted" style="font-size:.875rem">Demo customer: <span class="mono">juan@example.com</span> / <span class="mono">Customer123!</span></p>
-      </form>
-
-      <form id="register-form" class="stack" role="tabpanel" aria-labelledby="tab-register" novalidate hidden>
-        <label class="field"><span>Full name</span><input class="input" id="reg-name" name="name" autocomplete="name" required><small class="field-error"></small></label>
-        <label class="field"><span>Email</span><input class="input" type="email" id="reg-email" name="email" autocomplete="email" required><small class="field-error"></small></label>
-        <label class="field"><span>Mobile number <span class="muted">(optional)</span></span><input class="input" id="reg-phone" name="phone" autocomplete="tel"><small class="field-error"></small></label>
-        <label class="field"><span>Password</span><input class="input" type="password" id="reg-password" name="password" autocomplete="new-password" minlength="8" required><small class="field-error"></small></label>
-        <p class="notice notice-error" id="register-error" hidden></p>
-        <button class="btn btn-accent btn-block" type="submit">Create account</button>
-      </form>
     </section>
 
     <!-- Logged in -->
-    <section id="dashboard" class="stack-lg" hidden>
-      <div class="row between">
-        <p class="muted" id="who"></p>
-        <div class="row">
-          <a class="btn btn-ghost btn-sm" id="admin-link" href="admin.html" hidden>Open admin panel</a>
-          <button class="btn btn-ghost btn-sm" id="logout" type="button">Log out</button>
+    <section id="dashboard" hidden>
+      <div class="dash-head">
+        <div class="row" style="flex-wrap:nowrap">
+          <span class="avatar" id="dash-avatar"></span>
+          <div><h1 style="font-size:1.75rem" id="dash-name"></h1><p class="muted" id="dash-who"></p></div>
         </div>
+        <div class="row"><a class="btn btn-primary btn-sm" href="pet-form.html">+ Register a pet</a><a class="btn btn-ghost btn-sm" href="report.html">Report an incident</a><button class="btn btn-ghost btn-sm" type="button" id="logout">Log out</button></div>
       </div>
-      <div class="stack">
-        <h2 style="font-size:var(--step-2)">Your orders</h2>
-        <div id="orders"></div>
+
+      <div class="tabs" role="tablist" aria-label="Account sections">
+        <button class="tab" role="tab" id="tab-pets" aria-controls="panel-pets" aria-selected="true">My pets <span class="tag" id="pets-count"></span></button>
+        <button class="tab" role="tab" id="tab-reports" aria-controls="panel-reports" aria-selected="false">My reports <span class="tag" id="reports-count"></span></button>
+        <button class="tab" role="tab" id="tab-profile" aria-controls="panel-profile" aria-selected="false">Profile<span class="long" style="margin-left:-4px">&amp; password</span></button>
       </div>
-      <form id="profile-form" class="panel stack" style="max-width:520px" novalidate>
-        <h3>Profile</h3>
-        <label class="field"><span>Full name</span><input class="input" id="p-name" name="name" required><small class="field-error"></small></label>
-        <label class="field"><span>Mobile number</span><input class="input" id="p-phone" name="phone"><small class="field-error"></small></label>
-        <label class="field"><span>New password <span class="muted">(leave blank to keep)</span></span><input class="input" type="password" id="p-password" name="password" autocomplete="new-password"><small class="field-error"></small></label>
-        <button class="btn btn-sm" type="submit" style="justify-self:start">Save profile</button>
-      </form>
+
+      <section id="panel-pets" role="tabpanel" aria-labelledby="tab-pets"><div class="stack" id="my-pets"></div></section>
+      <section id="panel-reports" role="tabpanel" aria-labelledby="tab-reports" hidden><div class="stack" id="my-reports"></div></section>
+      <section id="panel-profile" role="tabpanel" aria-labelledby="tab-profile" hidden>
+        <div class="form-grid" style="align-items:start">
+          <form class="card form-section" id="profile-form" novalidate>
+            <h2>Your details</h2>
+            <label class="field"><span>Full name</span><input class="input" name="name" maxlength="80" required><small class="field-error"></small></label>
+            <label class="field"><span>Mobile</span><input class="input" name="phone" autocomplete="tel"><small class="field-error"></small></label>
+            <label class="field"><span>Municipality</span><select class="input" name="municipality"></select></label>
+            <label class="field"><span>Barangay</span><input class="input" name="barangay" maxlength="60"></label>
+            <p class="muted small">Only you and PVO staff see these details. On the wall you appear as your first name and last initial.</p>
+            <button class="btn btn-primary" type="submit">Save details</button>
+          </form>
+          <form class="card form-section" id="password-form" novalidate>
+            <h2>Change password</h2>
+            <label class="field"><span>Current password</span><input class="input" type="password" name="currentPassword" autocomplete="current-password" required><small class="field-error"></small></label>
+            <label class="field"><span>New password</span><input class="input" type="password" name="newPassword" autocomplete="new-password" minlength="8" maxlength="72" required><small class="field-error"></small></label>
+            <label class="field"><span>Repeat new password</span><input class="input" type="password" name="repeat" autocomplete="new-password" required><small class="field-error"></small></label>
+            <p class="muted small">Changing your password logs out every other device.</p>
+            <button class="btn btn-primary" type="submit">Change password</button>
+          </form>
+        </div>
+      </section>
     </section>
   </main>
   <script type="module" src="assets/js/pages/account.js"></script>

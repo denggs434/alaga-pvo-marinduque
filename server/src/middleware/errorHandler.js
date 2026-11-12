@@ -36,11 +36,10 @@ function errorHandler(err, req, res, next) {
     status = 409;
     const field = Object.keys(err.keyValue || {})[0] || 'field';
     message =
-      field === 'slug'
-        ? 'A listing with this name and stock number already exists. Change the stock number.'
-        : field === 'email'
-          ? 'An account with that email already exists. Log in instead.'
-          : `That ${field} is already in use.`;
+      field === 'email'
+        ? 'An account with that email already exists. Log in instead.'
+        : `That ${field} is already in use. Please try again.`;
+    if (field === 'email') details = { email: message };
   }
 
   if (status >= 500) console.error(err);

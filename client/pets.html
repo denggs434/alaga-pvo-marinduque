@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Browse pets | Alaga · PVO Marinduque</title>
+  <meta name="description" content="Meet the registered dogs, cats and other pets of Marinduque. Search by name, breed or municipality.">
+  <meta name="theme-color" content="#c2410c">
+  <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="assets/css/styles.css">
+</head>
+<body>
+  <main class="wrap">
+    <header class="page-head">
+      <span class="label">Pet directory</span>
+      <h1>Meet the pets of Marinduque</h1>
+      <p>Every pet here was registered by its owner with the Provincial Veterinary Office. Owners choose whether a profile is public; contact details are never shown.</p>
+    </header>
+
+    <form class="dir-tools" id="filters" role="search" aria-label="Filter pets">
+      <div class="search-box field">
+        <label class="sr-only" for="q">Search pets</label>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+        <input class="input" id="q" name="q" type="search" placeholder="Search by name, breed, colour or registration no." autocomplete="off">
+      </div>
+      <label class="field"><span class="sr-only">Municipality</span><select class="input" name="municipality" id="municipality"></select></label>
+      <label class="field"><span class="sr-only">Sex</span><select class="input" name="sex" id="sex"><option value="">Any sex</option><option value="male">Male</option><option value="female">Female</option></select></label>
+      <label class="field"><span class="sr-only">Sort</span><select class="input" name="sort" id="sort"><option value="newest">Newest first</option><option value="name">Name A–Z</option><option value="oldest">Longest registered</option></select></label>
+    </form>
+    <div class="chips" id="species-chips" role="group" aria-label="Species" style="margin-bottom:20px"></div>
+
+    <p class="muted small" id="result-count" aria-live="polite"></p>
+    <div class="pet-grid" id="results" style="margin-top:12px"></div>
+    <nav class="pager" id="pager" aria-label="Pages"></nav>
+  </main>
+  <script type="module" src="assets/js/pages/pets.js"></script>
+</body>
+</html>

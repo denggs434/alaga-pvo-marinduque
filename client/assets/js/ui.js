@@ -1,22 +1,22 @@
 /**
- * Shared UI: footer, product cards, toasts, form helpers and page bootstrap.
- * The header lives in nav.js, animation in motion.js.
- * Every page imports this module and calls initPage().
+ * Shared UI: page bootstrap, footer, toasts, form helpers, dialogs and the
+ * photo picker. The header lives in nav.js, scroll animation in motion.js.
+ * Every public page calls initPage(); the admin console calls initAdminPage().
  */
-import { clearSession } from './store.js';
-import { formatPrice, formatNumber, esc, $, $$ } from './format.js';
+import { apiUpload } from './api.js';
+import { getUser } from './store.js';
+import { SITE } from './config.js';
+import { esc, $, $$ } from './format.js';
 import { ICONS, BRAND_MARK } from './icons.js';
-import { renderHeader, renderAdminHeader, updateCartBadge, openCartDrawer } from './nav.js';
+import { renderHeader } from './nav.js';
 import { initMotion } from './motion.js';
 
-// Re-export helpers so page scripts can keep importing everything from ui.js.
-export { formatPrice, formatNumber, formatDate, formatPriceShort, esc, $, $$ } from './format.js';
-export { ICONS } from './icons.js';
-export { updateCartBadge, openCartDrawer };
+export * from './format.js';
+export { ICONS, BRAND_MARK } from './icons.js';
 
 // Apply a saved theme as early as possible to avoid a flash of the wrong theme.
 try {
-  const saved = localStorage.getItem('voltyard.theme');
+  const saved = localStorage.getItem('alaga.theme');
   if (saved) document.documentElement.dataset.theme = saved;
 } catch { /* ignore */ }
 
@@ -26,44 +26,71 @@ function renderFooter() {
   footer.className = 'site-footer';
   footer.innerHTML = `
     <div class="wrap footer-grid">
-      <div class="stack">
-        <a class="brand" href="index.html">${BRAND_MARK}<span class="brand-word">Voltyard<small>Motors</small></span></a>
-        <p class="muted">Independent Tesla dealer in Mogpog, Marinduque. New imports and certified pre-owned, every battery tested before sale.</p>
+      <div class="stack-sm">
+        <a class="brand" href="index.html">${BRAND_MARK}<span class="brand-word">${SITE.name}<small>${SITE.office}</small></span></a>
+        <p class="muted">The pet community of ${SITE.province}: register your pets, keep their health records, stay updated on vaccination drives and report animal incidents to the PVO.</p>
       </div>
       <div>
-        <h4>Shop</h4>
+        <h4>Community</h4>
         <ul>
-          <li><a href="products.html?condition=new">New vehicles</a></li>
-          <li><a href="products.html?condition=pre-owned">Pre-owned</a></li>
-          <li><a href="products.html?condition=pre-order">Pre-order</a></li>
-          <li><a href="products.html?category=accessory">Charging & parts</a></li>
+          <li><a href="index.html">Community wall</a></li>
+          <li><a href="pets.html">Browse pets</a></li>
+          <li><a href="pet-form.html">Register a pet</a></li>
+          <li><a href="announcements.html">Announcements</a></li>
         </ul>
       </div>
       <div>
-        <h4>Company</h4>
+        <h4>PVO</h4>
         <ul>
-          <li><a href="about.html">About us</a></li>
-          <li><a href="contact.html?topic=test-drive">Book a test drive</a></li>
-          <li><a href="contact.html?topic=trade-in">Trade in your car</a></li>
-          <li><a href="about.html#credits">Photo credits</a></li>
+          <li><a href="services.html">Services</a></li>
+          <li><a href="report.html">Report an incident</a></li>
+          <li><a href="about.html">About the office</a></li>
+          <li><a href="contact.html">Contact us</a></li>
         </ul>
       </div>
       <div>
-        <h4>Showroom</h4>
+        <h4>Visit us</h4>
         <ul class="muted">
-          <li>Balanacan Port Road, Brgy. Balanacan</li>
-          <li>Mogpog, Marinduque 4901</li>
-          <li class="mono">+63 42 332 0142</li>
-          <li>Tue–Sat 10:00–19:00</li>
-          <li>Sun 11:00–17:00 · Mon closed</li>
+          <li>${SITE.address}</li>
+          <li>${SITE.hours}</li>
+          <li>Tel. ${SITE.phone}</li>
+          <li>Animal bite hotline ${SITE.hotline}</li>
         </ul>
       </div>
     </div>
     <div class="wrap footer-base">
-      <span>© ${new Date().getFullYear()} Voltyard Motors. A student project; not affiliated with Tesla, Inc.</span>
-      <span>Tesla, Model 3, Model Y, Model S, Model X, Cybertruck and Roadster are trademarks of Tesla, Inc.</span>
+      <span>© ${new Date().getFullYear()} ${SITE.name}. A student project; not an official government website. Names, records and contact numbers are samples.</span>
+      <span><a href="about.html#credits">Photo credits</a> · <a href="about.html#privacy">Privacy</a></span>
     </div>`;
   document.body.append(footer);
+}
+
+/* ---------- Page bootstrap ---------- */
+export function initPage(active) {
+  const main = $('main');
+  if (main && !main.id) main.id = 'main';
+  document.body.insertAdjacentHTML('afterbegin', '<a class="skip-link" href="#main">Skip to content</a>');
+  renderHeader(active);
+  document.body.prepend($('.skip-link')); // keep it first in tab order
+  renderFooter();
+  initMotion();
+}
+
+export function initAdminPage() {
+  const main = $('main');
+  if (main && !main.id) main.id = 'main';
+  document.body.classList.add('admin-body');
+  initMotion();
+}
+
+/** Send visitors to the login page and back here afterwards. Returns the user or null. */
+export function requireLogin(message = 'Please log in first.') {
+  const user = getUser();
+  if (user) return user;
+  const next = location.pathname.split('/').pop() + location.search;
+  try { sessionStorage.setItem('alaga.flash', message); } catch { /* storage blocked: skip the message */ }
+  location.replace(`account.html?next=${encodeURIComponent(next || 'index.html')}`);
+  return null;
 }
 
 /* ---------- Toasts ---------- */
@@ -80,133 +107,163 @@ export function toast(message, type = 'info') {
   el.className = `toast ${type}`;
   el.textContent = message;
   host.append(el);
-  setTimeout(() => el.remove(), 3800);
+  setTimeout(() => el.remove(), 4000);
 }
 
-/* ---------- Product pieces ---------- */
+/* ---------- States ---------- */
+export const skeleton = (n = 3, height = 120) =>
+  Array.from({ length: n }, () => `<div class="skeleton" style="height:${height}px"></div>`).join('');
 
-/** Ten-cell battery gauge for state of health (pre-owned cars). */
-export function batteryGauge(health) {
-  if (health === undefined || health === null) return '';
-  const cells = Math.round(health / 10);
-  const cls = health >= 90 ? '' : 'mid';
-  return `<span class="battery ${cls}" title="Battery health ${health}% of original capacity">
-    <span class="battery-cells" aria-hidden="true">${Array.from({ length: 10 }, (_, i) => `<i class="${i < cells ? 'on' : ''}" style="--i:${i}"></i>`).join('')}</span>
-    <span>${health}%</span><span class="sr-only">battery health</span>
-  </span>`;
+export function emptyState(title, text = '', action = '') {
+  return `<div class="empty">${ICONS.paw}<h3>${esc(title)}</h3>${text ? `<p>${esc(text)}</p>` : ''}${action}</div>`;
 }
 
-export function conditionTag(p) {
-  if (p.status === 'reserved') return '<span class="tag tag-reserved">Reserved</span>';
-  if (p.status === 'sold') return '<span class="tag tag-sold">Sold</span>';
-  if (p.condition === 'new' && p.category === 'vehicle') return '<span class="tag tag-new">New</span>';
-  if (p.condition === 'pre-order') return '<span class="tag tag-new">Pre-order</span>';
-  if (p.condition === 'pre-owned') return '<span class="tag">Pre-owned</span>';
-  return '';
+export function errorState(message) {
+  return `<div class="empty">${ICONS.alert}<h3>Could not load this</h3><p>${esc(message)}</p>
+    <button class="btn btn-ghost" type="button" data-reload>Try again</button></div>`;
 }
+document.addEventListener('click', (e) => e.target.closest('[data-reload]') && location.reload());
 
-/** Three-cell "window sticker" for cards. */
-function stickerFor(p) {
-  if (p.category !== 'vehicle') {
-    const fits = (p.compatibleWith || []).length >= 5 ? 'All models' : (p.compatibleWith || []).join(', ');
-    return `<dl class="sticker" style="grid-template-columns: minmax(0,2fr) minmax(0,1fr)">
-      <div><dt>Fits</dt><dd style="white-space:normal">${esc(fits)}</dd></div>
-      <div><dt>In stock</dt><dd>${p.stock}</dd></div>
-    </dl>`;
-  }
-  const s = p.specs || {};
-  const third =
-    p.condition === 'pre-owned'
-      ? `<div><dt>Odometer</dt><dd>${formatNumber(s.odometerKm)}<small> km</small></dd></div>`
-      : `<div><dt title="Top speed">Top</dt><dd>${s.topSpeedKph}<small> km/h</small></dd></div>`;
-  return `<dl class="sticker">
-    <div><dt>Range</dt><dd>${formatNumber(s.rangeKm)}<small> km</small></dd></div>
-    <div><dt>0–100</dt><dd>${Number(s.zeroTo100).toFixed(1)}<small> s</small></dd></div>
-    ${third}
-  </dl>`;
-}
+/* ---------- Forms ---------- */
 
-export function productCard(p) {
-  const meta =
-    p.category === 'vehicle'
-      ? `${esc(p.color)} · <span class="mono">${esc(p.stockNumber)}</span>`
-      : 'Accessory';
-  const health = p.condition === 'pre-owned' ? batteryGauge(p.specs?.batteryHealth) : '';
-  return `<a class="card" href="product.html?slug=${encodeURIComponent(p.slug)}">
-    <div class="card-media">
-      <img src="${esc(p.image)}" alt="${esc(p.name)}${p.color ? `, ${esc(p.color)}` : ''}" loading="lazy" width="400" height="300">
-      <div class="card-tags">${conditionTag(p)}</div>
-    </div>
-    <div class="card-body">
-      <div class="card-title">
-        <span class="label">${meta}</span>
-        <h3>${esc(p.name)}</h3>
-      </div>
-      ${stickerFor(p)}
-      <div class="card-price">
-        <span class="price">${formatPrice(p.price)}</span>
-        ${health}
-      </div>
-    </div>
-  </a>`;
-}
-
-export const skeletonCards = (n = 6) => Array.from({ length: n }, () => '<div class="skeleton skeleton-card"></div>').join('');
-
-export function errorState(message, retryLabel = 'Try again') {
-  return `<div class="empty"><h3>Could not load this</h3><p class="muted">${esc(message)}</p>
-    <button class="btn btn-ghost" type="button" onclick="location.reload()">${retryLabel}</button></div>`;
-}
-
-/* ---------- Form helpers ---------- */
-
-/** Show server-side field errors next to inputs (matching by name). */
+/** Show server-side field errors next to inputs (matching by name, e.g. "location.barangay" -> "barangay"). */
 export function showFieldErrors(form, details = {}) {
   $$('.field-error', form).forEach((el) => (el.textContent = ''));
   $$('[aria-invalid]', form).forEach((el) => el.removeAttribute('aria-invalid'));
+  let first;
   Object.entries(details).forEach(([name, msg]) => {
-    const input = form.elements[name.split('.').pop()];
-    if (!input) return;
+    const input = form.elements[name] || form.elements[name.split('.').pop()];
+    if (!input || !input.closest) return;
     input.setAttribute('aria-invalid', 'true');
+    first ||= input;
     const slot = input.closest('.field')?.querySelector('.field-error');
     if (slot) slot.textContent = msg;
   });
+  first?.focus?.();
 }
 
 export function setBusy(button, busy, busyLabel) {
+  if (!button) return;
   if (busy) {
-    button.dataset.label = button.textContent;
+    button.dataset.label = button.innerHTML;
     button.textContent = busyLabel;
     button.disabled = true;
   } else {
-    button.textContent = button.dataset.label || button.textContent;
+    if (button.dataset.label) button.innerHTML = button.dataset.label;
     button.disabled = false;
   }
 }
 
-/* ---------- Page bootstrap ---------- */
-export function initPage(active) {
-  const main = document.querySelector("main");
-  if (main && !main.id) main.id = "main";
-  document.body.insertAdjacentHTML("afterbegin", '<a class="skip-link" href="#main">Skip to content</a>');
-  renderHeader(active);
-  // keep the skip link first in tab order
-  document.body.prepend(document.querySelector(".skip-link"));
-  renderFooter();
-  initMotion();
+/** <option> list from an array or a { value: label } map. */
+export function options(list, selected = '', placeholder = '') {
+  const entries = Array.isArray(list) ? list.map((v) => [v, v]) : Object.entries(list).map(([v, l]) => [v, typeof l === 'object' ? l.label : l]);
+  return (placeholder ? `<option value="">${esc(placeholder)}</option>` : '') +
+    entries.map(([v, l]) => `<option value="${esc(v)}" ${String(v) === String(selected) ? 'selected' : ''}>${esc(l)}</option>`).join('');
 }
 
-/** Admin panel pages: compact admin header, no shop navigation or footer. */
-export function initAdminPage({ header = true } = {}) {
-  const main = document.querySelector('main');
-  if (main && !main.id) main.id = 'main';
-  document.body.classList.add('admin-body');
-  if (header) renderAdminHeader();
-  initMotion();
+/** Two-step confirm built into a button (no browser dialogs). Returns true on the second press. */
+export function armed(btn, label = 'Tap again to confirm') {
+  if (btn.dataset.armed === 'true') return true;
+  btn.dataset.armed = 'true';
+  const original = btn.innerHTML;
+  btn.textContent = label;
+  btn.classList.add('is-armed');
+  setTimeout(() => {
+    if (!btn.isConnected) return;
+    btn.dataset.armed = '';
+    btn.innerHTML = original;
+    btn.classList.remove('is-armed');
+  }, 3500);
+  return false;
 }
 
-export function logout() {
-  clearSession();
-  toast('You are logged out.');
-  setTimeout(() => (location.href = 'index.html'), 400);
+/** Wire a <dialog class="modal">: [data-close] buttons and clicks on the backdrop close it. */
+export function setupModal(dialog) {
+  if (dialog.dataset.bound) return dialog;
+  dialog.dataset.bound = '1';
+  $$('[data-close]', dialog).forEach((b) => b.addEventListener('click', () => dialog.close()));
+  dialog.addEventListener('click', (e) => {
+    if (e.target === dialog) dialog.close();
+  });
+  return dialog;
+}
+
+/* ---------- Photo picker ---------- */
+const MAX_PHOTO = 5 * 1024 * 1024;
+const TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+
+/**
+ * A grid of photo tiles plus an "add" tile. Photos upload as soon as they are
+ * chosen (POST /api/uploads) and the picker keeps the returned paths.
+ *   const picker = createPhotoPicker(el, { max: 6, label: 'Add photos', main: true });
+ *   picker.paths            -> ['assets/img/uploads/…']
+ *   picker.set([...])       -> show existing photos
+ *   picker.busy             -> true while an upload is running
+ */
+export function createPhotoPicker(root, { max = 1, label = 'Add photo', main = false, onChange = () => {} } = {}) {
+  let paths = [];
+  let uploading = 0;
+  root.classList.add('photo-picker');
+
+  function render() {
+    root.innerHTML =
+      paths.map((p, i) => `<div class="photo-tile">
+        <img src="${esc(p)}" alt="Photo ${i + 1}">
+        ${main && i === 0 && paths.length > 1 ? '<span class="main-flag">Main</span>' : ''}
+        <div class="photo-actions">
+          ${main && i > 0 ? `<button type="button" data-main="${i}" aria-label="Make photo ${i + 1} the main photo" title="Make main photo">${ICONS.star}</button>` : ''}
+          <button type="button" data-remove="${i}" aria-label="Remove photo ${i + 1}" title="Remove">${ICONS.trash}</button>
+        </div>
+      </div>`).join('') +
+      Array.from({ length: uploading }, () => '<div class="photo-tile is-uploading skeleton"></div>').join('') +
+      (paths.length + uploading < max
+        ? `<label class="photo-add">${ICONS.camera}<span>${esc(label)}</span><small class="muted">JPG, PNG, WebP · 5 MB</small>
+            <input type="file" accept="image/jpeg,image/png,image/webp" ${max - paths.length > 1 ? 'multiple' : ''}></label>`
+        : '');
+  }
+
+  async function add(files) {
+    const room = max - paths.length - uploading;
+    const list = [...files].slice(0, room);
+    if (files.length > room) toast(`You can add ${room} more photo${room === 1 ? '' : 's'}.`, 'error');
+    for (const file of list) {
+      if (!TYPES.includes(file.type)) { toast('Choose a JPG, PNG or WebP photo.', 'error'); continue; }
+      if (file.size > MAX_PHOTO) { toast(`${file.name} is over 5 MB. Choose a smaller photo.`, 'error'); continue; }
+      uploading += 1;
+      render();
+      try {
+        const { path } = await apiUpload('/uploads', file);
+        paths.push(path);
+      } catch (err) {
+        toast(err.message, 'error');
+      } finally {
+        uploading -= 1;
+        render();
+        onChange(paths);
+      }
+    }
+  }
+
+  root.addEventListener('change', (e) => {
+    if (e.target.type === 'file') add(e.target.files);
+  });
+  root.addEventListener('click', (e) => {
+    const b = e.target.closest('button');
+    if (!b) return;
+    if (b.dataset.remove) paths.splice(Number(b.dataset.remove), 1);
+    if (b.dataset.main) paths.unshift(...paths.splice(Number(b.dataset.main), 1));
+    render();
+    onChange(paths);
+  });
+  // Drag and drop onto the "add" tile.
+  root.addEventListener('dragover', (e) => { e.preventDefault(); $('.photo-add', root)?.classList.add('is-over'); });
+  root.addEventListener('dragleave', () => $('.photo-add', root)?.classList.remove('is-over'));
+  root.addEventListener('drop', (e) => { e.preventDefault(); $('.photo-add', root)?.classList.remove('is-over'); add(e.dataTransfer.files); });
+
+  render();
+  return {
+    get paths() { return [...paths]; },
+    get busy() { return uploading > 0; },
+    set(list = []) { paths = [...list]; render(); },
+  };
 }

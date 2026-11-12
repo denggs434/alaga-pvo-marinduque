@@ -3,59 +3,34 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>Contact | Voltyard Motors</title>
-  <meta name="description" content="Book a test drive, ask about financing or trade in your car at Voltyard Motors, Mogpog, Marinduque.">
+  <title>Contact | Alaga · PVO Marinduque</title>
+  <meta name="description" content="Send a message to the Marinduque Provincial Veterinary Office.">
+  <meta name="theme-color" content="#c2410c">
   <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="assets/css/styles.css">
 </head>
 <body>
   <main class="wrap">
     <header class="page-head">
-      <p class="crumbs"><a href="index.html">Home</a> / Contact</p>
-      <h1>Talk to the showroom</h1>
-      <p>Book a test drive, ask about financing, or get a trade-in offer. We reply within one business day.</p>
+      <span class="label">Contact the PVO</span>
+      <h1>How can we help?</h1>
+      <p>Questions about registration, vaccination, our services or a report you filed. We reply within one working day. For an animal incident, please use <a href="report.html">Report an incident</a> so you can track it.</p>
     </header>
-
-    <div class="contact-layout" style="padding-bottom:48px">
-      <form id="contact-form" class="panel stack" novalidate>
-        <div class="field">
-          <span>What can we help with?</span>
-          <div class="radio-cards" style="grid-template-columns:repeat(auto-fit,minmax(140px,1fr))">
-            <label><input type="radio" name="topic" value="test-drive" checked><strong>Test drive</strong></label>
-            <label><input type="radio" name="topic" value="financing"><strong>Financing</strong></label>
-            <label><input type="radio" name="topic" value="trade-in"><strong>Trade-in</strong></label>
-            <label><input type="radio" name="topic" value="general"><strong>Something else</strong></label>
-          </div>
-        </div>
-
+    <div class="report-layout">
+      <form class="card form-section" id="contact-form" novalidate>
         <div class="form-grid">
-          <label class="field"><span>Full name</span><input class="input" id="name" name="name" autocomplete="name" required><small class="field-error"></small></label>
-          <label class="field"><span>Email</span><input class="input" type="email" id="email" name="email" autocomplete="email" required><small class="field-error"></small></label>
-          <label class="field"><span>Mobile <span class="muted">(optional)</span></span><input class="input" id="phone" name="phone" autocomplete="tel" placeholder="0917 123 4567"><small class="field-error"></small></label>
-          <label class="field" id="date-field"><span>Preferred date</span><input class="input" type="date" id="preferredDate" name="preferredDate"><small class="field-error"></small></label>
-          <label class="field full"><span>Car you are asking about <span class="muted">(optional)</span></span>
-            <select class="input" id="product" name="product"><option value="">Not sure yet</option></select>
-          </label>
-          <label class="field full"><span>Message</span><textarea class="input" id="message" name="message" required minlength="10" maxlength="2000" placeholder="For trade-ins, tell us the model, year and mileage."></textarea><small class="field-error"></small></label>
+          <label class="field"><span>Name</span><input class="input" name="name" autocomplete="name" maxlength="80" required><small class="field-error"></small></label>
+          <label class="field"><span>Email</span><input class="input" type="email" name="email" autocomplete="email" required><small class="field-error"></small></label>
+          <label class="field"><span>Mobile <span class="muted">(optional)</span></span><input class="input" name="phone" autocomplete="tel"><small class="field-error"></small></label>
+          <label class="field"><span>Topic</span><select class="input" name="topic" id="topic"></select></label>
+          <label class="field span-2"><span>Message</span><textarea class="input" name="message" maxlength="2000" required></textarea><small class="hint" id="msg-count">0 / 2000</small><small class="field-error"></small></label>
         </div>
-        <p class="notice notice-error" id="contact-error" hidden></p>
-        <button class="btn btn-accent" type="submit" style="justify-self:start">Send message</button>
+        <p class="notice notice-error" id="contact-error" hidden role="alert"></p>
+        <button class="btn btn-primary" type="submit" style="justify-self:start">Send message</button>
       </form>
-
-      <aside class="info-list">
-        <div><span class="label">Showroom</span><p>Balanacan Port Road, Brgy. Balanacan<br>Mogpog, Marinduque 4901</p></div>
-        <div><span class="label">Phone</span><p class="mono">+63 42 332 0142</p></div>
-        <div><span class="label">Email</span><p class="mono">sales@voltyard.ph</p></div>
-        <div>
-          <span class="label">Opening hours</span>
-          <table class="hours">
-            <tr><td>Tuesday – Saturday</td><td>10:00–19:00</td></tr>
-            <tr><td>Sunday</td><td>11:00–17:00</td></tr>
-            <tr><td>Monday</td><td>Closed</td></tr>
-          </table>
-        </div>
-        <div><span class="label">Getting here</span><p class="muted">Five minutes from Balanacan Port. Coming from Lucena by RoRo? Message us your trip and we will meet you at the port.</p></div>
-        <div><span class="label">Charging on site</span><p class="muted">Two Wall Connectors in the customer lot. Free while you visit.</p></div>
+      <aside class="stack">
+        <section class="panel stack"><h2 style="font-size:1.0625rem">Office</h2><ul class="info-list" id="office"></ul></section>
+        <div class="hotline"><span class="label" style="color:var(--bad)">Emergency</span><strong id="hotline"></strong><p class="small">Animal bite hotline. For a bite, wash the wound for 15 minutes and go to an Animal Bite Treatment Center.</p></div>
       </aside>
     </div>
   </main>

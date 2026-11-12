@@ -1,5 +1,6 @@
 /**
- * Image uploads for listings (admin only).
+ * Photo uploads: pet photos, wall posts, report evidence, announcements.
+ * Any logged-in (not banned) account may upload, at most 40 photos per 15 minutes.
  *
  * POST /api/uploads   multipart/form-data, field "image"
  *   -> 201 { path: "assets/img/uploads/<random>.jpg" }
@@ -13,7 +14,8 @@ const fs = require('fs');
 const crypto = require('crypto');
 const router = require('express').Router();
 const multer = require('multer');
-const { protect, adminOnly } = require('../middleware/auth');
+const { protect } = require('../middleware/auth');
+const rateLimit = require('../middleware/rateLimit');
 const HttpError = require('../utils/httpError');
 
 const UPLOAD_DIR = path.join(__dirname, '..', '..', '..', 'client', 'assets', 'img', 'uploads');
@@ -35,7 +37,9 @@ const upload = multer({
     TYPES[file.mimetype] ? cb(null, true) : cb(new HttpError(400, 'Upload a JPG, PNG or WebP photo.')),
 });
 
-router.post('/', protect, adminOnly, (req, res, next) => {
+const uploadLimit = rateLimit({ windowMs: 15 * 60e3, max: 40, message: 'Too many uploads. Wait a few minutes and try again.' });
+
+router.post('/', protect, uploadLimit, (req, res, next) => {
   upload.single('image')(req, res, (err) => {
     if (err?.code === 'LIMIT_FILE_SIZE') return next(new HttpError(413, 'That photo is over 5 MB. Export a smaller version and try again.'));
     if (err) return next(err.status ? err : new HttpError(400, 'Upload a JPG, PNG or WebP photo.'));

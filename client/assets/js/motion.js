@@ -4,9 +4,8 @@
  * One small engine for every animation on the site:
  *  - Scroll reveal: elements with [data-reveal] (and product cards added later)
  *    rise into place the first time they enter the viewport, staggered ~45ms.
- *  - Count-up: animate numbers such as "13 cars on the lot".
+ *  - Count-up: animate numbers such as "16 registered pets".
  *  - Parallax: [data-parallax="0.12"] drifts an element against the scroll.
- *  - Battery gauges fill cell by cell when they become visible.
  *
  * Rules (from the ui-ux-pro-max motion guidelines):
  *  - transform/opacity only, shared duration/easing tokens in CSS
@@ -15,9 +14,9 @@
  *  - prefers-reduced-motion turns all of it off and shows the final state
  */
 const reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
-// Product cards, cart lines and spec sheets use a CSS entrance animation instead (see styles.css),
+// Pet cards and posts use a CSS entrance animation instead (see styles.css),
 // because they are rendered after data loads and must never be left hidden.
-const AUTO_REVEAL = '.tile, .panel[data-reveal-auto]';
+const AUTO_REVEAL = '.panel[data-reveal-auto]';
 
 let observer;
 

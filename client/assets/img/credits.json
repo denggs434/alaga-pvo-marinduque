@@ -1,170 +1,178 @@
 [
   {
-    "image": "assets/img/cars/model3-highland-lr.jpg",
-    "title": "2023 Tesla Model 3 Highland Long Range AWD.jpg",
-    "author": "Chanokchon",
-    "license": "CC BY-SA 4.0",
-    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-    "source": "https://commons.wikimedia.org/wiki/File:2023_Tesla_Model_3_Highland_Long_Range_AWD.jpg"
-  },
-  {
-    "image": "assets/img/cars/model3-highland-perf.jpg",
-    "title": "2024 Tesla Model 3 Highland Performance AWD.jpg",
-    "author": "Chanokchon",
-    "license": "CC BY-SA 4.0",
-    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-    "source": "https://commons.wikimedia.org/wiki/File:2024_Tesla_Model_3_Highland_Performance_AWD.jpg"
-  },
-  {
-    "image": "assets/img/cars/model3-highland-black.jpg",
-    "title": "Tesla Model 3 Highland Diamond Black (1).jpg",
-    "author": "Damian B Oh",
-    "license": "CC BY-SA 4.0",
-    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-    "source": "https://commons.wikimedia.org/wiki/File:Tesla_Model_3_Highland_Diamond_Black_(1).jpg"
-  },
-  {
-    "image": "assets/img/cars/modely-juniper.jpg",
-    "title": "Tesla Model Y Dual Motor First Edition Juniper Quicksilver (1).jpg",
-    "author": "Damian B Oh",
-    "license": "CC BY-SA 4.0",
-    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-    "source": "https://commons.wikimedia.org/wiki/File:Tesla_Model_Y_Dual_Motor_First_Edition_Juniper_Quicksilver_(1).jpg"
-  },
-  {
-    "image": "assets/img/cars/modely-white.jpg",
-    "title": "Tesla Model Y white (1).jpg",
-    "author": "Damian B Oh",
-    "license": "CC BY-SA 4.0",
-    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-    "source": "https://commons.wikimedia.org/wiki/File:Tesla_Model_Y_white_(1).jpg"
-  },
-  {
-    "image": "assets/img/cars/modely-grey.jpg",
-    "title": "Tesla Model Y grey (1).jpg",
-    "author": "Damian B Oh",
-    "license": "CC BY-SA 4.0",
-    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-    "source": "https://commons.wikimedia.org/wiki/File:Tesla_Model_Y_grey_(1).jpg"
-  },
-  {
-    "image": "assets/img/cars/models-plaid.jpg",
-    "title": "Tesla Model S Plaid Autofrühling Ulm IMG 9278 (cropped).jpg",
-    "author": "Alexander-93",
-    "license": "CC BY-SA 4.0",
-    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-    "source": "https://commons.wikimedia.org/wiki/File:Tesla_Model_S_Plaid_Autofr%C3%BChling_Ulm_IMG_9278_(cropped).jpg"
-  },
-  {
-    "image": "assets/img/cars/models-2021-lr.jpg",
-    "title": "2021 Tesla Model S P2 Long Range front right view.jpg",
-    "author": "Dllu",
-    "license": "CC BY-SA 4.0",
-    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-    "source": "https://commons.wikimedia.org/wiki/File:2021_Tesla_Model_S_P2_Long_Range_front_right_view.jpg"
-  },
-  {
-    "image": "assets/img/cars/models-2015-70d.jpg",
-    "title": "20180630 Tesla Model S 70D 2015 midnight blue left front.jpg",
-    "author": "Granada",
-    "license": "CC BY-SA 4.0",
-    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-    "source": "https://commons.wikimedia.org/wiki/File:20180630_Tesla_Model_S_70D_2015_midnight_blue_left_front.jpg"
-  },
-  {
-    "image": "assets/img/cars/modelx-black.jpg",
-    "title": "Tesla Model X 100D Solid Black (1).jpg",
-    "author": "Damian B Oh",
-    "license": "CC BY-SA 4.0",
-    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-    "source": "https://commons.wikimedia.org/wiki/File:Tesla_Model_X_100D_Solid_Black_(1).jpg"
-  },
-  {
-    "image": "assets/img/cars/modelx-2019-perf.jpg",
-    "title": "2019 Tesla Model X Performance Ludicrous AWD.jpg",
-    "author": "Calreyn88",
-    "license": "CC BY-SA 4.0",
-    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-    "source": "https://commons.wikimedia.org/wiki/File:2019_Tesla_Model_X_Performance_Ludicrous_AWD.jpg"
-  },
-  {
-    "image": "assets/img/cars/cybertruck-foundation.jpg",
-    "title": "2024 Tesla Cybertruck Foundation Series IMG 0642.jpg",
-    "author": "Alexander-93",
-    "license": "CC BY-SA 4.0",
-    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-    "source": "https://commons.wikimedia.org/wiki/File:2024_Tesla_Cybertruck_Foundation_Series_IMG_0642.jpg"
-  },
-  {
-    "image": "assets/img/cars/roadster-2008.jpg",
-    "title": "2008 Tesla Roadster front.jpg",
-    "author": "Rutger van der Maar",
+    "image": "assets/img/pets/bantay-aspin.jpg",
+    "title": "Askal (aspin) dog Masinloc, Zambales.jpg",
+    "author": "Ewen Roberts",
     "license": "CC BY 2.0",
     "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
-    "source": "https://commons.wikimedia.org/wiki/File:2008_Tesla_Roadster_front.jpg"
+    "source": "https://commons.wikimedia.org/wiki/File:Askal_(aspin)_dog_Masinloc,_Zambales.jpg"
   },
   {
-    "image": "assets/img/site/interior-model3.jpg",
-    "title": "The Model 3 Interior.jpg",
-    "author": "Steve Jurvetson",
+    "image": "assets/img/pets/kisses-aspin-puppy.jpg",
+    "title": "Aspin dog.jpg",
+    "author": "Kiruthikapalani",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Aspin_dog.jpg"
+  },
+  {
+    "image": "assets/img/pets/cooper-beagle.jpg",
+    "title": "Beagle portrait Camry.jpg",
+    "author": "Ruth Ellison",
     "license": "CC BY 2.0",
     "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
-    "source": "https://commons.wikimedia.org/wiki/File:The_Model_3_Interior.jpg"
+    "source": "https://commons.wikimedia.org/wiki/File:Beagle_portrait_Camry.jpg"
   },
   {
-    "image": "assets/img/site/supercharger.jpg",
-    "title": "Missoula (MT, USA), Tesla Supercharger -- 2022 -- 194228.jpg",
+    "image": "assets/img/pets/cooper-fence.jpg",
+    "title": "Our friend beagle Richard (2601514288).jpg",
+    "author": "Nickolas Titkov",
+    "license": "CC BY-SA 2.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/2.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Our_friend_beagle_Richard_(2601514288).jpg"
+  },
+  {
+    "image": "assets/img/pets/muning-calico.jpg",
+    "title": "Calico cat, - Assisi, Italy.jpg",
+    "author": "Terragio67",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Calico_cat,_-_Assisi,_Italy.jpg"
+  },
+  {
+    "image": "assets/img/pets/hotdog-dachshund.jpg",
+    "title": "Teckel - 39.jpg",
+    "author": "Medium69",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Teckel_-_39.jpg"
+  },
+  {
+    "image": "assets/img/pets/hotdog-playdate.jpg",
+    "title": "Dachshund playing with Beagle.jpg",
+    "author": "Slyronit",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Dachshund_playing_with_Beagle.jpg"
+  },
+  {
+    "image": "assets/img/pets/goldie-golden.jpg",
+    "title": "Dülmen, Hausdülmen, Golden Retriever -- 2022 -- 6055.jpg",
     "author": "Dietmar Rabich",
     "license": "CC BY-SA 4.0",
     "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-    "source": "https://commons.wikimedia.org/wiki/File:Missoula_(MT,_USA),_Tesla_Supercharger_--_2022_--_194228.jpg"
+    "source": "https://commons.wikimedia.org/wiki/File:D%C3%BClmen,_Hausd%C3%BClmen,_Golden_Retriever_--_2022_--_6055.jpg"
   },
   {
-    "image": "assets/img/acc/wall-connector.jpg",
-    "title": "Tesla Wall Connector.jpg",
-    "author": "Whoisjohngalt",
+    "image": "assets/img/pets/goldie-profile.jpg",
+    "title": "Dülmen, Hausdülmen, Golden Retriever -- 2022 -- 5945.jpg",
+    "author": "Dietmar Rabich",
     "license": "CC BY-SA 4.0",
     "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-    "source": "https://commons.wikimedia.org/wiki/File:Tesla_Wall_Connector.jpg"
+    "source": "https://commons.wikimedia.org/wiki/File:D%C3%BClmen,_Hausd%C3%BClmen,_Golden_Retriever_--_2022_--_5945.jpg"
   },
   {
-    "image": "assets/img/acc/destination-charger.jpg",
-    "title": "TeslaDestinationCharger.jpg",
-    "author": "Raysonho @ Open Grid Scheduler / Grid Engine",
+    "image": "assets/img/pets/mochi-kitten.jpg",
+    "title": "A kitten in the hand (Flickr).jpg",
+    "author": "Leo Rodman",
     "license": "CC0",
     "licenseUrl": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
-    "source": "https://commons.wikimedia.org/wiki/File:TeslaDestinationCharger.jpg"
+    "source": "https://commons.wikimedia.org/wiki/File:A_kitten_in_the_hand_(Flickr).jpg"
   },
   {
-    "image": "assets/img/acc/model3-aero-wheel.jpg",
-    "title": "Tesla Model 3 Aero wheel.jpg",
-    "author": "Jengtingchen",
-    "license": "CC BY-SA 4.0",
-    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-    "source": "https://commons.wikimedia.org/wiki/File:Tesla_Model_3_Aero_wheel.jpg"
+    "image": "assets/img/pets/tiger-kitten.jpg",
+    "title": "Kitten-stare.jpg",
+    "author": "Mrmiscellanious",
+    "license": "Public domain",
+    "licenseUrl": "",
+    "source": "https://commons.wikimedia.org/wiki/File:Kitten-stare.jpg"
   },
   {
-    "image": "assets/img/acc/cybertruck-wheel.jpg",
-    "title": "Tesla Cybertruck Wheel With Goodyear Tire.jpg",
-    "author": "TaurusEmerald",
-    "license": "CC BY-SA 4.0",
-    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-    "source": "https://commons.wikimedia.org/wiki/File:Tesla_Cybertruck_Wheel_With_Goodyear_Tire.jpg"
-  },
-  {
-    "image": "assets/img/acc/models-wheel.jpg",
-    "title": "The tire wheel of TESLA MODEL S P100D.jpg",
-    "author": "Tokumeigakarinoaoshima",
-    "license": "CC BY-SA 4.0",
-    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-    "source": "https://commons.wikimedia.org/wiki/File:The_tire_wheel_of_TESLA_MODEL_S_P100D.jpg"
-  },
-  {
-    "image": "assets/img/cars/roadster-2gen.jpg",
-    "title": "Tesla Roadster 2.0 (47619421652).jpg",
-    "author": "Steve Jurvetson from Menlo Park, USA",
+    "image": "assets/img/pets/blackie-labrador.jpg",
+    "title": "Labrador Retriever black portrait Flickr.jpg",
+    "author": "Peter Wadsworth",
     "license": "CC BY 2.0",
     "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
-    "source": "https://commons.wikimedia.org/wiki/File:Tesla_Roadster_2.0_(47619421652).jpg"
+    "source": "https://commons.wikimedia.org/wiki/File:Labrador_Retriever_black_portrait_Flickr.jpg"
+  },
+  {
+    "image": "assets/img/pets/blackie-rest.jpg",
+    "title": "Labrador Retriever Dog.jpg",
+    "author": "OleKD",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Labrador_Retriever_Dog.jpg"
+  },
+  {
+    "image": "assets/img/pets/kahel-orange-cat.jpg",
+    "title": "Orange Tabby Cat sitting on a couch.jpg",
+    "author": "LauraDelga",
+    "license": "CC BY 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/4.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Orange_Tabby_Cat_sitting_on_a_couch.jpg"
+  },
+  {
+    "image": "assets/img/pets/kahel-walk.jpg",
+    "title": "Tabby cats of Ōizumi Ryokuchi Park, January 2019 - 8816.jpg",
+    "author": "Laitche",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Tabby_cats_of_%C5%8Cizumi_Ryokuchi_Park,_January_2019_-_8816.jpg"
+  },
+  {
+    "image": "assets/img/pets/yuki-white-cat.jpg",
+    "title": "June odd-eyed-cat cropped.jpg",
+    "author": "Keith Kissel",
+    "license": "CC BY 2.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
+    "source": "https://commons.wikimedia.org/wiki/File:June_odd-eyed-cat_cropped.jpg"
+  },
+  {
+    "image": "assets/img/pets/choco-pomeranian.jpg",
+    "title": "Pomeranian Dog - Kolkata 2011-10-31 6441.JPG",
+    "author": "Biswarup Ganguly",
+    "license": "CC BY 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/3.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Pomeranian_Dog_-_Kolkata_2011-10-31_6441.JPG"
+  },
+  {
+    "image": "assets/img/pets/bun-holland-lop.jpg",
+    "title": "Grey Holland Lop rabbit.jpg",
+    "author": "Takkiln",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Grey_Holland_Lop_rabbit.jpg"
+  },
+  {
+    "image": "assets/img/pets/bun-garden.jpg",
+    "title": "A normal and a Holland Lop rabbit (16258337087).jpg",
+    "author": "shankar s.",
+    "license": "CC BY 2.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
+    "source": "https://commons.wikimedia.org/wiki/File:A_normal_and_a_Holland_Lop_rabbit_(16258337087).jpg"
+  },
+  {
+    "image": "assets/img/pets/princess-shihtzu.jpg",
+    "title": "Shih Tzu lion dog.jpg",
+    "author": "Marcelo RosaMelo",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Shih_Tzu_lion_dog.jpg"
+  },
+  {
+    "image": "assets/img/pets/luna-birman.jpg",
+    "title": "Siamese Cat p.jpg",
+    "author": "Norsk Albrecht",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Siamese_Cat_p.jpg"
+  },
+  {
+    "image": "assets/img/pets/garfield-tabby.jpg",
+    "title": "Blue and white tabby cat–IMG 6442 02.jpg",
+    "author": "Kızıl",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Blue_and_white_tabby_cat%E2%80%93IMG_6442_02.jpg"
   }
 ]

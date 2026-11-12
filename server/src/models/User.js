@@ -1,32 +1,40 @@
 /**
- * Customer and admin accounts. Passwords are hashed with bcrypt
- * and never returned in API responses.
+ * Accounts.
+ *  - owner: registers pets, posts on the wall, files reports
+ *  - admin: PVO staff; manages pets, announcements, reports and accounts
+ * Public visitors have no account. Passwords are hashed with bcrypt and never returned.
  */
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
+const { MUNICIPALITIES, PHONE, EMAIL } = require('../config/constants');
 
 const userSchema = new mongoose.Schema(
   {
-    name: { type: String, required: [true, 'Name is required.'], trim: true, maxlength: 80 },
+    name: { type: String, required: [true, 'Name is required.'], trim: true, maxlength: [80, 'Name is too long.'] },
     email: {
       type: String,
       required: [true, 'Email is required.'],
       unique: true,
       lowercase: true,
       trim: true,
-      match: [/^\S+@\S+\.\S+$/, 'Enter a valid email address.'],
+      match: [EMAIL, 'Enter a valid email address.'],
     },
-    phone: { type: String, trim: true, maxlength: 20 },
+    phone: { type: String, trim: true, match: [PHONE, 'Enter a valid phone number.'] },
+    municipality: { type: String, enum: [...MUNICIPALITIES, ''], default: '' },
+    barangay: { type: String, trim: true, maxlength: 60 },
     password: {
       type: String,
       required: [true, 'Password is required.'],
       minlength: [8, 'Password must be at least 8 characters.'],
+      maxlength: [72, 'Password must be 72 characters or fewer.'], // bcrypt only reads 72 bytes
       select: false,
     },
-    role: { type: String, enum: ['customer', 'admin'], default: 'customer' },
+    role: { type: String, enum: ['owner', 'admin'], default: 'owner' },
     // Set by an admin. Banned accounts cannot log in or use an existing session.
     banned: { type: Boolean, default: false },
     bannedAt: Date,
+    // Tokens issued before this moment stop working (set when the password changes).
+    passwordChangedAt: Date,
   },
   { timestamps: true }
 );
@@ -34,6 +42,8 @@ const userSchema = new mongoose.Schema(
 userSchema.pre('save', async function hashPassword(next) {
   if (!this.isModified('password')) return next();
   this.password = await bcrypt.hash(this.password, 10);
+  // 1s back-dated so the token issued right after a change is still valid.
+  if (!this.isNew) this.passwordChangedAt = new Date(Date.now() - 1000);
   next();
 });
 
@@ -45,6 +55,7 @@ userSchema.set('toJSON', {
   transform: (doc, ret) => {
     delete ret.password;
     delete ret.__v;
+    delete ret.passwordChangedAt;
     return ret;
   },
 });

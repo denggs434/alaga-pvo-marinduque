@@ -1,38 +1,41 @@
 /**
- * Admin "lot console".
+ * PVO admin console.
  *
  * Views (switched with the URL hash so each can be bookmarked):
- *   #today      what needs attention right now + lot status bar
- *   #sales      sales figures and charts (admin-sales.js)
- *   #lot        every listing, with inline status / stock changes
- *   #orders     pipeline: pending → confirmed → ready → completed
- *   #messages   customer inbox
- *   #customers  accounts
+ *   #overview       dashboard: totals, what needs attention, coverage, monthly charts
+ *   #pets           the pet registry: verify registrations, record vaccinations, remove
+ *   #reports        incident cases: filter, open a case, update status with a note
+ *   #announcements  publish news and scheduled activities (vaccination drives…)
+ *   #owners         accounts: suspend / delete
+ *   #messages       contact-form inbox
  *
- * Every request carries the admin's token; the server enforces the admin role,
- * this page only decides what to show.
+ * Every request carries the admin's token; the server enforces the admin role.
+ * This page only decides what to show.
  */
-import { api, apiUpload, qs } from '../api.js';
-import { isAdmin, getUser, setSession, clearSession } from '../store.js';
-import { showroomStatus } from '../nav.js';
-import { createSalesView } from './admin-sales.js';
-import { initAdminPage, formatPrice, formatPriceShort, formatDate, esc, toast, showFieldErrors, setBusy, ICONS, $, $$ } from '../ui.js';
+import { api, qs } from '../api.js';
+import { getUser, isAdmin, setSession, clearSession } from '../store.js';
+import { setupThemeToggle } from '../nav.js';
+import { SPECIES, SPECIES_PLURAL, MUNICIPALITIES, CATEGORIES, REPORT_TYPES, REPORT_STATUSES, VACCINES, CONTACT_TOPICS } from '../config.js';
+import {
+  initAdminPage, toast, armed, setupModal, showFieldErrors, setBusy, options, createPhotoPicker, emptyState,
+  esc, initials, formatDate, formatNumber, timeAgo, toDateInput, fromDateInput, toDateTimeInput, fromDateTimeInput, debounce,
+  ICONS, BRAND_MARK, $, $$,
+} from '../ui.js';
+import { petImg, reportTypeTag, reportStatusTag, categoryTag, timeline, eventWhen } from '../components.js';
+import { groupedBars, stackedBars } from './admin-charts.js';
 
-const signedIn = isAdmin();
-initAdminPage({ header: !signedIn }); // the console has its own sidebar
+initAdminPage();
+const brand = `${BRAND_MARK}<span class="brand-word">Alaga<small>PVO admin</small></span>`;
+$('#login-brand').innerHTML = brand;
+$$('[data-logout]').forEach((b) => b.addEventListener('click', () => { clearSession(); location.href = 'admin.html'; }));
 
-if (signedIn) boot();
-else if (getUser()) showDenied();
+if (isAdmin()) boot();
+else if (getUser()) $('#denied').hidden = false;
 else showLogin();
 
 /* =========================================================================
-   Sign-in states
+   Sign in
    ========================================================================= */
-function showDenied() {
-  $('#denied').hidden = false;
-  $('#denied [data-logout]').addEventListener('click', () => { clearSession(); location.reload(); });
-}
-
 function showLogin() {
   const form = $('#admin-login-form');
   $('#admin-login').hidden = false;
@@ -44,12 +47,8 @@ function showLogin() {
     const btn = form.querySelector('[type=submit]');
     setBusy(btn, true, 'Signing in…');
     try {
-      const session = await api('/users/login', {
-        method: 'POST',
-        auth: false,
-        body: { email: form.elements.email.value.trim(), password: form.elements.password.value },
-      });
-      if (session.user.role !== 'admin') throw new Error('That account is not an admin. Use a staff account.');
+      const session = await api('/users/login', { method: 'POST', auth: false, body: { email: form.elements.email.value.trim(), password: form.elements.password.value } });
+      if (session.user.role !== 'admin') throw new Error('That is a pet owner account. Use a PVO staff account here.');
       setSession(session);
       location.reload();
     } catch (error) {
@@ -64,446 +63,428 @@ function showLogin() {
    Console
    ========================================================================= */
 function boot() {
-  const state = { products: [], orders: [], messages: [], users: [], lotFilter: 'all', msgFilter: 'open' };
-  const TOPIC = { 'test-drive': 'Test drive', financing: 'Financing', 'trade-in': 'Trade-in', general: 'Question' };
-  const STAGES = [
-    { key: 'pending', label: 'Pending', hint: 'Call to confirm', next: 'confirmed', action: 'Confirm' },
-    { key: 'confirmed', label: 'Confirmed', hint: 'Prepare the car', next: 'ready', action: 'Mark ready' },
-    { key: 'ready', label: 'Ready', hint: 'Waiting for handover', next: 'completed', action: 'Complete sale' },
-    { key: 'completed', label: 'Completed', hint: 'Handed over' },
-  ];
+  const state = { stats: null, pets: [], reports: [], anns: [], users: [], messages: [], reportFilter: 'open', msgFilter: 'open' };
+  const user = getUser();
 
   /* ---------- Chrome ---------- */
-  const user = getUser();
-  $('#admin').hidden = false;
-  $('#admin-name').textContent = user.name;
-  $('#admin-avatar').textContent = user.name.split(/\s+/).map((w) => w[0]).slice(0, 2).join('').toUpperCase();
-  $('#admin-date').textContent = new Date().toLocaleDateString('en-PH', { weekday: 'long', month: 'long', day: 'numeric', timeZone: 'Asia/Manila' });
+  $('#console').hidden = false;
+  $('#side-brand').innerHTML = brand;
   $$('[data-icon]').forEach((el) => (el.innerHTML = ICONS[el.dataset.icon] || ''));
-  $$('[data-logout]').forEach((b) => b.addEventListener('click', () => { clearSession(); location.href = 'admin.html'; }));
-  $('#console-theme').addEventListener('click', () => {
-    const dark = (document.documentElement.dataset.theme || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')) === 'dark';
-    document.documentElement.dataset.theme = dark ? 'light' : 'dark';
-    try { localStorage.setItem('voltyard.theme', document.documentElement.dataset.theme); } catch { /* ignore */ }
+  $('#admin-name').textContent = user.name;
+  $('#greet-name').textContent = user.name.split(' ')[0];
+  $('#admin-avatar').textContent = initials(user.name);
+  $('#today-date').textContent = new Date().toLocaleDateString('en-PH', { weekday: 'long', month: 'long', day: 'numeric', timeZone: 'Asia/Manila' });
+  setupThemeToggle($('#theme-toggle'));
+
+  const side = $('#console-side');
+  $('#side-toggle').addEventListener('click', () => {
+    const open = side.classList.toggle('is-open');
+    $('#side-toggle').setAttribute('aria-expanded', String(open));
   });
 
-  /* ---------- Views (hash routing) ---------- */
-  const VIEWS = ['today', 'sales', 'lot', 'orders', 'messages', 'customers'];
-  const sales = createSalesView();
+  const VIEWS = ['overview', 'pets', 'reports', 'announcements', 'owners', 'messages'];
   function showView() {
-    const view = VIEWS.includes(location.hash.slice(1)) ? location.hash.slice(1) : 'today';
+    const view = VIEWS.includes(location.hash.slice(1)) ? location.hash.slice(1) : 'overview';
     $$('[data-panel]').forEach((p) => (p.hidden = p.dataset.panel !== view));
     $$('[data-view]').forEach((a) => a.toggleAttribute('aria-current', a.dataset.view === view));
-    document.title = `${view[0].toUpperCase()}${view.slice(1)} | Voltyard admin`;
+    const label = $(`[data-view="${view}"]`).textContent.trim();
+    $('#mobile-title').textContent = label;
+    document.title = `${label} | Alaga PVO admin`;
+    side.classList.remove('is-open');
+    window.scrollTo(0, 0);
   }
   addEventListener('hashchange', showView);
   showView();
 
-  // Number keys 1–6 jump between views (ignored while typing in a field).
-  addEventListener('keydown', (e) => {
-    if (e.metaKey || e.ctrlKey || e.altKey || /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement?.tagName) || $('dialog[open]')) return;
-    const view = VIEWS[Number(e.key) - 1];
-    if (view) location.hash = view;
-  });
-
-  // Showroom open/closed, same rule as the public site.
-  const paintStatus = () => {
-    const s = showroomStatus();
-    $('#console-status').classList.toggle('is-open', s.open);
-    $('#console-status span').textContent = s.text;
-  };
-  paintStatus();
-  setInterval(paintStatus, 60000);
-
   /* ---------- Data ---------- */
   async function loadAll() {
     try {
-      const [products, orders, messages, users] = await Promise.all([
-        api(`/products${qs({ all: 'true', limit: 100, sort: 'newest' })}`).then((d) => d.items),
-        api('/orders'),
-        api('/contact'),
+      const [stats, pets, reports, anns, users, messages] = await Promise.all([
+        api('/admin/stats'),
+        api(`/pets${qs({ all: 'true', limit: 500 })}`).then((d) => d.items),
+        api(`/reports${qs({ limit: 500 })}`),
+        api(`/announcements${qs({ all: 'true', limit: 100 })}`).then((d) => d.items),
         api('/users'),
+        api('/contact'),
       ]);
-      Object.assign(state, { products, orders, messages, users });
+      Object.assign(state, { stats, pets, reports, anns, users, messages });
       renderAll();
-      sales.load(); // order changes move the sales numbers too
     } catch (err) {
       toast(err.message, 'error');
       if (err.status === 401 || err.status === 403) setTimeout(() => location.reload(), 1200);
     }
   }
   function renderAll() {
-    renderToday();
-    renderLot();
-    renderOrders();
+    renderOverview();
+    renderPets();
+    renderReports();
+    renderAnnouncements();
+    renderOwners();
     renderMessages();
-    renderCustomers();
     renderBadges();
   }
-
   /** Run an update, then refresh everything so every view stays consistent. */
   async function act(request, success) {
     try {
-      await request();
+      const result = await request();
       if (success) toast(success);
       await loadAll();
+      return result;
     } catch (err) {
       toast(err.message, 'error');
+      return null;
     }
   }
-
-  /** Two-step confirm built into the button (browser dialogs are avoided). */
-  function armed(btn, label = 'Tap again') {
-    if (btn.dataset.armed === 'true') return true;
-    btn.dataset.armed = 'true';
-    const original = btn.textContent;
-    btn.textContent = label;
-    btn.classList.add('is-armed');
-    setTimeout(() => { btn.dataset.armed = ''; btn.textContent = original; btn.classList.remove('is-armed'); }, 3000);
-    return false;
-  }
-
-  /* ---------- Derived numbers ---------- */
-  const vehicles = () => state.products.filter((p) => p.category === 'vehicle');
-  const parts = () => state.products.filter((p) => p.category === 'accessory');
-  const lowStock = () => parts().filter((p) => p.stock <= 3);
-  const openOrders = () => state.orders.filter((o) => !['completed', 'cancelled'].includes(o.status));
-  const plural = (n, word) => `${n} ${word}${n === 1 ? '' : 's'}`;
 
   function renderBadges() {
-    const set = (k, n, urgent) => {
-      const b = $(`[data-badge="${k}"]`);
-      b.textContent = n || '';
-      b.hidden = !n;
-      b.classList.toggle('is-urgent', !!urgent);
-    };
-    set('lot', lowStock().length, true);
-    set('orders', state.orders.filter((o) => o.status === 'pending').length, true);
-    set('messages', state.messages.filter((m) => m.status === 'new').length, true);
+    const set = (k, n) => { const b = $(`[data-badge="${k}"]`); b.textContent = n; b.hidden = !n; };
+    set('pets', state.stats.pets.pending);
+    set('reports', state.stats.reports.pending);
+    set('messages', state.stats.newMessages);
   }
 
-  /* ---------- Today ---------- */
-  function renderToday() {
-    const v = vehicles();
-    const groups = [
-      { key: 'available', label: 'Available', n: v.filter((p) => p.status === 'available' && p.condition !== 'pre-order').length },
-      // Order chosen so no two hard-to-separate colours touch (validated with the dataviz script).
-      { key: 'preorder', label: 'Pre-order', n: v.filter((p) => p.condition === 'pre-order').length },
-      { key: 'reserved', label: 'Reserved', n: v.filter((p) => p.status === 'reserved').length },
-      { key: 'sold', label: 'Sold', n: v.filter((p) => p.status === 'sold').length },
-    ];
-    const pending = state.orders.filter((o) => o.status === 'pending');
-    const fresh = state.messages.filter((m) => m.status === 'new');
+  /* ---------- Overview ---------- */
+  function renderOverview() {
+    const s = state.stats;
+    const pct = s.vaccinations.rabiesEligible ? Math.round((s.vaccinations.rabiesCurrent / s.vaccinations.rabiesEligible) * 100) : 0;
+    const tile = (icon, label, value, small, alert = false) =>
+      `<div class="stat ${alert ? 'is-alert' : ''}"><span class="label">${ICONS[icon]}${label}</span><strong>${value}</strong><small>${small}</small></div>`;
+    $('#stats').innerHTML = [
+      tile('paw', 'Registered pets', formatNumber(s.pets.total), `${s.pets.verified} verified · ${s.pets.pending} pending`),
+      tile('users', 'Pet owners', formatNumber(s.owners.total), s.owners.banned ? `${s.owners.banned} suspended` : 'All accounts active'),
+      tile('shieldCheck', 'Anti-rabies coverage', `${pct}%`, `${s.vaccinations.rabiesCurrent} of ${s.vaccinations.rabiesEligible} dogs and cats`),
+      tile('syringe', 'Vaccinations, 30 days', formatNumber(s.vaccinations.last30), `${s.vaccinations.records} on record · ${s.vaccinations.unverified} owner entries`),
+      tile('flag', 'Open reports', s.reports.open, s.reports.highPriorityOpen ? `${s.reports.highPriorityOpen} high priority` : 'None high priority', s.reports.highPriorityOpen > 0),
+      tile('check', 'Resolved incidents', s.reports.resolved, `${s.reports.pending} new, awaiting review`),
+      tile('calendar', 'Upcoming activities', s.vaccinations.upcomingActivities, 'Scheduled drives and programs'),
+      tile('inbox', 'New messages', s.newMessages, `${s.posts} wall posts in total`),
+    ].join('');
 
-    const todo = [];
-    if (pending.length) todo.push(plural(pending.length, 'order') + ' to call');
-    if (fresh.length) todo.push(plural(fresh.length, 'message') + ' to answer');
-    if (lowStock().length) todo.push(plural(lowStock().length, 'part') + ' running low');
-    $('#today-line').innerHTML = `${groups[0].n} cars on the lot.<br><span>${todo.length ? todo.join(', ').replace(/, ([^,]*)$/, ' and $1') + '.' : 'Nothing waiting on you.'}</span>`;
+    // Needs attention
+    const q = [];
+    s.reports.recent.forEach((r) => q.push(`<li><span><strong>${esc(REPORT_TYPES[r.type].label)} · <span class="mono">${esc(r.reference)}</span></strong>
+      ${r.priority === 'high' ? ' <span class="tag tag-red">High priority</span>' : ''} ${reportStatusTag(r.status)}<br>
+      <span>${esc(r.location.barangay)}, ${esc(r.location.municipality)} · filed ${timeAgo(r.createdAt)}</span></span>
+      <button class="btn btn-sm btn-primary" type="button" data-open-report="${r._id}">Open case</button></li>`));
+    if (s.pets.pending) q.push(`<li><span><strong>${s.pets.pending} pet registration${s.pets.pending === 1 ? '' : 's'} to verify</strong><br><span>Check the details and photos, then verify.</span></span><button class="btn btn-sm btn-ghost" type="button" data-goto-pending>Review</button></li>`);
+    if (s.vaccinations.unverified) q.push(`<li><span><strong>${s.vaccinations.unverified} owner-entered vaccination${s.vaccinations.unverified === 1 ? '' : 's'}</strong><br><span>Verify when the owner shows the vaccination card.</span></span></li>`);
+    if (s.newMessages) q.push(`<li><span><strong>${s.newMessages} new message${s.newMessages === 1 ? '' : 's'}</strong><br><span>From the contact form.</span></span><a class="btn btn-sm btn-ghost" href="#messages">Read</a></li>`);
+    $('#queue').innerHTML = q.join('') || '<li><span><strong>All clear.</strong><br><span>New reports and registrations will show up here.</span></span></li>';
 
-    const total = groups.reduce((s, g) => s + g.n, 0) || 1;
-    $('#lotbar').innerHTML = groups.filter((g) => g.n).map((g) => `<span class="lb-${g.key}" style="flex-grow:${g.n}" title="${g.label}: ${g.n}"></span>`).join('');
-    $('#lotbar').setAttribute('aria-label', groups.map((g) => `${g.label} ${g.n}`).join(', '));
-    $('#lotbar-legend').innerHTML = groups.map((g) => `<li><i class="lb-${g.key}"></i>${g.label}<b>${g.n}</b><small>${Math.round((g.n / total) * 100)}%</small></li>`).join('');
+    // Coverage meter + species bars (single series: one colour, values labelled)
+    $('#rabies-meter').innerHTML = `<div class="meter"><div class="row between"><strong style="font:900 2rem/1 var(--font-display)">${pct}%</strong>
+      <span class="muted small">${s.vaccinations.rabiesCurrent} of ${s.vaccinations.rabiesEligible} dogs and cats with a valid shot</span></div>
+      <div class="meter-bar" role="img" aria-label="${pct}% anti-rabies coverage"><span style="width:${pct}%"></span></div></div>`;
+    const species = Object.entries(s.pets.bySpecies).sort((a, b) => b[1] - a[1]);
+    const maxSp = Math.max(1, ...species.map(([, n]) => n));
+    $('#species-bars').innerHTML = species.map(([k, n]) => `<li><span>${esc(SPECIES_PLURAL[k] || k)}</span>
+      <span class="track"><span style="width:${(n / maxSp) * 100}%;background:var(--series-1)"></span></span><b>${n}</b></li>`).join('');
 
-    const items = [
-      ...pending.map((o) => `<li class="q q-order">
-        <div class="q-body"><span class="q-kind">Order to confirm</span>
-          <strong>Call ${esc(o.fulfillment.fullName)} · <span class="mono">${esc(o.fulfillment.phone)}</span></strong>
-          <span>${esc(o.items.map((i) => i.name).join(', '))} · <span class="mono">${esc(o.reference)}</span> · due now ${formatPrice(o.dueNow)}</span></div>
-        <div class="q-actions"><button class="btn btn-sm btn-accent" type="button" data-order-next="${o._id}" data-to="confirmed">Confirm</button></div></li>`),
-      ...fresh.map((m) => `<li class="q q-msg">
-        <div class="q-body"><span class="q-kind">${TOPIC[m.topic]}${m.preferredDate ? ` · ${formatDate(m.preferredDate)}` : ''}</span>
-          <strong>${esc(m.name)}${m.product ? ` about <span class="mono">${esc(m.product.stockNumber || m.product.name)}</span>` : ''}</strong>
-          <span class="q-snippet">“${esc(m.message)}”</span></div>
-        <div class="q-actions"><button class="btn btn-sm btn-ghost" type="button" data-msg="${m._id}" data-to="replied">Mark replied</button></div></li>`),
-      ...lowStock().map((p) => `<li class="q q-stock">
-        <div class="q-body"><span class="q-kind">Low stock</span><strong>${esc(p.name)}</strong><span>${p.stock === 0 ? 'Out of stock' : `Only ${p.stock} left`}</span></div>
-        <div class="q-actions"><button class="btn btn-sm btn-ghost" type="button" data-edit="${p._id}">Restock</button></div></li>`),
-    ];
-    $('#queue').innerHTML = items.join('') || '<li class="q-empty">All clear. New orders and messages will show up here.</li>';
-
-    const collected = state.orders.filter((o) => o.status !== 'cancelled').reduce((s, o) => s + o.dueNow, 0);
-    const openValue = openOrders().reduce((s, o) => s + o.subtotal, 0);
-    $('#money-collected').textContent = formatPrice(collected);
-    $('#money-booked').textContent = formatPrice(openValue);
-    $('#money-customers').textContent = state.users.filter((u) => u.role === 'customer').length;
+    const months = s.monthly.map((m) => m.month);
+    groupedBars($('#chart-activity'), months, [
+      { label: 'New registrations', cls: 's1', values: s.monthly.map((m) => m.registrations) },
+      { label: 'Vaccinations given', cls: 's2', values: s.monthly.map((m) => m.vaccinations) },
+    ], 'New pet registrations and vaccinations given per month, last 6 months');
+    stackedBars($('#chart-reports'), months, Object.keys(REPORT_TYPES).map((t, i) => ({
+      label: REPORT_TYPES[t].label, cls: `s${i + 1}`, values: s.monthly.map((m) => m.reports[t]),
+    })), 'Reports filed per month by type, last 6 months');
   }
 
-  /* ---------- Lot ---------- */
-  function lotRow(p) {
-    const isVehicle = p.category === 'vehicle';
-    const pre = p.condition === 'pre-order';
-    const stateKey = !isVehicle ? (p.stock <= 3 ? 'low' : 'stocked') : pre ? 'preorder' : p.status;
-    const meta = isVehicle
-      ? `${esc(p.year)} · ${esc(p.color)} · ${pre ? 'pre-order' : esc(p.condition)}`
-      : `Fits ${(p.compatibleWith || []).length >= 5 ? 'all models' : esc((p.compatibleWith || []).join(', '))}`;
-    let control;
-    if (!isVehicle) {
-      control = `<div class="stepper" aria-label="Units in stock">
-        <button type="button" data-stock="${p._id}" data-delta="-1" aria-label="One fewer" ${p.stock <= 0 ? 'disabled' : ''}>−</button>
-        <span class="mono">${p.stock}</span>
-        <button type="button" data-stock="${p._id}" data-delta="1" aria-label="One more">+</button></div>`;
-    } else if (pre) {
-      control = '<span class="lot-state">Taking reservations</span>';
-    } else {
-      control = `<select class="state-select" data-status="${p._id}" aria-label="Status of ${esc(p.stockNumber)}">
-        ${['available', 'reserved', 'sold'].map((s) => `<option value="${s}" ${s === p.status ? 'selected' : ''}>${s[0].toUpperCase() + s.slice(1)}</option>`).join('')}
-      </select>`;
-    }
-    return `<article class="lot-row st-${stateKey}">
-      <img src="${esc(p.image)}" alt="" width="96" height="72" loading="lazy">
-      <div class="lot-id">
-        <span class="lot-stock mono">${esc(p.stockNumber || 'PART')}</span>
-        <a href="product.html?slug=${encodeURIComponent(p.slug)}" target="_blank" rel="noopener">${esc(p.name)}</a>
-        <span class="lot-meta">${meta}</span>
-      </div>
-      <span class="lot-price mono">${formatPrice(p.price)}</span>
-      <div class="lot-control">${control}</div>
-      <div class="lot-actions">
-        <button class="btn btn-ghost btn-sm" type="button" data-edit="${p._id}">Edit</button>
-        <button class="btn btn-danger btn-sm" type="button" data-delete="${p._id}">Delete</button>
-      </div>
-    </article>`;
+  /* ---------- Pets ---------- */
+  $('#pet-species').innerHTML = options(SPECIES, '', 'All species');
+  $('#pet-town').innerHTML = options(MUNICIPALITIES, '', 'All municipalities');
+  ['#pet-species', '#pet-town', '#pet-reg'].forEach((s) => $(s).addEventListener('change', renderPets));
+  $('#pet-q').addEventListener('input', debounce(renderPets, 150));
+
+  const rabiesCell = (r) => (r.status === 'current' ? `<span class="tag tag-green">Until ${formatDate(r.due)}</span>`
+    : r.status === 'overdue' ? '<span class="tag tag-amber">Overdue</span>' : '<span class="tag">None</span>');
+
+  function renderPets() {
+    const term = $('#pet-q').value.trim().toLowerCase();
+    const sp = $('#pet-species').value;
+    const town = $('#pet-town').value;
+    const reg = $('#pet-reg').value;
+    const rows = state.pets.filter((p) => (!sp || p.species === sp) && (!town || p.municipality === town) && (!reg || p.registrationStatus === reg)
+      && (!term || `${p.name} ${p.breed} ${p.registrationNo} ${p.owner.name} ${p.owner.email}`.toLowerCase().includes(term)));
+    $('#pets-table').innerHTML = `<thead><tr><th>Pet</th><th>Owner</th><th>Species / breed</th><th>Municipality</th><th>Anti-rabies</th><th>Registration</th><th></th></tr></thead>
+      <tbody>${rows.map((p) => `<tr class="${p.status === 'deceased' ? 'is-muted' : ''}">
+        <td><div class="cell-pet">${petImg(p.photos?.[0], '', p.name)}<span><strong><a href="pet.html?id=${p._id}" target="_blank" rel="noopener">${esc(p.name)}</a></strong>
+          <span class="muted small mono">${esc(p.registrationNo)}</span>${p.status === 'missing' ? ' <span class="tag tag-solid-red">Missing</span>' : ''}${p.isPublic ? '' : ' <span class="tag">Private</span>'}</span></div></td>
+        <td>${esc(p.owner.name)}<br><span class="muted small">${esc(p.owner.phone || p.owner.email || '')}</span></td>
+        <td>${esc(SPECIES[p.species])}<br><span class="muted small">${esc(p.breed || '—')}</span></td>
+        <td>${esc(p.municipality)}</td>
+        <td>${rabiesCell(p.rabies)}</td>
+        <td>${p.registrationStatus === 'verified' ? '<span class="tag tag-green">Verified</span>' : '<span class="tag tag-amber">Pending</span>'}</td>
+        <td><div class="cell-actions">
+          ${p.registrationStatus === 'verified' ? '' : `<button class="btn btn-soft btn-sm" type="button" data-verify="${p._id}">Verify</button>`}
+          <button class="btn btn-ghost btn-sm" type="button" data-vax="${p._id}" title="Record a PVO vaccination">${ICONS.syringe}<span class="sr-only">Record vaccination for ${esc(p.name)}</span></button>
+          <a class="btn btn-ghost btn-sm" href="pet-form.html?id=${p._id}" title="Edit">${ICONS.edit}<span class="sr-only">Edit ${esc(p.name)}</span></a>
+          <button class="btn btn-danger btn-sm" type="button" data-del-pet="${p._id}" title="Delete">${ICONS.trash}<span class="sr-only">Delete ${esc(p.name)}</span></button>
+        </div></td></tr>`).join('') || `<tr><td colspan="7">${emptyState('No pets match these filters')}</td></tr>`}</tbody>`;
   }
 
-  function renderLot() {
-    const term = $('#inv-search').value.trim().toLowerCase();
-    const f = state.lotFilter;
-    const rows = state.products
-      .filter((p) => (f === 'all' ? true : f === 'accessory' ? p.category === 'accessory' : p.category === 'vehicle' && p.status === f && p.condition !== 'pre-order'))
-      .filter((p) => !term || `${p.name} ${p.stockNumber || ''} ${p.color || ''}`.toLowerCase().includes(term));
-    $('#inv-table').innerHTML = rows.map(lotRow).join('') || '<p class="q-empty">No listings match.</p>';
+  // Record a verified vaccination from the registry.
+  const vaxDialog = setupModal($('#vax-dialog'));
+  const vaxForm = $('#vax-form');
+  $('#vax-names').innerHTML = options(VACCINES);
+  let vaxPet = null;
+  function openVax(pet) {
+    vaxPet = pet;
+    vaxForm.reset();
+    showFieldErrors(vaxForm, {});
+    $('#vax-error').hidden = true;
+    $('#vax-title').textContent = `Record vaccination: ${pet.name}`;
+    const today = new Date();
+    vaxForm.elements.dateGiven.value = toDateInput(today);
+    vaxForm.elements.dateGiven.max = toDateInput(today);
+    vaxForm.elements.nextDue.value = toDateInput(new Date(today.getTime() + 365 * 864e5));
+    vaxDialog.showModal();
   }
-  $('#inv-search').addEventListener('input', renderLot);
-  $$('[data-filter]').forEach((c) => c.addEventListener('click', () => {
-    state.lotFilter = c.dataset.filter;
-    $$('[data-filter]').forEach((x) => x.setAttribute('aria-pressed', String(x === c)));
-    renderLot();
-  }));
-
-  /* ---------- Orders pipeline ---------- */
-  function orderCard(o, stage) {
-    const final = ['completed', 'cancelled'].includes(o.status);
-    return `<article class="ticket">
-      <header><span class="mono">${esc(o.reference)}</span><time>${formatDate(o.createdAt)}</time></header>
-      <strong>${esc(o.fulfillment.fullName)}</strong>
-      <span class="mono ticket-phone">${esc(o.fulfillment.phone)}</span>
-      <ul>${o.items.map((i) => `<li>${esc(i.name)}${i.qty > 1 ? ` × ${i.qty}` : ''}${i.preorder ? ' <em>pre-order</em>' : ''}</li>`).join('')}</ul>
-      <p class="ticket-where">${o.fulfillment.method === 'delivery' ? `Deliver to ${esc(o.fulfillment.address)}${o.fulfillment.city ? `, ${esc(o.fulfillment.city)}` : ''}` : 'Showroom pickup'}</p>
-      <div class="ticket-money"><span>Due now <b class="mono">${formatPrice(o.dueNow)}</b></span><span>Total <b class="mono">${formatPriceShort(o.subtotal)}</b></span></div>
-      ${final ? '' : `<div class="ticket-actions">
-        ${stage?.next ? `<button class="btn btn-sm btn-accent" type="button" data-order-next="${o._id}" data-to="${stage.next}">${stage.action}</button>` : ''}
-        <button class="btn btn-sm btn-danger" type="button" data-order-cancel="${o._id}">Cancel</button></div>`}
-    </article>`;
-  }
-
-  function renderOrders() {
-    const cancelled = state.orders.filter((o) => o.status === 'cancelled');
-    $('#orders-table').innerHTML = STAGES.map((s) => {
-      const list = state.orders.filter((o) => o.status === s.key);
-      const shown = s.key === 'completed' ? list.slice(0, 6) : list;
-      return `<section class="lane lane-${s.key}" aria-label="${s.label}">
-        <header><h2>${s.label}</h2><b>${list.length}</b><small>${s.hint}</small></header>
-        <div class="lane-body">${shown.map((o) => orderCard(o, s)).join('') || '<p class="lane-empty">Nothing here.</p>'}</div>
-      </section>`;
-    }).join('') + (cancelled.length ? `<details class="lane-cancelled"><summary>${plural(cancelled.length, 'cancelled order')}</summary><div class="lane-body">${cancelled.map((o) => orderCard(o)).join('')}</div></details>` : '');
-  }
-
-  /* ---------- Messages ---------- */
-  function renderMessages() {
-    const list = state.messages.filter((m) => (state.msgFilter === 'open' ? m.status !== 'closed' : true));
-    $('#messages-table').innerHTML = list.map((m) => `<li class="mail st-${m.status}">
-      <div class="mail-head">
-        <span class="topic topic-${m.topic}">${TOPIC[m.topic]}</span>
-        <strong>${esc(m.name)}</strong>
-        <time>${formatDate(m.createdAt)}</time>
-      </div>
-      <p>${esc(m.message)}</p>
-      <div class="mail-meta">
-        <span class="mono">${esc(m.email)}</span>${m.phone ? `<span class="mono">${esc(m.phone)}</span>` : ''}
-        ${m.preferredDate ? `<span>Preferred ${formatDate(m.preferredDate)}</span>` : ''}
-        ${m.product ? `<a href="product.html?slug=${encodeURIComponent(m.product.slug)}" target="_blank" rel="noopener">${esc(m.product.stockNumber || m.product.name)}</a>` : ''}
-      </div>
-      <div class="mail-actions">
-        ${m.status === 'new' ? `<button class="btn btn-sm btn-accent" type="button" data-msg="${m._id}" data-to="replied">Mark replied</button>` : ''}
-        ${m.status !== 'closed' ? `<button class="btn btn-sm btn-ghost" type="button" data-msg="${m._id}" data-to="closed">Close</button>` : `<button class="btn btn-sm btn-ghost" type="button" data-msg="${m._id}" data-to="new">Reopen</button>`}
-      </div>
-    </li>`).join('') || `<li class="q-empty">${state.msgFilter === 'open' ? 'Inbox zero. Closed messages are under All.' : 'No messages yet.'}</li>`;
-  }
-  $$('[data-mfilter]').forEach((c) => c.addEventListener('click', () => {
-    state.msgFilter = c.dataset.mfilter;
-    $$('[data-mfilter]').forEach((x) => x.setAttribute('aria-pressed', String(x === c)));
-    renderMessages();
-  }));
-
-  /* ---------- Customers ---------- */
-  function renderCustomers() {
-    const ordersBy = (id) => state.orders.filter((o) => String(o.user?._id || o.user) === String(id) && o.status !== 'cancelled');
-    $('#customers-table').innerHTML = `
-      <thead><tr><th>Name</th><th>Email</th><th>Mobile</th><th class="num">Orders</th><th>Joined</th><th>Status</th><th></th></tr></thead>
-      <tbody>${state.users.filter((u) => u.role === 'customer').map((u) => `<tr class="${u.banned ? 'is-banned' : ''}">
-        <td>${esc(u.name)}</td><td>${esc(u.email)}</td><td class="mono">${esc(u.phone || '—')}</td>
-        <td class="num">${ordersBy(u._id).length}</td><td>${formatDate(u.createdAt)}</td>
-        <td>${u.banned ? `<span class="acct acct-banned">Banned ${u.bannedAt ? formatDate(u.bannedAt) : ''}</span>` : '<span class="acct acct-active">Active</span>'}</td>
-        <td><div class="row" style="flex-wrap:nowrap;justify-content:flex-end">
-          <button class="btn btn-ghost btn-sm" type="button" data-ban="${u._id}" data-to="${!u.banned}">${u.banned ? 'Unban' : 'Ban'}</button>
-          <button class="btn btn-danger btn-sm" type="button" data-user-delete="${u._id}">Delete</button>
-        </div></td></tr>`).join('') || '<tr><td colspan="7" class="muted">No customers yet.</td></tr>'}</tbody>`;
-  }
-
-  /* ---------- One click handler for every action in the console ---------- */
-  $('.console-main').addEventListener('click', (e) => {
-    const b = e.target.closest('button');
-    if (!b) return;
-    const d = b.dataset;
-    if (d.orderNext) act(() => api(`/orders/${d.orderNext}/status`, { method: 'PATCH', body: { status: d.to } }), `Order moved to ${d.to}.`);
-    if (d.orderCancel && armed(b, 'Confirm cancel')) act(() => api(`/orders/${d.orderCancel}/status`, { method: 'PATCH', body: { status: 'cancelled' } }), 'Order cancelled. Stock released.');
-    if (d.msg) act(() => api(`/contact/${d.msg}`, { method: 'PATCH', body: { status: d.to } }), `Message marked ${d.to}.`);
-    // Send the change (+1 / -1), not a new total, so the server applies it to the live count.
-    if (d.stock) act(() => api(`/products/${d.stock}/stock`, { method: 'PATCH', body: { delta: Number(d.delta) } }));
-    if (d.edit) openProductDialog(state.products.find((x) => x._id === d.edit));
-    if (d.delete && armed(b, 'Confirm')) act(() => api(`/products/${d.delete}`, { method: 'DELETE' }), 'Listing deleted.');
-    if (d.ban && (d.to === 'false' || armed(b, 'Confirm ban'))) {
-      act(() => api(`/users/${d.ban}/ban`, { method: 'PATCH', body: { banned: d.to === 'true' } }), d.to === 'true' ? 'Customer banned. They can no longer log in.' : 'Customer unbanned.');
-    }
-    if (d.userDelete && armed(b, 'Confirm delete')) act(() => api(`/users/${d.userDelete}`, { method: 'DELETE' }), 'Customer deleted.');
-  });
-  $('.console-main').addEventListener('change', (e) => {
-    const id = e.target.dataset.status;
-    if (id) act(() => api(`/products/${id}`, { method: 'PUT', body: { status: e.target.value } }), `Marked ${e.target.value}.`);
-  });
-
-  /* ---------- Listing dialog (create / edit) ---------- */
-  const dialog = $('#product-dialog');
-  const pform = $('#product-form');
-  let editingId = null;
-  let pendingFile = null; // photo chosen in the dialog, uploaded on save
-
-  /* Photo upload: click or drag a file onto the drop zone, preview it, upload on save */
-  const MAX_PHOTO = 5 * 1024 * 1024;
-  const dz = $('#dropzone');
-  const preview = $('#photo-preview');
-  function setPreview(src) {
-    preview.hidden = !src;
-    preview.style.backgroundImage = src ? `url("${src}")` : '';
-    dz.classList.toggle('has-photo', !!src);
-  }
-  function pickFile(file) {
-    if (!file) return;
-    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) return toast('Choose a JPG, PNG or WebP photo.', 'error');
-    if (file.size > MAX_PHOTO) return toast('That photo is over 5 MB. Export a smaller version.', 'error');
-    pendingFile = file;
-    setPreview(URL.createObjectURL(file));
-    showFieldErrors(pform, {});
-  }
-  $('#f-file').addEventListener('change', (e) => pickFile(e.target.files[0]));
-  ['dragenter', 'dragover'].forEach((t) => dz.addEventListener(t, (e) => { e.preventDefault(); dz.classList.add('is-over'); }));
-  ['dragleave', 'drop'].forEach((t) => dz.addEventListener(t, (e) => { e.preventDefault(); dz.classList.remove('is-over'); }));
-  dz.addEventListener('drop', (e) => pickFile(e.dataTransfer.files[0]));
-  pform.elements.image.addEventListener('change', () => { pendingFile = null; setPreview(pform.elements.image.value.trim()); });
-
-  function toggleCategoryFields() {
-    const isVehicle = pform.elements.category.value === 'vehicle';
-    $$('[data-v]', pform).forEach((el) => (el.hidden = !isVehicle));
-    $$('[data-a]', pform).forEach((el) => (el.hidden = isVehicle));
-  }
-  pform.elements.category.addEventListener('change', toggleCategoryFields);
-  $$('[data-close]', dialog).forEach((b) => b.addEventListener('click', () => dialog.close()));
-
-  function openProductDialog(p = null) {
-    editingId = p?._id || null;
-    $('#dialog-title').textContent = p ? `Edit ${p.name}` : 'Add listing';
-    pform.reset();
-    pendingFile = null;
-    setPreview(p?.image || '');
-    showFieldErrors(pform, {});
-    $('#product-error').hidden = true;
-    if (p) {
-      const f = pform.elements;
-      ['name', 'category', 'price', 'model', 'stockNumber', 'condition', 'status', 'year', 'trim', 'color', 'deposit', 'stock', 'image', 'summary', 'description', 'disclaimer']
-        .forEach((k) => { if (f[k] && p[k] !== undefined) f[k].value = p[k]; });
-      f.compatibleWith.value = (p.compatibleWith || []).join(', ');
-      f.features.value = (p.features || []).join('\n');
-      f.featured.checked = !!p.featured;
-      Object.entries(p.specs || {}).forEach(([k, v]) => { if (f[`s-${k}`]) f[`s-${k}`].value = v ?? ''; });
-    }
-    toggleCategoryFields();
-    dialog.showModal();
-  }
-  $('#add-product').addEventListener('click', () => openProductDialog());
-
-  function readProductForm() {
-    const f = pform.elements;
-    const n = (v) => (v === '' ? undefined : Number(v));
-    const body = {
-      name: f.name.value.trim(),
-      category: f.category.value,
-      price: n(f.price.value),
-      image: f.image.value.trim(),
-      summary: f.summary.value.trim(),
-      description: f.description.value.trim(),
-      features: f.features.value.split('\n').map((s) => s.trim()).filter(Boolean),
-      featured: f.featured.checked,
-    };
-    if (body.category === 'vehicle') {
-      Object.assign(body, {
-        model: f.model.value, stockNumber: f.stockNumber.value.trim(), condition: f.condition.value,
-        status: f.status.value, year: n(f.year.value), trim: f.trim.value.trim(), color: f.color.value.trim(),
-        deposit: n(f.deposit.value), disclaimer: f.disclaimer.value.trim(),
-        specs: Object.fromEntries(
-          ['rangeKm', 'zeroTo100', 'topSpeedKph', 'batteryKwh', 'drive', 'seats', 'odometerKm', 'batteryHealth']
-            .map((k) => [k, k === 'drive' ? f[`s-${k}`].value : n(f[`s-${k}`].value)])
-            .filter(([, v]) => v !== undefined)
-        ),
-      });
-    } else {
-      Object.assign(body, {
-        model: '',
-        stock: n(f.stock.value) ?? 0,
-        compatibleWith: f.compatibleWith.value.split(',').map((s) => s.trim()).filter(Boolean),
-      });
-    }
-    return body;
-  }
-
-  pform.addEventListener('submit', async (e) => {
+  vaxForm.addEventListener('submit', async (e) => {
     e.preventDefault();
-    const body = readProductForm();
-    const errors = {};
-    if (!body.name) errors.name = 'Name is required.';
-    if (body.price === undefined || body.price < 0) errors.price = 'Enter a price of 0 or more.';
-    if (!body.image && !pendingFile) errors.image = 'Add a photo of the car or part.';
-    showFieldErrors(pform, errors);
-    if (Object.keys(errors).length) return;
-
-    const btn = $('#save-product');
-    setBusy(btn, true, pendingFile ? 'Uploading photo…' : 'Saving…');
+    const f = vaxForm.elements;
+    const btn = vaxForm.querySelector('[type=submit]');
+    setBusy(btn, true, 'Saving…');
     try {
-      if (pendingFile) {
-        body.image = (await apiUpload('/uploads', pendingFile)).path;
-        pform.elements.image.value = body.image;
-        pendingFile = null;
-        btn.textContent = 'Saving…';
-      }
-      await api(editingId ? `/products/${editingId}` : '/products', { method: editingId ? 'PUT' : 'POST', body });
-      toast(editingId ? 'Listing updated.' : 'Listing added.');
-      dialog.close();
-      await loadAll();
+      await api(`/pets/${vaxPet._id}/vaccinations`, { method: 'POST', body: { vaccine: f.vaccine.value.trim(), dateGiven: fromDateInput(f.dateGiven.value), nextDue: fromDateInput(f.nextDue.value), administeredBy: f.administeredBy.value.trim() } });
+      vaxDialog.close();
+      toast(`Vaccination recorded for ${vaxPet.name}.`);
+      loadAll();
     } catch (err) {
-      $('#product-error').textContent = err.message;
-      $('#product-error').hidden = false;
-      if (err.details) showFieldErrors(pform, err.details);
+      $('#vax-error').textContent = err.message;
+      $('#vax-error').hidden = false;
+      if (err.details) showFieldErrors(vaxForm, Object.fromEntries(Object.entries(err.details).map(([k, v]) => [k.split('.').pop(), v])));
     } finally {
       setBusy(btn, false);
     }
   });
 
-  // Suggest existing image paths in the dialog.
-  fetch('assets/img/credits.json')
-    .then((r) => r.json())
-    .then((list) => ($('#image-paths').innerHTML = list.map((c) => `<option value="${esc(c.image)}"></option>`).join('')))
-    .catch(() => {});
+  /* ---------- Reports ---------- */
+  $('#rep-type').innerHTML = options(REPORT_TYPES, '', 'All types');
+  $('#rep-town').innerHTML = options(MUNICIPALITIES, '', 'All municipalities');
+  ['#rep-type', '#rep-town'].forEach((s) => $(s).addEventListener('change', renderReports));
+  $('#rep-q').addEventListener('input', debounce(renderReports, 150));
+  $('#report-status-chips').addEventListener('click', (e) => {
+    const b = e.target.closest('[data-rfilter]');
+    if (!b) return;
+    state.reportFilter = b.dataset.rfilter;
+    renderReports();
+  });
+
+  const OPEN = ['submitted', 'under-review', 'in-progress'];
+  function renderReports() {
+    const count = (f) => state.reports.filter((r) => (f === 'open' ? OPEN.includes(r.status) : f === 'all' || r.status === f)).length;
+    $('#report-status-chips').innerHTML = [['open', 'Open'], ['all', 'All'], ...Object.entries(REPORT_STATUSES).map(([k, s]) => [k, s.label])]
+      .map(([k, l]) => `<button class="chip" type="button" data-rfilter="${k}" aria-pressed="${state.reportFilter === k}">${l} <b>${count(k)}</b></button>`).join('');
+    const f = state.reportFilter;
+    const type = $('#rep-type').value;
+    const town = $('#rep-town').value;
+    const term = $('#rep-q').value.trim().toLowerCase();
+    const rows = state.reports
+      .filter((r) => (f === 'open' ? OPEN.includes(r.status) : f === 'all' || r.status === f))
+      .filter((r) => (!type || r.type === type) && (!town || r.location.municipality === town)
+        && (!term || `${r.reference} ${r.contact.name} ${r.location.barangay}`.toLowerCase().includes(term)))
+      .sort((a, b) => (a.priority === b.priority ? 0 : a.priority === 'high' ? -1 : 1) || new Date(b.createdAt) - new Date(a.createdAt));
+    $('#reports-table').innerHTML = `<thead><tr><th>Reference</th><th>Type</th><th>Where</th><th>Happened</th><th>Filed</th><th>Status</th><th></th></tr></thead>
+      <tbody>${rows.map((r) => `<tr>
+        <td><strong class="mono">${esc(r.reference)}</strong>${r.priority === 'high' ? '<br><span class="tag tag-red">High priority</span>' : ''}</td>
+        <td>${reportTypeTag(r.type)}${r.pet ? `<br><span class="small">${esc(r.pet.name)}</span>` : ''}</td>
+        <td>${esc(r.location.barangay)}<br><span class="muted small">${esc(r.location.municipality)}</span></td>
+        <td>${formatDate(r.incidentDate)}</td>
+        <td>${timeAgo(r.createdAt)}</td>
+        <td>${reportStatusTag(r.status)}</td>
+        <td><div class="cell-actions"><button class="btn btn-primary btn-sm" type="button" data-open-report="${r._id}">Open</button></div></td>
+      </tr>`).join('') || `<tr><td colspan="7">${emptyState('No reports here', f === 'open' ? 'Every case is resolved or closed.' : '')}</td></tr>`}</tbody>`;
+  }
+
+  const caseDialog = setupModal($('#case-dialog'));
+  function openCase(id) {
+    const r = state.reports.find((x) => x._id === id);
+    if (!r) return;
+    $('#case-title').innerHTML = `${esc(REPORT_TYPES[r.type].label)} · <span class="mono">${esc(r.reference)}</span>`;
+    const closed = ['resolved', 'closed'].includes(r.status);
+    $('#case-body').innerHTML = `
+      <div class="row" style="gap:6px">${reportTypeTag(r.type)}${reportStatusTag(r.status)}${r.priority === 'high' ? '<span class="tag tag-red">High priority</span>' : ''}${r.publicAlert ? '<span class="tag tag-amber">Public alert on</span>' : ''}</div>
+      <div class="case">
+        <div class="stack">
+          <p style="white-space:pre-line">${esc(r.description)}</p>
+          ${r.photos?.length ? `<div class="case-photos">${r.photos.map((p) => `<a href="${esc(p)}" target="_blank" rel="noopener"><img src="${esc(p)}" alt="Report photo"></a>`).join('')}</div>` : ''}
+          <dl>
+            <dt>Happened</dt><dd>${formatDate(r.incidentDate)} (filed ${formatDate(r.createdAt)})</dd>
+            <dt>Where</dt><dd>${esc(r.location.details ? `${r.location.details}, ` : '')}Brgy. ${esc(r.location.barangay)}, ${esc(r.location.municipality)}</dd>
+            <dt>Animal</dt><dd>${esc(SPECIES[r.animalSpecies] || 'Not sure')}${r.pet ? ` · <a href="pet.html?id=${r.pet._id}" target="_blank" rel="noopener">${esc(r.pet.name)} (${esc(r.pet.registrationNo)})</a>` : ''}</dd>
+            <dt>Contact</dt><dd>${esc(r.contact.name)} · <a href="tel:${esc(r.contact.phone.replace(/\s/g, ''))}">${esc(r.contact.phone)}</a>${r.contact.email ? ` · <a href="mailto:${esc(r.contact.email)}">${esc(r.contact.email)}</a>` : ''}</dd>
+          </dl>
+          <h3 style="font-size:1rem">Timeline</h3>
+          ${timeline(r.history)}
+        </div>
+        <form class="panel stack" id="case-form" novalidate>
+          <h3 style="font-size:1rem">Update case</h3>
+          <label class="field"><span>Status</span><select class="input" name="status">${options(REPORT_STATUSES, r.status)}</select></label>
+          <label class="field"><span>Note to the reporter</span><textarea class="input" name="note" maxlength="500" style="min-height:110px" placeholder="What the PVO did or will do next. The reporter sees this."></textarea></label>
+          ${r.type === 'missing' ? `<label class="check"><input type="checkbox" name="publicAlert" ${r.publicAlert ? 'checked' : ''} ${closed ? 'disabled' : ''}><span>Show public missing-pet alert<small>Turn off to hide the alert from the wall.</small></span></label>` : ''}
+          <button class="btn btn-primary" type="submit">Save update</button>
+        </form>
+      </div>`;
+    $('#case-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const f = e.currentTarget.elements;
+      const body = { status: f.status.value, note: f.note.value.trim() };
+      if (f.publicAlert && !f.publicAlert.disabled) body.publicAlert = f.publicAlert.checked;
+      const btn = e.currentTarget.querySelector('[type=submit]');
+      setBusy(btn, true, 'Saving…');
+      const saved = await act(() => api(`/reports/${r._id}`, { method: 'PATCH', body }), 'Case updated. The reporter can see it now.');
+      setBusy(btn, false);
+      if (saved) openCase(r._id); // show the new timeline entry
+    });
+    if (!caseDialog.open) caseDialog.showModal();
+  }
+
+  /* ---------- Announcements ---------- */
+  function renderAnnouncements() {
+    $('#ann-table').innerHTML = `<thead><tr><th>Title</th><th>Category</th><th>Schedule</th><th>Posted</th><th></th></tr></thead>
+      <tbody>${state.anns.map((a) => `<tr class="${a.published ? '' : 'is-muted'}">
+        <td><strong>${esc(a.title)}</strong><br>${a.pinned ? '<span class="tag tag-solid-green">Pinned</span> ' : ''}${a.published ? '' : '<span class="tag">Draft</span>'}</td>
+        <td>${categoryTag(a.category)}</td>
+        <td>${a.event?.startsAt ? `${esc(eventWhen(a.event))}<br><span class="muted small">${esc(a.event.venue || '')}</span>` : '<span class="muted">—</span>'}</td>
+        <td>${formatDate(a.createdAt)}</td>
+        <td><div class="cell-actions">
+          <a class="btn btn-ghost btn-sm" href="announcements.html#a-${a._id}" target="_blank" rel="noopener" title="View">${ICONS.eye}<span class="sr-only">View</span></a>
+          <button class="btn btn-ghost btn-sm" type="button" data-edit-ann="${a._id}">${ICONS.edit}<span class="sr-only">Edit</span></button>
+          <button class="btn btn-danger btn-sm" type="button" data-del-ann="${a._id}">${ICONS.trash}<span class="sr-only">Delete</span></button>
+        </div></td></tr>`).join('') || `<tr><td colspan="5">${emptyState('No announcements yet')}</td></tr>`}</tbody>`;
+  }
+
+  const annDialog = setupModal($('#ann-dialog'));
+  const annForm = $('#ann-form');
+  const annImage = createPhotoPicker($('#ann-image'), { max: 1, label: 'Add an image' });
+  $('#ann-category').innerHTML = options(CATEGORIES);
+  $('#ann-town').innerHTML = options(MUNICIPALITIES, '', 'Province-wide');
+  const syncEvent = () => ($('#event-fields').hidden = !annForm.elements.hasEvent.checked);
+  annForm.elements.hasEvent.addEventListener('change', syncEvent);
+  let editingAnn = null;
+
+  function openAnnouncement(a = null) {
+    editingAnn = a?._id || null;
+    annForm.reset();
+    showFieldErrors(annForm, {});
+    $('#ann-error').hidden = true;
+    $('#ann-title').textContent = a ? 'Edit announcement' : 'New announcement';
+    $('#ann-save').textContent = a ? 'Save changes' : 'Publish';
+    const f = annForm.elements;
+    if (a) {
+      f.title.value = a.title;
+      f.category.value = a.category;
+      f.body.value = a.body;
+      f.published.checked = a.published;
+      f.pinned.checked = a.pinned;
+      f.hasEvent.checked = !!a.event?.startsAt;
+      f.startsAt.value = toDateTimeInput(a.event?.startsAt);
+      f.endsAt.value = toDateTimeInput(a.event?.endsAt);
+      f.venue.value = a.event?.venue || '';
+      f.municipality.value = a.event?.municipality || '';
+    }
+    annImage.set(a?.image ? [a.image] : []);
+    syncEvent();
+    annDialog.showModal();
+  }
+  $$('[data-new-announcement]').forEach((b) => b.addEventListener('click', (e) => { e.preventDefault(); location.hash = 'announcements'; openAnnouncement(); }));
+
+  annForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const f = annForm.elements;
+    const errors = {};
+    if (!f.title.value.trim()) errors.title = 'Enter a title.';
+    if (!f.body.value.trim()) errors.body = 'Write the announcement text.';
+    if (f.hasEvent.checked) {
+      if (!f.startsAt.value) errors.startsAt = 'Add the start date and time.';
+      if (!f.venue.value.trim()) errors.venue = 'Add the venue.';
+      if (f.endsAt.value && f.startsAt.value && f.endsAt.value < f.startsAt.value) errors.endsAt = 'The end must be after the start.';
+    }
+    showFieldErrors(annForm, errors);
+    if (Object.keys(errors).length) return;
+    if (annImage.busy) return toast('Wait for the image to finish uploading.', 'error');
+    const body = {
+      title: f.title.value.trim(), category: f.category.value, body: f.body.value.trim(),
+      published: f.published.checked, pinned: f.pinned.checked, image: annImage.paths[0] || '',
+      event: f.hasEvent.checked ? { startsAt: fromDateTimeInput(f.startsAt.value), endsAt: fromDateTimeInput(f.endsAt.value), venue: f.venue.value.trim(), municipality: f.municipality.value } : null,
+    };
+    const btn = $('#ann-save');
+    setBusy(btn, true, 'Saving…');
+    try {
+      await api(editingAnn ? `/announcements/${editingAnn}` : '/announcements', { method: editingAnn ? 'PUT' : 'POST', body });
+      annDialog.close();
+      toast(editingAnn ? 'Announcement updated.' : body.published ? 'Announcement published.' : 'Draft saved.');
+      loadAll();
+    } catch (err) {
+      $('#ann-error').textContent = err.message;
+      $('#ann-error').hidden = false;
+      if (err.details) showFieldErrors(annForm, Object.fromEntries(Object.entries(err.details).map(([k, v]) => [k.split('.').pop(), v])));
+    } finally {
+      setBusy(btn, false);
+    }
+  });
+
+  /* ---------- Owners ---------- */
+  $('#owner-q').addEventListener('input', debounce(renderOwners, 150));
+  function renderOwners() {
+    const term = $('#owner-q').value.trim().toLowerCase();
+    const rows = state.users.filter((u) => !term || `${u.name} ${u.email} ${u.municipality || ''}`.toLowerCase().includes(term));
+    $('#owners-table').innerHTML = `<thead><tr><th>Name</th><th>Contact</th><th>Municipality</th><th class="num">Pets</th><th class="num">Reports</th><th>Joined</th><th>Status</th><th></th></tr></thead>
+      <tbody>${rows.map((u) => `<tr class="${u.banned ? 'is-muted' : ''}">
+        <td><strong>${esc(u.name)}</strong>${u.role === 'admin' ? ' <span class="tag tag-green">PVO staff</span>' : ''}</td>
+        <td>${esc(u.email)}<br><span class="muted small">${esc(u.phone || '—')}</span></td>
+        <td>${esc(u.municipality || '—')}${u.barangay ? `<br><span class="muted small">${esc(u.barangay)}</span>` : ''}</td>
+        <td class="num">${u.petCount}</td><td class="num">${u.reportCount}</td>
+        <td>${formatDate(u.createdAt)}</td>
+        <td>${u.banned ? `<span class="tag tag-red">Suspended ${formatDate(u.bannedAt)}</span>` : '<span class="tag tag-green">Active</span>'}</td>
+        <td>${u.role === 'admin' ? '' : `<div class="cell-actions">
+          <button class="btn btn-ghost btn-sm" type="button" data-ban="${u._id}" data-to="${!u.banned}">${u.banned ? 'Restore' : 'Suspend'}</button>
+          <button class="btn btn-danger btn-sm" type="button" data-del-user="${u._id}">Delete</button></div>`}</td>
+      </tr>`).join('') || `<tr><td colspan="8">${emptyState('No accounts match')}</td></tr>`}</tbody>`;
+  }
+
+  /* ---------- Messages ---------- */
+  $$('[data-mfilter]').forEach((c) => c.addEventListener('click', () => {
+    state.msgFilter = c.dataset.mfilter;
+    $$('[data-mfilter]').forEach((x) => x.setAttribute('aria-pressed', String(x === c)));
+    renderMessages();
+  }));
+  function renderMessages() {
+    const list = state.messages.filter((m) => state.msgFilter === 'all' || m.status !== 'closed');
+    $('#messages-list').innerHTML = list.map((m) => `<li class="card st-${m.status}">
+      <div class="row between"><div class="row" style="gap:8px"><span class="tag tag-blue">${esc(CONTACT_TOPICS[m.topic] || m.topic)}</span><strong>${esc(m.name)}</strong>
+        ${m.status === 'new' ? '<span class="tag tag-green">New</span>' : `<span class="tag">${esc(m.status)}</span>`}</div><time class="muted small">${timeAgo(m.createdAt)}</time></div>
+      <p style="white-space:pre-line">${esc(m.message)}</p>
+      <div class="row small"><a href="mailto:${esc(m.email)}?subject=${encodeURIComponent('Re: your message to the PVO')}">${esc(m.email)}</a>${m.phone ? `<span class="muted">${esc(m.phone)}</span>` : ''}</div>
+      <div class="row">
+        ${m.status === 'new' ? `<button class="btn btn-primary btn-sm" type="button" data-msg="${m._id}" data-to="replied">Mark replied</button>` : ''}
+        ${m.status !== 'closed' ? `<button class="btn btn-ghost btn-sm" type="button" data-msg="${m._id}" data-to="closed">Close</button>` : `<button class="btn btn-ghost btn-sm" type="button" data-msg="${m._id}" data-to="new">Reopen</button>`}
+        <button class="btn btn-danger btn-sm" type="button" data-del-msg="${m._id}">Delete</button>
+      </div></li>`).join('') || `<li>${emptyState(state.msgFilter === 'open' ? 'Inbox zero' : 'No messages yet', state.msgFilter === 'open' ? 'Closed messages are under All.' : '')}</li>`;
+  }
+
+  /* ---------- One click handler for every action ---------- */
+  document.addEventListener('click', (e) => {
+    const b = e.target.closest('button');
+    if (!b || !$('#console').contains(b) && !$('#case-dialog').contains(b)) return;
+    const d = b.dataset;
+    const pet = (id) => state.pets.find((p) => p._id === id);
+
+    if (d.openReport) openCase(d.openReport);
+    if (d.gotoPending !== undefined) { $('#pet-reg').value = 'pending'; renderPets(); location.hash = 'pets'; }
+    if (d.verify) act(() => api(`/pets/${d.verify}/verify`, { method: 'PATCH', body: { verified: true } }), `${pet(d.verify).name}'s registration verified.`);
+    if (d.vax) openVax(pet(d.vax));
+    if (d.delPet && armed(b, 'Delete?')) act(() => api(`/pets/${d.delPet}`, { method: 'DELETE' }), 'Pet removed.');
+    if (d.editAnn) openAnnouncement(state.anns.find((a) => a._id === d.editAnn));
+    if (d.delAnn && armed(b, 'Delete?')) act(() => api(`/announcements/${d.delAnn}`, { method: 'DELETE' }), 'Announcement deleted.');
+    if (d.ban && (d.to === 'false' || armed(b, 'Confirm'))) {
+      act(() => api(`/users/${d.ban}/ban`, { method: 'PATCH', body: { banned: d.to === 'true' } }), d.to === 'true' ? 'Account suspended. They can no longer log in.' : 'Account restored.');
+    }
+    if (d.delUser && armed(b, 'Delete all?')) act(() => api(`/users/${d.delUser}`, { method: 'DELETE' }), 'Account deleted.');
+    if (d.msg) act(() => api(`/contact/${d.msg}`, { method: 'PATCH', body: { status: d.to } }), `Message marked ${d.to}.`);
+    if (d.delMsg && armed(b, 'Delete?')) act(() => api(`/contact/${d.delMsg}`, { method: 'DELETE' }), 'Message deleted.');
+  });
 
   loadAll();
 }

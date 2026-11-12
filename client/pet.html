@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Pet profile | Alaga · PVO Marinduque</title>
+  <meta name="theme-color" content="#c2410c">
+  <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="assets/css/styles.css">
+</head>
+<body>
+  <main class="wrap">
+    <div id="profile"><div class="skeleton" style="height:420px;margin-top:24px"></div></div>
+
+    <div id="tabs-wrap" hidden>
+      <div class="tabs" role="tablist" aria-label="Profile sections">
+        <button class="tab" role="tab" id="tab-posts" aria-controls="panel-posts" aria-selected="true">Posts <span class="tag" id="post-count">0</span></button>
+        <button class="tab" role="tab" id="tab-health" aria-controls="panel-health" aria-selected="false" hidden>Health records</button>
+      </div>
+      <section id="panel-posts" role="tabpanel" aria-labelledby="tab-posts">
+        <div class="feed feed-narrow" id="pet-posts"></div>
+        <div class="row feed-narrow" id="posts-more" style="justify-content:center;margin-top:16px"></div>
+      </section>
+      <section id="panel-health" role="tabpanel" aria-labelledby="tab-health" hidden>
+        <p class="notice small" style="margin-bottom:16px">Health records are private: only the owner and PVO staff can see them. Vaccinations recorded by the PVO are marked <b>PVO verified</b>.</p>
+        <div class="stack">
+          <div class="panel-head"><h2>Vaccinations</h2><button class="btn btn-primary btn-sm" type="button" id="add-vax">+ Add vaccination</button></div>
+          <ul class="record-list" id="vax-list"></ul>
+          <div class="panel-head" style="margin-top:16px"><h2>Medical history</h2><button class="btn btn-primary btn-sm" type="button" id="add-med">+ Add record</button></div>
+          <ul class="record-list" id="med-list"></ul>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <dialog class="modal" id="vax-dialog" aria-labelledby="vax-title">
+    <form method="dialog" id="vax-form" novalidate>
+      <div class="modal-head"><h2 id="vax-title">Add vaccination</h2><button class="icon-btn" type="button" data-close aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>
+      <div class="modal-body">
+        <label class="field"><span>Vaccine</span><input class="input" name="vaccine" list="vaccine-list" maxlength="60" required placeholder="e.g. Anti-rabies"><small class="field-error"></small></label>
+        <datalist id="vaccine-list"></datalist>
+        <div class="form-grid">
+          <label class="field"><span>Date given</span><input class="input" type="date" name="dateGiven" required><small class="field-error"></small></label>
+          <label class="field"><span>Next due <span class="muted">(optional)</span></span><input class="input" type="date" name="nextDue"><small class="field-error"></small></label>
+        </div>
+        <label class="field"><span>Given by <span class="muted">(clinic or vet)</span></span><input class="input" name="administeredBy" maxlength="80"><small class="field-error"></small></label>
+        <p class="muted small" id="vax-note"></p>
+        <p class="notice notice-error" id="vax-error" hidden></p>
+      </div>
+      <div class="modal-foot"><button class="btn btn-ghost" type="button" data-close>Cancel</button><button class="btn btn-primary" type="submit">Save vaccination</button></div>
+    </form>
+  </dialog>
+
+  <dialog class="modal" id="med-dialog" aria-labelledby="med-title">
+    <form method="dialog" id="med-form" novalidate>
+      <div class="modal-head"><h2 id="med-title">Add medical record</h2><button class="icon-btn" type="button" data-close aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>
+      <div class="modal-body">
+        <div class="form-grid">
+          <label class="field"><span>Date</span><input class="input" type="date" name="date" required><small class="field-error"></small></label>
+          <label class="field"><span>Type</span><select class="input" name="type" id="med-type"></select></label>
+        </div>
+        <label class="field"><span>Title</span><input class="input" name="title" maxlength="80" required placeholder="e.g. Annual check-up"><small class="field-error"></small></label>
+        <label class="field"><span>Notes <span class="muted">(optional)</span></span><textarea class="input" name="notes" maxlength="1000" style="min-height:90px"></textarea></label>
+        <label class="field"><span>Vet or clinic <span class="muted">(optional)</span></span><input class="input" name="vet" maxlength="80"></label>
+        <p class="notice notice-error" id="med-error" hidden></p>
+      </div>
+      <div class="modal-foot"><button class="btn btn-ghost" type="button" data-close>Cancel</button><button class="btn btn-primary" type="submit">Save record</button></div>
+    </form>
+  </dialog>
+  <script type="module" src="assets/js/pages/pet.js"></script>
+</body>
+</html>

@@ -1,5 +1,6 @@
-/** Messages sent from the Contact page (test drives, financing, trade-ins, questions). */
+/** Messages sent from the Contact page. Anyone can send one; PVO staff triage them. */
 const mongoose = require('mongoose');
+const { CONTACT_TOPICS, EMAIL, PHONE } = require('../config/constants');
 
 const contactSchema = new mongoose.Schema(
   {
@@ -9,16 +10,10 @@ const contactSchema = new mongoose.Schema(
       required: [true, 'Email is required.'],
       lowercase: true,
       trim: true,
-      match: [/^\S+@\S+\.\S+$/, 'Enter a valid email address.'],
+      match: [EMAIL, 'Enter a valid email address.'],
     },
-    phone: { type: String, trim: true, maxlength: 20 },
-    topic: {
-      type: String,
-      enum: ['test-drive', 'financing', 'trade-in', 'general'],
-      default: 'general',
-    },
-    product: { type: mongoose.Schema.Types.ObjectId, ref: 'Product' },
-    preferredDate: Date,
+    phone: { type: String, trim: true, match: [PHONE, 'Enter a valid phone number.'] },
+    topic: { type: String, enum: CONTACT_TOPICS, default: 'general' },
     message: {
       type: String,
       required: [true, 'Message is required.'],

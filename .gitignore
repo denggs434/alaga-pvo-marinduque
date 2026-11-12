@@ -1,5 +1,9 @@
 node_modules/
+# Secrets: every .env variant stays local (backups included); only the template is shared
 .env
+.env.*
+*.env
+!.env.example
 .DS_Store
 *.log
 # Photos uploaded through the admin panel are runtime data
