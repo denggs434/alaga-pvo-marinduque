@@ -83,17 +83,36 @@ function headerHtml(active) {
 export function setupThemeToggle(btn = $('#theme-toggle')) {
   if (!btn) return;
   const prefersDark = () => matchMedia('(prefers-color-scheme: dark)').matches;
+  const reduce = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
   const current = () => document.documentElement.dataset.theme || (prefersDark() ? 'dark' : 'light');
+  // Both icons live in the button; CSS turns one into the other (rotate + fade).
+  btn.classList.add('theme-toggle');
+  btn.innerHTML = `<span class="theme-icon theme-sun">${ICONS.sun}</span><span class="theme-icon theme-moon">${ICONS.moon}</span>`;
   const paint = () => {
     const dark = current() === 'dark';
-    btn.innerHTML = dark ? ICONS.sun : ICONS.moon;
+    btn.dataset.mode = dark ? 'dark' : 'light';
     btn.setAttribute('aria-label', dark ? 'Switch to light theme' : 'Switch to dark theme');
   };
-  btn.addEventListener('click', () => {
-    const next = current() === 'dark' ? 'light' : 'dark';
+  const apply = (next) => {
     document.documentElement.dataset.theme = next;
     try { localStorage.setItem('alaga.theme', next); } catch { /* ignore */ }
     paint();
+  };
+  btn.addEventListener('click', () => {
+    const next = current() === 'dark' ? 'light' : 'dark';
+    if (!document.startViewTransition || reduce()) return apply(next);
+    // The new theme spreads out in a circle from the button.
+    const r = btn.getBoundingClientRect();
+    const x = r.left + r.width / 2;
+    const y = r.top + r.height / 2;
+    const radius = Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y));
+    const t = document.startViewTransition(() => apply(next));
+    t.ready.then(() => {
+      document.documentElement.animate(
+        { clipPath: [`circle(0px at ${x}px ${y}px)`, `circle(${radius}px at ${x}px ${y}px)`] },
+        { duration: 520, easing: 'cubic-bezier(0.23, 1, 0.32, 1)', pseudoElement: '::view-transition-new(root)' }
+      );
+    }).catch(() => {});
   });
   paint();
 }
@@ -140,9 +159,43 @@ export async function refreshUnread() {
   } catch { /* the dot is a nicety */ }
 }
 
+/** A pill that slides between the main links: it follows the pointer and rests on the current page. */
+function setupNavPill() {
+  const list = $('.nav-links');
+  if (!list) return;
+  const pill = document.createElement('span');
+  pill.className = 'nav-pill';
+  pill.setAttribute('aria-hidden', 'true');
+  list.prepend(pill);
+  const links = $$('.nav-link', list);
+  const current = () => links.find((l) => l.getAttribute('aria-current') === 'page');
+  const moveTo = (el, instant = false) => {
+    if (!el) { pill.style.opacity = '0'; return; }
+    if (instant) pill.style.transition = 'none';
+    const box = el.getBoundingClientRect();
+    pill.style.width = `${box.width}px`;
+    pill.style.transform = `translateX(${box.left - list.getBoundingClientRect().left}px)`;
+    pill.style.opacity = '1';
+    pill.classList.toggle('is-current', el === current());
+    if (instant) { pill.offsetWidth; pill.style.transition = ''; }
+  };
+  links.forEach((l) => {
+    l.addEventListener('mouseenter', () => moveTo(l));
+    l.addEventListener('focus', () => moveTo(l));
+  });
+  list.addEventListener('mouseleave', () => moveTo(current()));
+  list.addEventListener('focusout', (e) => { if (!list.contains(e.relatedTarget)) moveTo(current()); });
+  // Place it once the webfont has settled the link widths, and again on resize.
+  const place = () => moveTo(current(), true);
+  place();
+  document.fonts?.ready.then(place);
+  addEventListener('resize', place);
+}
+
 export function renderHeader(active) {
   document.body.insertAdjacentHTML('afterbegin', headerHtml(active));
   setupThemeToggle();
+  setupNavPill();
   setupAccountMenu();
   setupMobileMenu();
   $$('[data-logout]').forEach((b) => b.addEventListener('click', () => logout()));

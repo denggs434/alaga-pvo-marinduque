@@ -4,7 +4,7 @@
  */
 import { api } from '../api.js';
 import { getUser, isAdmin } from '../store.js';
-import { SPECIES, MUNICIPALITIES } from '../config.js';
+import { SPECIES, SPECIES_ICON, MUNICIPALITIES } from '../config.js';
 import { breedsFor } from '../breeds.js';
 import { initPage, requireLogin, toast, setBusy, showFieldErrors, options, createPhotoPicker, emptyState, toDateInput, fromDateInput, ICONS, $ } from '../ui.js';
 
@@ -34,7 +34,7 @@ function fillBreeds() {
 
 function setupFields() {
   $('#species').innerHTML = Object.entries(SPECIES).map(([k, label]) =>
-    `<label class="choice"><input type="radio" name="species" value="${k}" required>${ICONS.paw}<strong>${label}</strong></label>`).join('');
+    `<label class="choice"><input type="radio" name="species" value="${k}" required>${ICONS[SPECIES_ICON[k]]}<strong>${label}</strong></label>`).join('');
   form.elements.municipality.innerHTML = options(MUNICIPALITIES, user.municipality || '', 'Choose…');
   form.elements.birthDate.max = toDateInput(new Date());
   form.addEventListener('change', (e) => e.target.name === 'species' && fillBreeds());

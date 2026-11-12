@@ -16,6 +16,8 @@ export const SITE = {
 export const MUNICIPALITIES = ['Boac', 'Buenavista', 'Gasan', 'Mogpog', 'Santa Cruz', 'Torrijos'];
 
 export const SPECIES = { dog: 'Dog', cat: 'Cat', rabbit: 'Rabbit', bird: 'Bird', other: 'Other' };
+/** Icon for each species (icons.js); "other" keeps the paw. */
+export const SPECIES_ICON = { dog: 'dog', cat: 'cat', rabbit: 'rabbit', bird: 'bird', other: 'paw' };
 export const SPECIES_PLURAL = { dog: 'Dogs', cat: 'Cats', rabbit: 'Rabbits', bird: 'Birds', other: 'Others' };
 
 export const MEDICAL_TYPES = { checkup: 'Check-up', illness: 'Illness', injury: 'Injury', surgery: 'Surgery', deworming: 'Deworming', other: 'Other' };

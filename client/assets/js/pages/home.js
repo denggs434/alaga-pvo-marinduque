@@ -10,7 +10,7 @@
 import { api, qs } from '../api.js';
 import { getUser, isOwner, isAdmin } from '../store.js';
 import { SPECIES } from '../config.js';
-import { initPage, toast, setBusy, emptyState, errorState, skeleton, createPhotoPicker, esc, initials, formatDate, ICONS, $, $$ } from '../ui.js';
+import { initPage, toast, setBusy, setupModal, emptyState, errorState, skeleton, createPhotoPicker, esc, initials, formatDate, ICONS, $, $$ } from '../ui.js';
 import { createPostList, petImg, scheduleItem, alertCard, categoryTag, dateTile } from '../components.js';
 
 initPage('wall');
@@ -70,29 +70,52 @@ async function showFocusedPost() {
 }
 const focusList = createPostList($('#focus-list'));
 
-/* ---------- Feed ---------- */
+/* ---------- Feed: keeps loading as you scroll (no "Load more" button) ---------- */
+let hasMore = false;
 async function loadPosts() {
   if (loading) return;
   loading = true;
-  moreEl.innerHTML = '';
-  if (page === 1) postsEl.innerHTML = skeleton(3, 220);
+  if (page === 1) {
+    postsEl.innerHTML = skeleton(3, 220);
+    moreEl.innerHTML = '';
+  } else {
+    moreEl.innerHTML = `<div class="feed-loading" role="status">${skeleton(1, 160)}<span class="sr-only">Loading more posts</span></div>`;
+  }
   try {
     const data = await api(`/posts${qs({ page, limit: 8, order, seed: order === 'discover' ? seed : '' })}`);
     if (page === 1) feed.clear();
-    if (!data.items.length && page === 1) return showEmptyFeed();
+    if (!data.items.length && page === 1) { hasMore = false; moreEl.innerHTML = ''; return showEmptyFeed(); }
     feed.append(data.items.filter((p) => p._id !== focusId)); // the opened post is already shown above
-    if (data.page < data.pages) {
-      moreEl.innerHTML = '<button class="btn btn-ghost" type="button" id="load-more">Load more posts</button>';
-      $('#load-more').addEventListener('click', () => { page += 1; loadPosts(); });
-    } else if (page > 1) {
-      moreEl.innerHTML = '<p class="muted small">You are all caught up.</p>';
-    }
+    hasMore = data.page < data.pages;
+    moreEl.innerHTML = hasMore ? '' : (page > 1 || data.total > 3 ? `<p class="feed-end">${ICONS.check}You're all caught up</p>` : '');
   } catch (err) {
+    moreEl.innerHTML = '';
     if (page === 1) postsEl.innerHTML = errorState(err.message);
-    else toast(err.message, 'error');
+    else { page -= 1; toast(err.message, 'error'); }
   } finally {
     loading = false;
   }
+  // If the page is still short (big screen), keep filling it.
+  requestAnimationFrame(() => { if (hasMore && sentinelVisible) nextPage(); });
+}
+
+function nextPage() {
+  if (loading || !hasMore) return;
+  page += 1;
+  loadPosts();
+}
+
+let sentinelVisible = false;
+function setupInfiniteScroll() {
+  const sentinel = document.createElement('div');
+  sentinel.className = 'feed-sentinel';
+  sentinel.setAttribute('aria-hidden', 'true');
+  moreEl.after(sentinel);
+  if (!('IntersectionObserver' in window)) return;
+  new IntersectionObserver((entries) => {
+    sentinelVisible = entries[0].isIntersecting;
+    if (sentinelVisible) nextPage();
+  }, { rootMargin: '0px 0px 600px 0px' }).observe(sentinel);
 }
 
 function setupFeedTabs() {
@@ -103,6 +126,7 @@ function setupFeedTabs() {
     order = b.dataset.feed;
     $$('[data-feed]').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
     page = 1;
+    hasMore = false;
     loadPosts();
   }));
 }
@@ -124,33 +148,77 @@ function renderComposer() {
     return;
   }
 
-  box.innerHTML = `<form class="card composer" id="composer-form" novalidate aria-labelledby="composer-title">
-    <h3 class="composer-title" id="composer-title">${ICONS.edit}Create a post</h3>
-    <div class="composer-top">
-      <span class="avatar pet-avatar" aria-hidden="true">${esc(initials(user.name))}</span>
-      <label class="sr-only" for="post-text">Write a caption or update</label>
-      <textarea id="post-text" name="text" maxlength="1000" placeholder="What's new with your pets, ${esc(user.name.split(' ')[0])}?"></textarea>
+  const first = esc(user.name.split(' ')[0]);
+  const prompt = `What's on your mind, ${first}?`;
+  // Facebook-style: a compact "What's on your mind?" bar that opens the full composer.
+  box.innerHTML = `<div class="card composer-card">
+      <div class="composer-row">
+        <span class="avatar pet-avatar" aria-hidden="true">${esc(initials(user.name))}</span>
+        <button class="composer-pill" type="button" data-compose="text">${prompt}</button>
+      </div>
+      <div class="composer-quick">
+        <button type="button" data-compose="photo"><span class="q-photo">${ICONS.image}</span>Photo</button>
+        <button type="button" data-compose="pet"><span class="q-pet">${ICONS.paw}</span>Pet update</button>
+        <a href="report.html?type=missing"><span class="q-lost">${ICONS.search}</span>Lost pet</a>
+      </div>
     </div>
-    <div id="composer-photos" hidden></div>
-    <div class="composer-bar">
-      <button class="btn btn-soft btn-sm" type="button" id="add-photo" aria-expanded="false" aria-controls="composer-photos">${ICONS.image}Photos</button>
-      <span class="count" id="post-count">0 / 1000</span>
-      <button class="btn btn-primary btn-sm" type="submit" id="post-btn">${ICONS.send}Publish post</button>
-    </div>
-    <p class="field-error" id="post-error" role="alert"></p>
-  </form>`;
+    <dialog class="modal composer-modal" id="composer-dialog" aria-labelledby="composer-title">
+      <form id="composer-form" novalidate>
+        <div class="modal-head"><h2 id="composer-title">Create post</h2>
+          <button class="icon-btn" type="button" data-close aria-label="Close">${ICONS.close}</button></div>
+        <div class="composer-body">
+          <div class="composer-who"><span class="avatar pet-avatar" aria-hidden="true">${esc(initials(user.name))}</span>
+            <span><strong>${esc(user.name)}</strong><small>${ICONS.users}Community wall</small></span></div>
+          <label class="sr-only" for="post-text">What's on your mind?</label>
+          <textarea id="post-text" class="composer-text" name="text" maxlength="1000" placeholder="${prompt}"></textarea>
+          <div id="composer-photos" hidden></div>
+          <div class="composer-add">
+            <span>Add to your post</span>
+            <button class="icon-btn q-photo" type="button" id="add-photo" aria-label="Add photos" aria-expanded="false" aria-controls="composer-photos">${ICONS.image}</button>
+            <span class="count" id="post-count">0 / 1000</span>
+          </div>
+          <p class="field-error" id="post-error" role="alert"></p>
+        </div>
+        <div class="composer-foot"><button class="btn btn-primary btn-block" type="submit" id="post-btn" disabled>Post</button></div>
+      </form>
+    </dialog>`;
 
+  const dialog = setupModal($('#composer-dialog'));
   const form = $('#composer-form');
   const photosEl = $('#composer-photos');
-  const picker = createPhotoPicker(photosEl, { max: MAX_PHOTOS, label: `Add up to ${MAX_PHOTOS} photos` });
+  const postBtn = $('#post-btn');
+  const picker = createPhotoPicker(photosEl, { max: MAX_PHOTOS, label: `Add up to ${MAX_PHOTOS} photos`, onChange: () => sync() });
   const addBtn = $('#add-photo');
+  // Post is only enabled once there is something to post (like Facebook).
+  const sync = () => { postBtn.disabled = !form.elements.text.value.trim() && !picker.paths.length; };
+  const showPhotos = (open) => {
+    photosEl.hidden = !open;
+    addBtn.setAttribute('aria-expanded', String(open));
+    addBtn.classList.toggle('is-on', open);
+  };
+  const openComposer = (mode) => {
+    form.elements.text.placeholder = mode === 'pet' ? `How are your pets today, ${user.name.split(' ')[0]}?` : prompt.replace(/&#39;|&apos;/g, "'");
+    dialog.showModal();
+    if (mode === 'photo') {
+      showPhotos(true);
+      if (!picker.paths.length) $('input[type=file]', photosEl)?.click();
+    } else {
+      form.elements.text.focus();
+    }
+  };
+  $$('[data-compose]', box).forEach((b) => b.addEventListener('click', () => openComposer(b.dataset.compose)));
   addBtn.addEventListener('click', () => {
-    const show = photosEl.hidden;
-    photosEl.hidden = !show;
-    addBtn.setAttribute('aria-expanded', String(show));
-    if (show && !picker.paths.length) $('input[type=file]', photosEl)?.click();
+    const open = photosEl.hidden;
+    showPhotos(open);
+    if (open && !picker.paths.length) $('input[type=file]', photosEl)?.click();
   });
-  form.elements.text.addEventListener('input', () => ($('#post-count').textContent = `${form.elements.text.value.length} / 1000`));
+  form.elements.text.addEventListener('input', () => {
+    $('#post-count').textContent = `${form.elements.text.value.length} / 1000`;
+    // Grow with the text, like a chat box
+    form.elements.text.style.height = 'auto';
+    form.elements.text.style.height = `${Math.min(form.elements.text.scrollHeight, 320)}px`;
+    sync();
+  });
 
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -163,23 +231,24 @@ function renderComposer() {
       form.elements.text.focus();
       return;
     }
-    const btn = $('#post-btn');
-    setBusy(btn, true, 'Publishing…');
+    setBusy(postBtn, true, 'Posting…');
     try {
       const post = await api('/posts', { method: 'POST', body: { text, photos } });
       if (!feed.size) postsEl.innerHTML = '';
       feed.prepend(post);
-      form.elements.text.value = '';
+      form.reset();
+      form.elements.text.style.height = '';
       $('#post-count').textContent = '0 / 1000';
       picker.set([]);
-      photosEl.hidden = true;
-      addBtn.setAttribute('aria-expanded', 'false');
-      toast('Published to the community wall.');
+      showPhotos(false);
+      dialog.close();
+      toast('Posted to the community wall.');
       $(`#post-${post._id}`)?.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'center' });
     } catch (err) {
       $('#post-error').textContent = err.message;
     } finally {
-      setBusy(btn, false);
+      setBusy(postBtn, false);
+      sync();
     }
   });
 }
@@ -275,6 +344,7 @@ async function boot() {
   renderMeCard();
   renderComposer();
   setupFeedTabs();
+  setupInfiniteScroll();
   showFocusedPost();
   loadPosts();
   loadSide();

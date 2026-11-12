@@ -3,8 +3,8 @@
  * Filter state lives in the URL, so a filtered view can be bookmarked or shared.
  */
 import { api, qs } from '../api.js';
-import { SPECIES_PLURAL, MUNICIPALITIES } from '../config.js';
-import { initPage, options, emptyState, errorState, skeleton, debounce, plural, $ } from '../ui.js';
+import { SPECIES_PLURAL, SPECIES_ICON, MUNICIPALITIES } from '../config.js';
+import { initPage, options, emptyState, errorState, skeleton, debounce, plural, ICONS, $ } from '../ui.js';
 import { petCard } from '../components.js';
 
 initPage('pets');
@@ -28,7 +28,7 @@ form.elements.municipality.innerHTML = options(MUNICIPALITIES, state.municipalit
 function renderChips(facets = {}) {
   const total = Object.values(facets).reduce((a, b) => a + b, 0);
   const chip = (value, label, n) =>
-    `<button class="chip" type="button" data-species="${value}" aria-pressed="${state.species === value}">${label}${n !== undefined ? ` <b>${n}</b>` : ''}</button>`;
+    `<button class="chip" type="button" data-species="${value}" aria-pressed="${state.species === value}">${value ? ICONS[SPECIES_ICON[value]] : ''}${label}${n !== undefined ? ` <b>${n}</b>` : ''}</button>`;
   $('#species-chips').innerHTML = chip('', 'All pets', total) +
     Object.entries(SPECIES_PLURAL).map(([k, label]) => chip(k, label, facets[k] || 0)).join('');
 }

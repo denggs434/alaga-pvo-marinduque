@@ -53,7 +53,15 @@ export function setupNotifications() {
   const list = $('#notif-list');
   const badge = $('#notif-badge');
 
+  let lastCount = 0;
   const paintCount = (n) => {
+    // A new unread notification rings the bell once.
+    if (n > lastCount) {
+      btn.classList.remove('ring');
+      void btn.offsetWidth;
+      btn.classList.add('ring');
+    }
+    lastCount = n;
     badge.hidden = !n;
     badge.textContent = n > 9 ? '9+' : String(n);
     btn.setAttribute('aria-label', n ? `Notifications, ${n} unread` : 'Notifications');

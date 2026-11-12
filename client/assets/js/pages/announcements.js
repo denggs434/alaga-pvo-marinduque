@@ -20,7 +20,7 @@ $('#upcoming-only').checked = state.upcoming;
 function card(a) {
   const e = a.event?.startsAt ? a.event : null;
   const past = e && new Date(e.endsAt || e.startsAt) < new Date();
-  const long = a.body.length > 260;
+  const long = a.body.length > 260 || /\n\s*\n/.test(a.body);
   return `<article class="card ann ${a.pinned ? 'is-pinned' : ''}" id="a-${a._id}">
     <div class="row" style="gap:8px">${categoryTag(a.category)}${a.pinned ? `<span class="tag tag-solid-green">${ICONS.star}Pinned</span>` : ''}<span class="muted small">Posted ${formatDate(a.createdAt)}</span></div>
     <h2>${esc(a.title)}</h2>
@@ -31,7 +31,7 @@ function card(a) {
         ${past ? '' : `<button class="link-btn small" type="button" data-ics="${a._id}" style="justify-self:start;display:inline-flex;gap:6px;align-items:center">Add to my calendar</button>`}
       </div></div>` : ''}
     ${a.image ? `<img class="ann-image" src="${esc(a.image)}" alt="" loading="lazy">` : ''}
-    <p class="ann-body ${long ? 'is-clamped' : ''}">${esc(a.body)}</p>
+    <div class="ann-body ${long ? 'is-clamped' : ''}">${a.body.split(/\n\s*\n/).map((para) => `<p>${esc(para.trim())}</p>`).join('')}</div>
     <div class="row" style="gap:16px">
       ${long ? `<button class="link-btn" type="button" data-expand="${a._id}" aria-expanded="false">Read more</button>` : ''}
       <button class="link-btn" type="button" data-copy="${a._id}">Copy link</button>

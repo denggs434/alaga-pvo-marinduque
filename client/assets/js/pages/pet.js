@@ -205,13 +205,28 @@ async function loadPosts() {
       return;
     }
     postList.append(data.items);
-    if (data.page < data.pages) {
-      $('#posts-more').innerHTML = '<button class="btn btn-ghost" type="button">Load more</button>';
-      $('#posts-more button').addEventListener('click', () => { postPage += 1; loadPosts(); });
-    }
+    postsHasMore = data.page < data.pages;
+    if (postsHasMore) watchPostsEnd();
   } catch (err) {
     $('#pet-posts').innerHTML = errorState(err.message);
   }
+}
+
+// More posts load by themselves when the end of the list comes into view.
+let postsHasMore = false;
+let postsLoading = false;
+let postsObserver;
+function watchPostsEnd() {
+  if (!('IntersectionObserver' in window)) return;
+  postsObserver ||= new IntersectionObserver(async (entries) => {
+    if (!entries[0].isIntersecting || postsLoading || !postsHasMore) return;
+    postsLoading = true;
+    postPage += 1;
+    $('#posts-more').innerHTML = skeleton(1, 160);
+    await loadPosts();
+    postsLoading = false;
+  }, { rootMargin: '0px 0px 500px 0px' });
+  postsObserver.observe($('#posts-more'));
 }
 
 /* ---------- Boot ---------- */
