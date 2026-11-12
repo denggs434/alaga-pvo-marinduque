@@ -395,7 +395,7 @@ function boot() {
   function openCase(id) {
     const r = state.reports.find((x) => x._id === id);
     if (!r) return;
-    $('#case-title').innerHTML = `${esc(REPORT_TYPES[r.type].label)} · <span class="mono">${esc(r.reference)}</span>`;
+    $('#case-title').innerHTML = `${esc(REPORT_TYPES[r.type].label)} · <span class="mono nowrap">${esc(r.reference)}</span>`;
     const closed = ['resolved', 'closed'].includes(r.status);
     $('#case-body').innerHTML = `
       <div class="row" style="gap:6px">${reportTypeTag(r.type)}${reportStatusTag(r.status)}${r.priority === 'high' ? '<span class="tag tag-red">High priority</span>' : ''}${r.publicAlert ? '<span class="tag tag-amber">Public alert on</span>' : ''}</div>
