@@ -1043,16 +1043,13 @@ a.notif.is-unread:hover { background: color-mix(in srgb, var(--brand-soft) 70%, 
 }
 
 /* ---------- Motion (purposeful, always off for reduced motion) ---------- */
-/* Theme toggle: sun and moon swap with a turn */
+/* Theme toggle: sun and moon simply fade into each other */
 .theme-toggle { position: relative; overflow: hidden; }
-.theme-icon { position: absolute; inset: 0; display: grid; place-items: center; transition: transform 420ms var(--ease-out), opacity 260ms var(--ease-out); }
-.theme-toggle[data-mode='light'] .theme-sun { opacity: 0; transform: rotate(-90deg) scale(0.4); }
-.theme-toggle[data-mode='dark'] .theme-moon { opacity: 0; transform: rotate(90deg) scale(0.4); }
-.theme-toggle:hover .theme-icon { transition-duration: 300ms; }
-.theme-toggle[data-mode='light']:hover .theme-moon { transform: rotate(-18deg); }
-.theme-toggle[data-mode='dark']:hover .theme-sun { transform: rotate(45deg); }
-/* The new theme spreads from the toggle (View Transitions) */
-::view-transition-old(root), ::view-transition-new(root) { animation: none; mix-blend-mode: normal; }
+.theme-icon { position: absolute; inset: 0; display: grid; place-items: center; transition: transform 200ms var(--ease-out), opacity 200ms var(--ease-out); }
+.theme-toggle[data-mode='light'] .theme-sun { opacity: 0; transform: scale(0.85); }
+.theme-toggle[data-mode='dark'] .theme-moon { opacity: 0; transform: scale(0.85); }
+/* Switching themes: a short crossfade of the whole page (View Transitions) */
+::view-transition-old(root), ::view-transition-new(root) { animation-duration: 200ms; animation-timing-function: ease-out; }
 
 /* Page arrives */
 main { animation: page-in 360ms var(--ease-out) both; }

@@ -101,18 +101,8 @@ export function setupThemeToggle(btn = $('#theme-toggle')) {
   btn.addEventListener('click', () => {
     const next = current() === 'dark' ? 'light' : 'dark';
     if (!document.startViewTransition || reduce()) return apply(next);
-    // The new theme spreads out in a circle from the button.
-    const r = btn.getBoundingClientRect();
-    const x = r.left + r.width / 2;
-    const y = r.top + r.height / 2;
-    const radius = Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y));
-    const t = document.startViewTransition(() => apply(next));
-    t.ready.then(() => {
-      document.documentElement.animate(
-        { clipPath: [`circle(0px at ${x}px ${y}px)`, `circle(${radius}px at ${x}px ${y}px)`] },
-        { duration: 520, easing: 'cubic-bezier(0.23, 1, 0.32, 1)', pseudoElement: '::view-transition-new(root)' }
-      );
-    }).catch(() => {});
+    // A short, quiet crossfade between the two themes.
+    document.startViewTransition(() => apply(next));
   });
   paint();
 }
