@@ -974,3 +974,7 @@ a.notif.is-unread:hover { background: color-mix(in srgb, var(--brand-soft) 70%, 
   .notif-wrap { position: static; }
   .notif-panel { position: fixed; top: calc(var(--header-h) + 6px); left: 12px; right: 12px; width: auto; }
 }
+
+/* Contact: send button with a one-line note beside it */
+.send-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; }
+.send-row p { margin: 0; }

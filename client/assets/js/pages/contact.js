@@ -24,9 +24,9 @@ if (user) {
   form.elements.name.value = user.name;
   form.elements.email.value = user.email;
   form.elements.phone.value = user.phone || '';
-  $('#reply-note').innerHTML = `${ICONS.inbox}<span>The PVO's reply will appear in your account under <a href="account.html#messages">Messages</a>.</span>`;
+  $('#reply-note').innerHTML = 'Our reply will appear in <a href="account.html#messages">Messages</a>.';
 } else {
-  $('#reply-note').innerHTML = `${ICONS.info}<span><a href="account.html?next=contact.html">Log in</a> before sending to read the PVO's reply here on Alaga. Otherwise we reply by email.</span>`;
+  $('#reply-note').innerHTML = 'We reply by email, or <a href="account.html?next=contact.html">log in</a> to read it here.';
 }
 form.elements.message.addEventListener('input', () => ($('#msg-count').textContent = `${form.elements.message.value.length} / 2000`));
 
