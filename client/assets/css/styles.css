@@ -712,7 +712,7 @@ dialog::backdrop { background: rgb(20 12 6 / 0.5); }
 .case-photos img { width: 120px; height: 90px; object-fit: cover; border-radius: 10px; }
 .inbox { display: grid; gap: 12px; list-style: none; padding: 0; }
 .inbox li { padding: 16px; display: grid; gap: 8px; }
-.inbox li.st-new { border-left: 4px solid var(--brand); }
+.inbox li.st-new { background: color-mix(in srgb, var(--brand-soft) 45%, var(--surface)); border-color: color-mix(in srgb, var(--brand) 25%, var(--line)); }
 
 /* Charts (admin overview) */
 .chart rect[data-tip] { cursor: default; }
@@ -888,9 +888,12 @@ dialog::backdrop { background: rgb(20 12 6 / 0.5); }
   .dir-tools { grid-template-columns: 1fr 1fr; }
   .dir-tools .search-box { grid-column: 1 / -1; }
   .footer-grid { grid-template-columns: 1fr; }
-  .stat-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
-  .stat { padding: 14px; }
-  .stat strong { font-size: 1.625rem; }
+  .stat-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  .stat { padding: 10px 12px; gap: 2px; border-radius: var(--r); }
+  .stat strong { font-size: 1.375rem; }
+  .stat .label { font-size: 0.75rem; gap: 6px; line-height: 1.25; }
+  .stat .label svg { width: 14px; height: 14px; flex: none; }
+  .stat small { font-size: 0.75rem; line-height: 1.35; }
   /* Tabs share the row instead of clipping the last one off-screen. */
   .tabs { gap: 0; }
   .tabs .tab { flex: 1 1 auto; justify-content: center; padding-inline: 10px; }
@@ -950,7 +953,7 @@ dialog::backdrop { background: rgb(20 12 6 / 0.5); }
   .facts { grid-template-columns: 1fr; }
   .facts div:nth-child(odd) { border-right: 0; }
   .facts div:nth-last-child(2) { border-bottom: 1px solid var(--line); }
-  .stat-grid { grid-template-columns: 1fr; }
+  .stat-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
 /* Pet details on phones: one line per fact, label left and value right */
@@ -1139,3 +1142,8 @@ main { animation: page-in 360ms var(--ease-out) both; }
 .feed-loading { width: 100%; }
 .feed-end { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); font-size: var(--step--1); padding: 8px 0 4px; }
 .feed-end svg { width: 16px; height: 16px; color: var(--good); }
+
+/* Admin filters on phones: smaller text so labels like "All municipalities" fit */
+@media (max-width: 640px) {
+  .console .toolbar select.input { font-size: 0.8125rem; padding: 6px 28px 6px 10px; background-position: right 8px center; background-size: 16px; text-overflow: ellipsis; }
+}

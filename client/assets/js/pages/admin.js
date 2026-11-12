@@ -198,7 +198,7 @@ function boot() {
 
     // Needs attention
     const q = [];
-    s.reports.recent.forEach((r) => q.push(`<li><span><strong>${esc(REPORT_TYPES[r.type].label)} · <span class="mono">${esc(r.reference)}</span></strong>
+    s.reports.recent.forEach((r) => q.push(`<li><span><strong>${esc(REPORT_TYPES[r.type].label)} · <span class="mono nowrap">${esc(r.reference)}</span></strong>
       ${r.priority === 'high' ? ' <span class="tag tag-red">High priority</span>' : ''} ${reportStatusTag(r.status)}<br>
       <span>${esc(r.location.barangay)}, ${esc(r.location.municipality)} · filed ${timeAgo(r.createdAt)}</span></span>
       <button class="btn btn-sm btn-primary" type="button" data-open-report="${r._id}">Open case</button></li>`));
