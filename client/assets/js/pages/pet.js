@@ -17,6 +17,8 @@ initPage('pets');
 
 // /pets/<id> (old links used pet.html?id=<id>)
 const id = location.pathname.split('/')[2] || new URLSearchParams(location.search).get('id');
+// Old links arrive redirected with a leftover ?id=: drop it from the address bar.
+if (location.search.includes('id=')) history.replaceState(null, '', location.pathname + location.hash);
 const root = $('#profile');
 let pet;
 

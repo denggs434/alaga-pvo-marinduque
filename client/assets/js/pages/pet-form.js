@@ -15,6 +15,8 @@ const form = $('#pet-form');
 // /pets/<id>/edit, or /pets/new for a new pet
 const seg = location.pathname.split('/')[2];
 const id = (seg && seg !== 'new' ? seg : null) || new URLSearchParams(location.search).get('id');
+// Old links arrive redirected with a leftover ?id=: drop it from the address bar.
+if (location.search.includes('id=')) history.replaceState(null, '', location.pathname + location.hash);
 const user = requireLogin(id ? 'Log in to edit this pet.' : 'Log in or create an account to register your pet.');
 
 if (user && isAdmin()) {
