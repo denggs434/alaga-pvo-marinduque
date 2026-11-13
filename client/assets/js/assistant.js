@@ -80,7 +80,7 @@ function panelHtml() {
     <div class="alagai-log" id="alagai-log" role="log" aria-live="polite" aria-relevant="additions" tabindex="0"></div>
     <form class="alagai-form" id="alagai-form" novalidate>
       <label class="sr-only" for="alagai-input">Ask Alagai about your pet</label>
-      <textarea id="alagai-input" rows="1" maxlength="${MAX_LEN}" placeholder="Ask about feeding, vaccines, symptoms…" required></textarea>
+      <textarea id="alagai-input" rows="1" maxlength="${MAX_LEN}" placeholder="Message Alagai…" required></textarea>
       <button class="btn btn-primary alagai-send" type="submit" id="alagai-send" aria-label="Send">${ICONS.send}</button>
     </form>
     <p class="alagai-foot">Alagai gives general pet-care information only. It cannot diagnose or prescribe. For anything serious, see a licensed vet.</p>
@@ -89,8 +89,8 @@ function panelHtml() {
 
 function introHtml(name) {
   return `<div class="alagai-intro">
-    <p><strong>Hi ${esc(name)}! I'm Alagai.</strong> Ask me about feeding, grooming, vaccines, deworming, behaviour, or PVO services and schedules.</p>
-    <p class="muted small">I'm a pet-care helper, not a veterinarian, so I can't diagnose or prescribe. In an emergency, go to a vet right away.</p>
+    <p><strong>Hi ${esc(name)}!</strong> Ask me anything about your pets.</p>
+    <p class="alagai-note">Not a veterinarian. In an emergency, go to a vet right away.</p>
     <div class="alagai-suggest">${SUGGESTIONS.map((s) => `<button class="chip" type="button" data-ask="${esc(s)}">${esc(s)}</button>`).join('')}</div>
   </div>`;
 }
