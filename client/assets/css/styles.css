@@ -655,10 +655,15 @@ dialog::backdrop { background: rgb(20 12 6 / 0.5); }
 .console { display: grid; grid-template-columns: 240px minmax(0, 1fr); min-height: 100vh; }
 .console-side { position: sticky; top: 0; height: 100vh; background: var(--surface); border-right: 1px solid var(--line); padding: 16px 12px; display: flex; flex-direction: column; gap: 16px; }
 .console-side .brand { padding: 4px 8px 8px; }
-.console-nav { display: grid; gap: 2px; }
-.console-nav a { display: flex; gap: 12px; align-items: center; padding: 10px 12px; border-radius: var(--r-sm); color: var(--ink-2); font-weight: 600; text-decoration: none; }
+.console-nav { display: grid; gap: 2px; overflow-y: auto; margin-inline: -4px; padding-inline: 4px; }
+.console-group { display: grid; gap: 1px; margin-top: 10px; }
+.console-group h2 { margin: 0 0 2px; padding: 0 10px; font: 600 0.8125rem/1.4 var(--font-body); color: var(--muted); letter-spacing: 0; }
+.console-nav .nav-label { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.console-nav svg { flex: none; }
+#mobile-title .muted { font-weight: 500; }
+.console-nav a { display: flex; gap: 10px; align-items: center; padding: 7px 10px; border-radius: var(--r-sm); color: var(--ink-2); font-weight: 500; font-size: 0.9375rem; white-space: nowrap; text-decoration: none; }
 .console-nav a:hover { background: var(--surface-2); color: var(--ink); }
-.console-nav a[aria-current] { background: var(--brand-soft); color: var(--brand-strong); }
+.console-nav a[aria-current] { background: var(--brand-soft); color: var(--brand-strong); font-weight: 600; }
 .console-nav svg { width: 20px; height: 20px; color: var(--brand); }
 .console-nav .badge { margin-left: auto; min-width: 22px; height: 22px; padding: 0 6px; border-radius: 999px; background: var(--bad); color: #fff; font-size: 0.75rem; font-weight: 600; display: grid; place-items: center; }
 .console-foot { margin-top: auto; display: grid; gap: 8px; }

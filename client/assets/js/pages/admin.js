@@ -128,8 +128,11 @@ function boot() {
     const view = VIEWS.includes(location.hash.slice(1)) ? location.hash.slice(1) : 'overview';
     $$('[data-panel]').forEach((p) => (p.hidden = p.dataset.panel !== view));
     $$('[data-view]').forEach((a) => a.toggleAttribute('aria-current', a.dataset.view === view));
-    const label = $(`[data-view="${view}"]`).textContent.trim();
-    $('#mobile-title').textContent = label;
+    const link = $(`.console-nav [data-view="${view}"]`);
+    const label = $('.nav-label', link).textContent;
+    const group = link.closest('.console-group')?.querySelector('h2').textContent;
+    // Phone bar shows where you are in the hierarchy: "Alaga Market / Orders".
+    $('#mobile-title').innerHTML = group ? `<span class="muted">${group} /</span> ${label}` : label;
     document.title = `${label} | Alaga PVO admin`;
     side.classList.remove('is-open');
     window.scrollTo(0, 0);

@@ -41,16 +41,25 @@
   <div class="console" id="console" hidden>
     <aside class="console-side" id="console-side" aria-label="Admin navigation">
       <a class="brand" href="admin.html" id="side-brand"></a>
+      <!-- Grouped by the daily flow: see the overview, answer the public, keep records, run the market, publish. -->
       <nav class="console-nav" aria-label="Sections">
-        <a href="#overview" data-view="overview"><span data-icon="chart"></span>Overview</a>
-        <a href="#pets" data-view="pets"><span data-icon="paw"></span>Pets<span class="badge" data-badge="pets" hidden></span></a>
-        <a href="#reports" data-view="reports"><span data-icon="flag"></span>Reports<span class="badge" data-badge="reports" hidden></span></a>
-        <a href="#orders" data-view="orders"><span data-icon="bag"></span>Market orders<span class="badge" data-badge="orders" hidden></span></a>
-        <a href="#sellers" data-view="sellers"><span data-icon="building"></span>Sellers<span class="badge" data-badge="sellers" hidden></span></a>
-        <a href="#products" data-view="products"><span data-icon="box"></span>Market products</a>
-        <a href="#announcements" data-view="announcements"><span data-icon="megaphone"></span>Announcements</a>
-        <a href="#owners" data-view="owners"><span data-icon="users"></span>Pet owners</a>
-        <a href="#messages" data-view="messages"><span data-icon="inbox"></span>Messages<span class="badge" data-badge="messages" hidden></span></a>
+        <a href="#overview" data-view="overview"><span data-icon="chart"></span><span class="nav-label">Overview</span></a>
+        <div class="console-group" role="group" aria-labelledby="cg-inbox"><h2 id="cg-inbox">Inbox</h2>
+          <a href="#reports" data-view="reports"><span data-icon="flag"></span><span class="nav-label">Incident reports</span><span class="badge" data-badge="reports" hidden></span></a>
+          <a href="#messages" data-view="messages"><span data-icon="inbox"></span><span class="nav-label">Messages</span><span class="badge" data-badge="messages" hidden></span></a>
+        </div>
+        <div class="console-group" role="group" aria-labelledby="cg-records"><h2 id="cg-records">Records</h2>
+          <a href="#pets" data-view="pets"><span data-icon="paw"></span><span class="nav-label">Pet registrations</span><span class="badge" data-badge="pets" hidden></span></a>
+          <a href="#owners" data-view="owners"><span data-icon="users"></span><span class="nav-label">Pet owners</span></a>
+        </div>
+        <div class="console-group" role="group" aria-labelledby="cg-market"><h2 id="cg-market">Alaga Market</h2>
+          <a href="#sellers" data-view="sellers"><span data-icon="building"></span><span class="nav-label">Sellers</span><span class="badge" data-badge="sellers" hidden></span></a>
+          <a href="#products" data-view="products"><span data-icon="box"></span><span class="nav-label">Products</span></a>
+          <a href="#orders" data-view="orders"><span data-icon="bag"></span><span class="nav-label">Orders</span><span class="badge" data-badge="orders" hidden></span></a>
+        </div>
+        <div class="console-group" role="group" aria-labelledby="cg-publish"><h2 id="cg-publish">Publish</h2>
+          <a href="#announcements" data-view="announcements"><span data-icon="megaphone"></span><span class="nav-label">Announcements</span></a>
+        </div>
       </nav>
       <div class="console-foot">
         <a class="btn btn-ghost btn-sm" href="index.html" target="_blank" rel="noopener">View public site</a>
