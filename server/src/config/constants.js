@@ -21,6 +21,7 @@ module.exports = {
 
   // Marketplace: owners open shops and sell pet supplies; paid in cash on pickup or delivery.
   PRODUCT_CATEGORIES: ['food', 'treats', 'toys', 'accessories', 'grooming', 'health', 'beds'],
+  SELLER_STATUSES: ['pending', 'approved', 'rejected', 'suspended'],
   ORDER_STATUSES: ['placed', 'confirmed', 'ready', 'completed', 'cancelled'],
   OPEN_ORDER_STATUSES: ['placed', 'confirmed', 'ready'],
   FULFILLMENT: ['pickup', 'delivery'],

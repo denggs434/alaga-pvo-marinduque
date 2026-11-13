@@ -205,9 +205,13 @@ const PRODUCT_PHOTOS = ['dog-food', 'puppy-food', 'cat-food', 'kitten-food', 'ra
 
 // Owners who sell: their shop, and which PRODUCTS (by index) they list. The rest are the PVO's official store.
 const SHOPS = {
-  ana: { name: "Ana's Paws & Crafts", about: 'Handmade collars, toys and beds from Gasan. Pick up in Dawis or have it delivered.', products: [9, 10, 19] },
-  carlo: { name: "Carlo's Pet Corner", about: 'Pet food and treats in Santa Cruz at sari-sari prices.', products: [2, 3, 6, 7] },
-  liza: { name: 'Furry Needs Buenavista', about: 'Grooming supplies and food for rabbits and birds.', products: [4, 5, 14, 15, 16] },
+  ana: { name: "Ana's Paws & Crafts", about: 'Handmade collars, toys and beds from Gasan. Pick up in Dawis or have it delivered.', sells: ['accessories', 'toys', 'beds'], pickup: 'Dawis, Gasan (near the chapel)', products: [9, 10, 19] },
+  carlo: { name: "Carlo's Pet Corner", about: 'Pet food and treats in Santa Cruz at sari-sari prices.', sells: ['food', 'treats'], pickup: 'Lapu-Lapu, Santa Cruz (sari-sari store)', products: [2, 3, 6, 7] },
+  liza: { name: 'Furry Needs Buenavista', about: 'Grooming supplies and food for rabbits and birds.', sells: ['grooming', 'food'], pickup: 'Daykitin, Buenavista', products: [4, 5, 14, 15, 16] },
+};
+// A seller application waiting for PVO review (admin console → Sellers).
+const APPLICATIONS = {
+  paolo: { name: 'Torrijos Pet Supply', about: 'Dog and cat food, leashes and bowls, sold from our store near the Poctoy market.', sells: ['food', 'accessories'], pickup: 'Poctoy, Torrijos (near the market)', at: 1 },
 };
 
 // Past orders: [buyer, [[product index, qty]], fulfillment, status steps [[status, note, daysAgo]], placed daysAgo]
@@ -297,9 +301,13 @@ async function seed() {
 
   const sellerOf = {};
   for (const [key, shop] of Object.entries(SHOPS)) {
-    users[key].shop = { name: shop.name, about: shop.about };
+    users[key].shop = { name: shop.name, about: shop.about, sells: shop.sells, pickup: shop.pickup, status: 'approved', appliedAt: daysAgo(70), decidedAt: daysAgo(69) };
     await users[key].save({ timestamps: false });
     shop.products.forEach((i) => { sellerOf[i] = users[key]; });
+  }
+  for (const [key, { at, ...app }] of Object.entries(APPLICATIONS)) {
+    users[key].shop = { ...app, status: 'pending', appliedAt: daysAgo(at, 16) };
+    await users[key].save({ timestamps: false });
   }
   const products = [];
   for (const [i, [name, category, species, brand, price, stock, sold, description]] of PRODUCTS.entries()) {

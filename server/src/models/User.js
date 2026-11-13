@@ -6,7 +6,7 @@
  */
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
-const { MUNICIPALITIES, PHONE, EMAIL } = require('../config/constants');
+const { MUNICIPALITIES, PHONE, EMAIL, PRODUCT_CATEGORIES, SELLER_STATUSES } = require('../config/constants');
 
 const userSchema = new mongoose.Schema(
   {
@@ -30,10 +30,17 @@ const userSchema = new mongoose.Schema(
       select: false,
     },
     role: { type: String, enum: ['owner', 'admin'], default: 'owner' },
-    // Marketplace: an owner who sells sets a shop name (and opens their shop by listing a product).
+    // Marketplace: an owner applies to sell; PVO staff approve, reject or suspend the shop.
+    // Only approved shops can list products, and only their products are for sale.
     shop: {
       name: { type: String, trim: true, maxlength: [60, 'Shop name is too long.'] },
       about: { type: String, trim: true, maxlength: [300, 'Keep the shop description under 300 characters.'] },
+      sells: [{ type: String, enum: PRODUCT_CATEGORIES }],
+      pickup: { type: String, trim: true, maxlength: [120, 'Keep the pickup point under 120 characters.'] },
+      status: { type: String, enum: SELLER_STATUSES },
+      reason: { type: String, trim: true, maxlength: 300 }, // why it was rejected or suspended
+      appliedAt: Date,
+      decidedAt: Date,
     },
     // Set by an admin. Banned accounts cannot log in or use an existing session.
     banned: { type: Boolean, default: false },

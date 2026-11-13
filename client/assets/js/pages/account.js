@@ -16,7 +16,7 @@ import { refreshUnread } from '../nav.js';
 import { initPage, toast, showFieldErrors, setBusy, options, emptyState, errorState, skeleton, esc, initials, ageText, formatDate, formatDateTime, ICONS, $ } from '../ui.js';
 import { petImg, petTags, reportCard, orderCard, productImg } from '../components.js';
 import { productEditor } from '../product-editor.js';
-import { peso } from '../config.js';
+import { peso, PRODUCT_CATEGORIES } from '../config.js';
 
 initPage('');
 
@@ -184,7 +184,7 @@ async function loadShop() {
     const [mine, orders] = await Promise.all([api('/shop/mine'), api('/shop/orders/selling')]);
     Object.assign(shopState, mine, { orders });
     const waiting = orders.filter((o) => o.status === 'placed').length;
-    $('#shop-count').textContent = waiting ? `${waiting} new` : mine.products.length || '';
+    $('#shop-count').textContent = waiting ? `${waiting} new` : mine.shop.status === 'pending' ? 'In review' : mine.products.length || '';
     $('#shop-count').classList.toggle('tag-solid-green', waiting > 0);
     renderShop();
   } catch (err) {
@@ -195,22 +195,20 @@ async function loadShop() {
 function renderShop() {
   const { shop, products, orders } = shopState;
   const box = $('#my-shop');
-  if (!shop.named) {
-    box.innerHTML = `<form class="card form-section" id="shop-form" novalidate style="max-width:560px">
-      <h2>Open your shop</h2>
-      <p class="muted small" style="margin:0">Sell pet food, treats, toys, collars and other pet supplies to owners in Marinduque. Buyers pay you in cash on pickup or delivery. Listing is free.</p>
-      <label class="field"><span>Shop name</span><input class="input" name="shopName" maxlength="60" required placeholder="e.g. Bantay Pet Supplies"><small class="field-error"></small></label>
-      <label class="field"><span>About your shop <span class="muted">(optional)</span></span><textarea class="input" name="about" maxlength="300" style="min-height:80px" placeholder="What you sell, where buyers pick up"></textarea></label>
-      <button class="btn btn-primary" type="submit">Open my shop</button>
-    </form>`;
+  if (shop.status !== 'approved' && shop.status !== 'suspended') {
+    box.innerHTML = shop.status === 'pending' ? pendingHtml(shop) : applyHtml(shop);
+    return;
+  }
+  if (shopState.editing) {
+    box.innerHTML = applyHtml(shop, true);
     return;
   }
   const shown = orders.filter((o) => (shopState.filter === 'open' ? !['completed', 'cancelled'].includes(o.status) : true));
   const sales = orders.filter((o) => o.status === 'completed').reduce((s, o) => s + o.total, 0);
-  box.innerHTML = `<div class="my-shop-head">
+  box.innerHTML = `${shop.status === 'suspended' ? `<p class="notice notice-error" style="margin-bottom:14px"><strong>Your shop is suspended.</strong> Your products are hidden from the shop. Reason: ${esc(shop.reason || 'not given')}. <a href="contact.html">Message the PVO</a> to have it restored.</p>` : ''}<div class="my-shop-head">
       <div class="row" style="gap:12px;flex-wrap:nowrap"><span class="shop-avatar" aria-hidden="true">${esc(shop.name[0])}</span>
         <div><h2 style="font-size:1.25rem">${esc(shop.name)}</h2><p class="muted small" style="margin:0">${products.length} product${products.length === 1 ? '' : 's'} · ${orders.filter((o) => o.status === 'completed').length} completed orders · ${peso(sales)} sales</p></div></div>
-      <div class="row" style="gap:8px"><a class="btn btn-ghost btn-sm" href="shop.html?shop=${esc(shop.id)}">View my shop</a><button class="btn btn-primary btn-sm" type="button" data-new-product>+ Add product</button></div>
+      <div class="row" style="gap:8px"><button class="btn btn-ghost btn-sm" type="button" data-edit-shop>Edit shop details</button><a class="btn btn-ghost btn-sm" href="shop.html?shop=${esc(shop.id)}">View my shop</a>${shop.status === 'approved' ? '<button class="btn btn-primary btn-sm" type="button" data-new-product>+ Add product</button>' : ''}</div>
     </div>
     <div class="panel-head" style="margin-top:8px"><h3>Orders</h3>
       <div class="chips" role="group" aria-label="Show"><button class="chip" type="button" data-ofilter="open" aria-pressed="${shopState.filter === 'open'}">To do</button><button class="chip" type="button" data-ofilter="all" aria-pressed="${shopState.filter === 'all'}">All</button></div></div>
@@ -224,16 +222,59 @@ function renderShop() {
     </article>`).join('') || emptyState('No products yet', 'Add your first product: a clear photo, a fair price and how many you have.', '<button class="btn btn-primary" type="button" data-new-product>+ Add product</button>')}</div>`;
 }
 
+/** The seller application (also used to edit an approved shop's details). */
+function applyHtml(shop, editing = false) {
+  const rejected = shop.status === 'rejected';
+  return `<form class="card form-section" id="shop-form" novalidate style="max-width:640px">
+    <h2>${editing ? 'Edit shop details' : rejected ? 'Apply again to sell' : 'Apply to sell on Alaga'}</h2>
+    ${rejected ? `<p class="notice notice-error" style="margin:0"><strong>Your last application was not approved.</strong> PVO: ${esc(shop.reason || 'no reason given')}</p>` : ''}
+    ${editing ? '' : `<ol class="apply-steps"><li><strong>Apply</strong><span>Tell the PVO about your shop.</span></li><li><strong>PVO review</strong><span>Usually within 1 to 2 working days.</span></li><li><strong>Start selling</strong><span>List products; buyers pay cash on pickup or delivery.</span></li></ol>`}
+    <label class="field"><span>Shop name</span><input class="input" name="shopName" maxlength="60" required value="${esc(shop.named ? shop.name : '')}" placeholder="e.g. Bantay Pet Supplies"><small class="field-error"></small></label>
+    <fieldset class="field" style="border:0;padding:0;margin:0"><legend class="field-label" style="margin-bottom:6px">What will you sell?</legend>
+      <div class="species-checks">${Object.entries(PRODUCT_CATEGORIES).map(([k, c]) => `<label class="check"><input type="checkbox" name="sells" value="${k}" ${shop.sells?.includes(k) ? 'checked' : ''}><span>${esc(c.label)}</span></label>`).join('')}</div>
+      <small class="field-error" data-for="sells"></small></fieldset>
+    <label class="field"><span>Pickup point</span><input class="input" name="pickup" maxlength="120" required value="${esc(shop.pickup || '')}" placeholder="Barangay, town and a landmark"><small class="field-error"></small></label>
+    <label class="field"><span>About your shop</span><textarea class="input" name="about" maxlength="300" required style="min-height:90px" placeholder="What you sell, where it comes from, delivery areas">${esc(shop.about || '')}</textarea><small class="field-error"></small></label>
+    ${editing ? '' : `<label class="check"><input type="checkbox" name="agree" required><span>I will sell only safe, legal pet products, describe them honestly, and hand over orders on time. The PVO may suspend shops that break these rules.</span></label><small class="field-error" data-for="agree"></small>`}
+    <div class="row">${editing ? '<button class="btn btn-ghost" type="button" data-cancel-edit>Cancel</button>' : ''}<button class="btn btn-primary" type="submit">${editing ? 'Save details' : 'Send application'}</button></div>
+  </form>`;
+}
+
+function pendingHtml(shop) {
+  return `<section class="card form-section" style="max-width:640px">
+    <div class="row" style="gap:8px"><span class="tag tag-amber">Under review</span><span class="muted small">Sent ${formatDateTime(shop.appliedAt)}</span></div>
+    <h2>${esc(shop.name)}</h2>
+    <p style="margin:0">Thanks for applying. PVO staff are checking your application, usually within 1 to 2 working days. You will get a notification when it is approved, and you can then list products here.</p>
+    <dl class="pd-facts"><dt>Sells</dt><dd>${shop.sells.map((c) => esc(PRODUCT_CATEGORIES[c]?.label || c)).join(', ')}</dd><dt>Pickup</dt><dd>${esc(shop.pickup)}</dd><dt>About</dt><dd>${esc(shop.about)}</dd></dl>
+  </section>`;
+}
+
 $('#my-shop').addEventListener('submit', async (e) => {
   if (e.target.id !== 'shop-form') return;
   e.preventDefault();
-  const f = e.target.elements;
+  const form = e.target;
+  const f = form.elements;
+  const sells = [...form.querySelectorAll('[name=sells]:checked')].map((c) => c.value);
+  const errors = {};
+  if (f.shopName.value.trim().length < 3) errors.shopName = 'Give your shop a name (at least 3 characters).';
+  if (!sells.length) errors.sells = 'Choose at least one kind of product.';
+  if (f.pickup.value.trim().length < 5) errors.pickup = 'Enter where buyers can pick up orders.';
+  if (f.about.value.trim().length < 20) errors.about = 'Tell buyers and the PVO what you sell (at least 20 characters).';
+  if (f.agree && !f.agree.checked) errors.agree = 'Please agree to the seller rules.';
+  form.querySelectorAll('[data-for]').forEach((el) => { el.textContent = errors[el.dataset.for] || ''; });
+  showFieldErrors(form, errors);
+  if (Object.keys(errors).length) return;
+  const btn = form.querySelector('[type=submit]');
+  setBusy(btn, true, 'Sending…');
   try {
-    await api('/shop/mine', { method: 'PUT', body: { name: f.shopName.value.trim(), about: f.about.value.trim() } });
-    toast('Your shop is open. Add your first product.');
+    await api('/shop/mine', { method: 'PUT', body: { name: f.shopName.value.trim(), about: f.about.value.trim(), pickup: f.pickup.value.trim(), sells } });
+    toast(shopState.editing ? 'Shop details saved.' : 'Application sent. The PVO will review it soon.');
+    shopState.editing = false;
     await loadShop();
   } catch (err) {
-    showFieldErrors(e.target, err.details || { shopName: err.message });
+    setBusy(btn, false);
+    showFieldErrors(form, err.details || { shopName: err.message });
+    form.querySelectorAll('[data-for]').forEach((el) => { el.textContent = err.details?.[el.dataset.for] || ''; });
   }
 });
 $('#my-shop').addEventListener('click', async (e) => {
@@ -242,6 +283,8 @@ $('#my-shop').addEventListener('click', async (e) => {
   const d = b.dataset;
   editor ||= productEditor({ onSaved: loadShop });
   if (d.newProduct !== undefined) editor.open();
+  if (d.editShop !== undefined) { shopState.editing = true; renderShop(); }
+  if (d.cancelEdit !== undefined) { shopState.editing = false; renderShop(); }
   if (d.editProduct) editor.open(shopState.products.find((p) => p._id === d.editProduct));
   if (d.ofilter) { shopState.filter = d.ofilter; renderShop(); }
   const confirmFirst = (label) => {

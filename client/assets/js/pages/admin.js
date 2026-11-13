@@ -6,6 +6,7 @@
  *   #pets           the pet registry: verify registrations, record vaccinations, remove
  *   #reports        incident cases: filter, open a case, update status with a note
  *   #orders         marketplace orders from every shop: confirm, ready, complete, cancel
+ *   #sellers        seller applications: approve or reject; suspend or restore shops
  *   #products       every listing: edit, hide or remove; add official-store products
  *   #announcements  publish news and scheduled activities (vaccination drives…)
  *   #owners         accounts: suspend / delete
@@ -17,7 +18,7 @@
 import { api, qs } from '../api.js';
 import { getUser, isAdmin, setSession, clearSession } from '../store.js';
 import { setupThemeToggle } from '../nav.js';
-import { SPECIES, SPECIES_PLURAL, MUNICIPALITIES, CATEGORIES, REPORT_TYPES, REPORT_STATUSES, CONTACT_TOPICS, peso } from '../config.js';
+import { SPECIES, SPECIES_PLURAL, MUNICIPALITIES, CATEGORIES, REPORT_TYPES, REPORT_STATUSES, CONTACT_TOPICS, PRODUCT_CATEGORIES, peso } from '../config.js';
 import {
   initAdminPage, toast, armed, setupModal, showFieldErrors, setBusy, options, createPhotoPicker, emptyState,
   esc, initials, formatDate, formatDateTime, formatNumber, timeAgo, toDateTimeInput, fromDateTimeInput, debounce,
@@ -67,7 +68,7 @@ function showLogin() {
    Console
    ========================================================================= */
 function boot() {
-  const state = { stats: null, pets: [], reports: [], anns: [], users: [], messages: [], orders: [], products: [], reportFilter: 'pending', orderFilter: 'open', msgFilter: 'inbox', replying: null };
+  const state = { stats: null, pets: [], reports: [], anns: [], users: [], messages: [], orders: [], products: [], sellers: [], reportFilter: 'pending', orderFilter: 'open', sellerFilter: 'pending', deciding: null, msgFilter: 'inbox', replying: null };
   const user = getUser();
 
   /* ---------- Chrome ---------- */
@@ -122,7 +123,7 @@ function boot() {
   };
   $$('.console .table').forEach((t) => new MutationObserver(() => labelCells(t)).observe(t, { childList: true }));
 
-  const VIEWS = ['overview', 'pets', 'reports', 'orders', 'products', 'announcements', 'owners', 'messages'];
+  const VIEWS = ['overview', 'pets', 'reports', 'orders', 'sellers', 'products', 'announcements', 'owners', 'messages'];
   function showView() {
     const view = VIEWS.includes(location.hash.slice(1)) ? location.hash.slice(1) : 'overview';
     $$('[data-panel]').forEach((p) => (p.hidden = p.dataset.panel !== view));
@@ -139,7 +140,7 @@ function boot() {
   /* ---------- Data ---------- */
   async function loadAll() {
     try {
-      const [stats, pets, reports, anns, users, messages, orders, products] = await Promise.all([
+      const [stats, pets, reports, anns, users, messages, orders, products, sellers] = await Promise.all([
         api('/admin/stats'),
         api(`/pets${qs({ all: 'true', limit: 500 })}`).then((d) => d.items),
         api(`/reports${qs({ limit: 500 })}`),
@@ -148,8 +149,9 @@ function boot() {
         api('/contact?box=all'),
         api('/shop/orders'),
         api(`/shop/products${qs({ all: 'true', limit: 300, sort: 'newest' })}`).then((d) => d.items),
+        api('/shop/sellers'),
       ]);
-      Object.assign(state, { stats, pets, reports, anns, users, messages, orders, products });
+      Object.assign(state, { stats, pets, reports, anns, users, messages, orders, products, sellers });
       renderAll();
     } catch (err) {
       toast(err.message, 'error');
@@ -161,6 +163,7 @@ function boot() {
     renderPets();
     renderReports();
     renderOrders();
+    renderSellers();
     renderProducts();
     renderAnnouncements();
     renderOwners();
@@ -186,6 +189,7 @@ function boot() {
     set('reports', state.stats.reports.pending);
     set('messages', state.stats.newMessages);
     set('orders', state.stats.shop.newOrders);
+    set('sellers', state.stats.shop.pendingSellers);
   }
 
   /* ---------- Overview ---------- */
@@ -213,6 +217,7 @@ function boot() {
       <button class="btn btn-sm btn-primary" type="button" data-open-report="${r._id}">Open case</button></li>`));
     if (s.pets.pending) q.push(`<li><span><strong>${s.pets.pending} pet registration${s.pets.pending === 1 ? '' : 's'} to review</strong><br><span>Check the owner's details and photos, then approve or reject.</span></span><button class="btn btn-sm btn-ghost" type="button" data-goto-pending>Review</button></li>`);
     if (s.vaccinations.unverified) q.push(`<li><span><strong>${s.vaccinations.unverified} owner-entered vaccination${s.vaccinations.unverified === 1 ? '' : 's'}</strong><br><span>Approve or reject them in Pets → Review.</span></span><button class="btn btn-sm btn-ghost" type="button" data-goto-vax>Review</button></li>`);
+    if (s.shop.pendingSellers) q.push(`<li><span><strong>${s.shop.pendingSellers} seller application${s.shop.pendingSellers === 1 ? '' : 's'}</strong><br><span>Owners waiting to open a shop.</span></span><a class="btn btn-sm btn-ghost" href="#sellers">Review</a></li>`);
     if (s.shop.newOrders) q.push(`<li><span><strong>${s.shop.newOrders} new shop order${s.shop.newOrders === 1 ? '' : 's'}</strong><br><span>Waiting for the seller or the official store to confirm.</span></span><a class="btn btn-sm btn-ghost" href="#orders">View</a></li>`);
     if (s.shop.lowStock) q.push(`<li><span><strong>${s.shop.lowStock} product${s.shop.lowStock === 1 ? '' : 's'} low on stock</strong><br><span>5 or fewer left in the shop.</span></span><button class="btn btn-sm btn-ghost" type="button" data-goto-low>Check</button></li>`);
     if (s.newMessages) q.push(`<li><span><strong>${s.newMessages} new message${s.newMessages === 1 ? '' : 's'}</strong><br><span>From the contact form.</span></span><a class="btn btn-sm btn-ghost" href="#messages">Read</a></li>`);
@@ -508,6 +513,63 @@ function boot() {
     $('#orders-list').innerHTML = rows.map((o) => orderCard(o, 'admin')).join('') || emptyState('No orders here', 'Orders from every shop show up in this list.');
   }
 
+  /* ---------- Sellers ---------- */
+  const SELLER_FILTERS = { pending: 'Applications', approved: 'Approved', suspended: 'Suspended', rejected: 'Rejected', all: 'All' };
+  const SELLER_TAG = { pending: '<span class="tag tag-amber">Application</span>', approved: '<span class="tag tag-green">Approved</span>', suspended: '<span class="tag tag-red">Suspended</span>', rejected: '<span class="tag">Rejected</span>' };
+  $('#seller-q').addEventListener('input', debounce(renderSellers, 150));
+  $('#seller-chips').addEventListener('click', (e) => {
+    const c = e.target.closest('[data-sfilter]');
+    if (!c) return;
+    state.sellerFilter = c.dataset.sfilter;
+    state.deciding = null;
+    renderSellers();
+  });
+  function renderSellers() {
+    const count = (k) => (k === 'all' ? state.sellers.length : state.sellers.filter((s) => s.shop.status === k).length);
+    $('#seller-chips').innerHTML = Object.entries(SELLER_FILTERS).map(([k, l]) => `<button class="chip" type="button" data-sfilter="${k}" aria-pressed="${state.sellerFilter === k}">${l} <b>${count(k)}</b></button>`).join('');
+    const term = $('#seller-q').value.trim().toLowerCase();
+    const rows = state.sellers.filter((s) => (state.sellerFilter === 'all' || s.shop.status === state.sellerFilter)
+      && (!term || `${s.shop.name} ${s.name} ${s.email} ${s.municipality || ''}`.toLowerCase().includes(term)));
+    $('#sellers-list').innerHTML = rows.map((s) => {
+      const st = s.shop.status;
+      const deciding = state.deciding?.id === s._id ? state.deciding.decision : null;
+      const actions = {
+        pending: `<button class="btn btn-primary btn-sm" type="button" data-seller="${s._id}" data-decision="approve">Approve</button><button class="btn btn-danger btn-sm" type="button" data-seller="${s._id}" data-ask-reason="reject">Reject</button>`,
+        rejected: `<button class="btn btn-ghost btn-sm" type="button" data-seller="${s._id}" data-decision="approve">Approve anyway</button>`,
+        approved: `<a class="btn btn-ghost btn-sm" href="shop.html?shop=${s._id}" target="_blank" rel="noopener">View shop</a><button class="btn btn-danger btn-sm" type="button" data-seller="${s._id}" data-ask-reason="suspend">Suspend</button>`,
+        suspended: `<button class="btn btn-primary btn-sm" type="button" data-seller="${s._id}" data-decision="restore">Restore</button>`,
+      }[st] || '';
+      return `<article class="card seller-card">
+        <header class="row between"><div class="row" style="gap:10px;flex-wrap:nowrap"><span class="shop-avatar" aria-hidden="true">${esc(s.shop.name[0])}</span>
+          <div><div class="row" style="gap:8px"><strong>${esc(s.shop.name)}</strong>${SELLER_TAG[st] || ''}${s.banned ? '<span class="tag tag-red">Account suspended</span>' : ''}</div>
+          <span class="muted small">${esc(s.name)} · ${esc(s.email)}${s.phone ? ` · ${esc(s.phone)}` : ''}</span></div></div>
+          <span class="muted small">${s.shop.appliedAt ? `Applied ${formatDate(s.shop.appliedAt)}` : ''}</span></header>
+        <dl class="pd-facts">
+          <dt>Sells</dt><dd>${(s.shop.sells || []).map((c) => esc(PRODUCT_CATEGORIES[c]?.label || c)).join(', ') || '—'}</dd>
+          <dt>Pickup</dt><dd>${esc(s.shop.pickup || '—')}${s.municipality ? ` · ${esc(s.municipality)}` : ''}</dd>
+          <dt>About</dt><dd>${esc(s.shop.about || '—')}</dd>
+          ${s.shop.reason && st !== 'approved' ? `<dt>Reason</dt><dd>${esc(s.shop.reason)}</dd>` : ''}
+        </dl>
+        ${st === 'pending' ? '' : `<div class="seller-nums"><span><b>${s.live}</b> of ${s.products} products live</span><span><b>${s.sold}</b> sold</span><span><b>${s.orders}</b> orders (${s.openOrders} open, ${s.cancelled} cancelled)</span><span><b>${peso(s.sales)}</b> completed sales</span></div>`}
+        ${deciding ? `<form class="seller-decide" data-decide="${s._id}" data-decision="${deciding}">
+            <label class="field"><span>${deciding === 'reject' ? 'Why is the application not approved?' : 'Why is the shop suspended?'} <span class="muted">(the seller sees this)</span></span>
+            <textarea class="input" name="reason" maxlength="300" style="min-height:70px" required></textarea></label>
+            <div class="row"><button class="btn btn-ghost btn-sm" type="button" data-cancel-decide>Cancel</button><button class="btn btn-danger btn-sm" type="submit">${deciding === 'reject' ? 'Reject application' : 'Suspend shop'}</button></div>
+          </form>` : `<div class="row" style="gap:8px">${actions}</div>`}
+      </article>`;
+    }).join('') || emptyState(state.sellerFilter === 'pending' ? 'No applications waiting' : 'No sellers here', 'Owners apply under Account → My shop.');
+  }
+  $('#sellers-list').addEventListener('submit', (e) => {
+    const form = e.target.closest('[data-decide]');
+    if (!form) return;
+    e.preventDefault();
+    const reason = form.elements.reason.value.trim();
+    if (reason.length < 5) return toast('Write the reason the seller will see.', 'error');
+    state.deciding = null;
+    act(() => api(`/shop/sellers/${form.dataset.decide}`, { method: 'PATCH', body: { decision: form.dataset.decision, reason } }),
+      form.dataset.decision === 'reject' ? 'Application rejected. The owner was notified.' : 'Shop suspended. Its products are hidden.');
+  });
+
   /* ---------- Shop products ---------- */
   const editor = productEditor({ onSaved: () => loadAll() });
   $$('[data-new-product]').forEach((b) => b.addEventListener('click', () => editor.open()));
@@ -719,6 +781,9 @@ function boot() {
     const pet = (id) => state.pets.find((p) => p._id === id);
 
     if (d.openReport) openCase(d.openReport);
+    if (d.askReason) { state.deciding = { id: d.seller, decision: d.askReason }; renderSellers(); $(`[data-decide="${d.seller}"] textarea`)?.focus(); }
+    if (d.cancelDecide !== undefined) { state.deciding = null; renderSellers(); }
+    if (d.decision && d.seller) act(() => api(`/shop/sellers/${d.seller}`, { method: 'PATCH', body: { decision: d.decision } }), { approve: 'Seller approved. They can list products now.', restore: 'Shop restored. Its products are back.' }[d.decision]);
     if (d.gotoLow !== undefined) { $('#prod-state').value = 'low'; renderProducts(); location.hash = 'products'; }
     if (d.editProduct) editor.open(state.products.find((p) => p._id === d.editProduct));
     if (d.hideProduct) act(() => api(`/shop/products/${d.hideProduct}`, { method: 'PUT', body: { active: d.to === 'true' } }), d.to === 'true' ? 'Product is back in the shop.' : 'Product hidden from the shop.');

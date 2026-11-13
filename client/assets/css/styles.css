@@ -1267,3 +1267,13 @@ main { animation: page-in 360ms var(--ease-out) both; }
   .shop-banner .btn { grid-column: 1 / -1; }
 }
 .admin-thumb img, .admin-thumb .product-ph { width: 40px; height: 40px; border-radius: var(--r-xs); object-fit: cover; display: block; flex: none; }
+.apply-steps { list-style: none; counter-reset: step; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.apply-steps li { counter-increment: step; display: grid; gap: 2px; padding: 10px 12px; border-radius: var(--r-sm); background: var(--surface-2); font-size: 0.8125rem; }
+.apply-steps li strong::before { content: counter(step) '. '; color: var(--brand); }
+.apply-steps span { color: var(--muted); }
+.seller-card { padding: 14px 16px; display: grid; gap: 10px; }
+.seller-card .pd-facts { margin: 0; }
+.seller-nums { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 0.8125rem; color: var(--muted); }
+.seller-nums b { color: var(--ink); font-variant-numeric: tabular-nums; }
+.seller-decide { display: grid; gap: 8px; }
+@media (max-width: 640px) { .apply-steps { grid-template-columns: 1fr; } }

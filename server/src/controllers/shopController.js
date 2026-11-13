@@ -5,8 +5,11 @@
  * Catalog   public; filter by category, species, shop; staff also see hidden items
  * Picks     products for the logged-in owner's own pets (by species), best sellers first
  * Related   "often bought together", from real orders, topped up with similar items
- * Selling   any owner lists products (their shop opens with the first listing),
- *           edits stock and price, and handles the orders placed with them
+ * Selling   an owner applies to sell (shop name, what they sell, pickup point);
+ *           PVO staff approve or reject; approved sellers list products, edit
+ *           stock and price, and handle the orders placed with them
+ * Sellers   staff review applications and can suspend or restore a shop
+ *           (a suspended shop's products leave the shop until it is restored)
  * Orders    checkout splits the cart into one order per shop; cash on pickup or
  *           delivery; the buyer can cancel until the seller confirms
  * Staff     see every product and order, hide or remove listings, step in on orders
@@ -53,9 +56,12 @@ function shopOf(seller) {
 /** A product as the shop shows it: the seller replaced by its shop. */
 const view = (p) => ({ ...p, seller: p.seller?._id || null, shop: shopOf(p.seller) });
 
-/** Products from suspended sellers are not for sale. */
+/** A seller's application state; shops named before applications existed count as approved. */
+const sellerStatus = (u) => u?.shop?.status || (u?.shop?.name ? 'approved' : 'none');
+
+/** Products of suspended shops, or of suspended accounts, are not for sale. */
 async function bannedSellers() {
-  return (await User.find({ banned: true }).select('_id').lean()).map((u) => u._id);
+  return (await User.find({ $or: [{ banned: true }, { 'shop.status': { $in: ['suspended', 'rejected', 'pending'] } }] }).select('_id').lean()).map((u) => u._id);
 }
 
 /* ---------- Catalog ---------- */
@@ -111,7 +117,8 @@ exports.listShops = asyncHandler(async (req, res) => {
     { $sort: { sold: -1 } },
     { $limit: 24 },
   ]);
-  const sellers = await User.find({ _id: { $in: rows.map((r) => r._id).filter(Boolean) }, banned: { $ne: true } }).select('name shop municipality').lean();
+  const sellers = (await User.find({ _id: { $in: rows.map((r) => r._id).filter(Boolean) }, banned: { $ne: true } }).select('name shop municipality').lean())
+    .filter((u) => sellerStatus(u) === 'approved');
   const byId = new Map(sellers.map((s) => [String(s._id), s]));
   res.json(rows
     .filter((r) => !r._id || byId.has(String(r._id)))
@@ -136,7 +143,8 @@ exports.picks = asyncHandler(async (req, res) => {
 exports.getProduct = asyncHandler(async (req, res) => {
   const product = await Product.findById(requireId(req.params.id, 'Product')).populate(SELLER).lean();
   const mine = product && sameId(product.seller, req.user);
-  if (!product || ((!product.active || product.seller?.banned) && !mine && !isAdmin(req.user))) throw new HttpError(404, 'Product not found.');
+  const offSale = !product?.active || product?.seller?.banned || (product?.seller && sellerStatus(product.seller) !== 'approved');
+  if (!product || (offSale && !mine && !isAdmin(req.user))) throw new HttpError(404, 'Product not found.');
 
   const together = await Order.aggregate([
     { $match: { 'items.product': product._id, status: { $ne: 'cancelled' } } },
@@ -178,30 +186,121 @@ function productData(body) {
 async function editable(req) {
   const product = await Product.findById(requireId(req.params.id, 'Product'));
   if (!product || (!isAdmin(req.user) && !sameId(product.seller, req.user))) throw new HttpError(404, 'Product not found.');
+  if (!isAdmin(req.user) && sellerStatus(req.user) === 'suspended') throw new HttpError(403, 'Your shop is suspended. Message the PVO to have it restored.');
   return product;
 }
+
+/** The seller's own view of their shop and application. */
+const myShopView = (u) => ({
+  ...shopOf(u),
+  about: u.shop?.about || '',
+  sells: u.shop?.sells || [],
+  pickup: u.shop?.pickup || '',
+  status: sellerStatus(u),
+  reason: u.shop?.reason || '',
+  appliedAt: u.shop?.appliedAt || null,
+  decidedAt: u.shop?.decidedAt || null,
+});
 
 // GET /api/shop/mine -> { shop, products }  (the seller's own shop, hidden items included)
 exports.myShop = asyncHandler(async (req, res) => {
   const products = await Product.find({ seller: req.user._id }).sort({ createdAt: -1 }).lean();
-  res.json({ shop: { ...shopOf(req.user), about: req.user.shop?.about || '', named: !!req.user.shop?.name }, products });
+  res.json({ shop: myShopView(req.user), products });
 });
 
-// PUT /api/shop/mine  { name, about }  (owner) — name and describe your shop
+// PUT /api/shop/mine  { name, about, sells, pickup }  (owner)
+// Not yet a seller (or rejected): sends an application for PVO review.
+// Approved: updates the shop details. Suspended: not allowed.
 exports.updateMyShop = asyncHandler(async (req, res) => {
+  const status = sellerStatus(req.user);
+  if (status === 'suspended') throw new HttpError(403, 'Your shop is suspended. Message the PVO to have it restored.');
   const name = str(req.body.name);
-  if (name.length < 3) throw new HttpError(400, 'Give your shop a name (at least 3 characters).', { shopName: 'Give your shop a name (at least 3 characters).' });
-  if (name.toLowerCase().includes('official')) throw new HttpError(400, 'Only the PVO store can call itself official.', { shopName: 'Only the PVO store can call itself official.' });
-  req.user.shop = { name: name.slice(0, 60), about: str(req.body.about).slice(0, 300) };
+  const about = str(req.body.about);
+  const pickup = str(req.body.pickup);
+  const sells = Array.isArray(req.body.sells) ? [...new Set(req.body.sells.filter((c) => PRODUCT_CATEGORIES.includes(c)))] : [];
+  const errors = {};
+  if (name.length < 3) errors.shopName = 'Give your shop a name (at least 3 characters).';
+  else if (/official|pvo/i.test(name)) errors.shopName = 'Only the PVO store can use "Official" or "PVO" in its name.';
+  if (about.length < 20) errors.about = 'Tell buyers and the PVO what you sell (at least 20 characters).';
+  if (!sells.length) errors.sells = 'Choose at least one kind of product.';
+  if (pickup.length < 5) errors.pickup = 'Enter where buyers can pick up orders.';
+  if (Object.keys(errors).length) throw new HttpError(400, Object.values(errors)[0], errors);
+
+  const shop = { ...(req.user.shop?.toObject?.() || req.user.shop || {}), name: name.slice(0, 60), about: about.slice(0, 300), sells, pickup: pickup.slice(0, 120) };
+  if (status !== 'approved') Object.assign(shop, { status: 'pending', appliedAt: new Date(), reason: undefined, decidedAt: undefined });
+  req.user.shop = shop;
   await req.user.save();
-  res.json({ shop: { ...shopOf(req.user), about: req.user.shop.about, named: true } });
+  res.json({ shop: myShopView(req.user) });
+});
+
+/* ---------- Sellers (staff) ---------- */
+
+// GET /api/shop/sellers  (admin) -> every application and shop, with sales numbers
+exports.listSellers = asyncHandler(async (req, res) => {
+  const users = await User.find({ 'shop.name': { $exists: true, $ne: '' } }).select('name email phone municipality barangay shop banned createdAt').lean();
+  const ids = users.map((u) => u._id);
+  const [products, orders] = await Promise.all([
+    Product.aggregate([{ $match: { seller: { $in: ids } } }, { $group: { _id: '$seller', products: { $sum: 1 }, live: { $sum: { $cond: ['$active', 1, 0] } }, sold: { $sum: '$sold' } } }]),
+    Order.aggregate([{ $match: { seller: { $in: ids } } }, { $group: {
+      _id: '$seller',
+      orders: { $sum: 1 },
+      open: { $sum: { $cond: [{ $in: ['$status', OPEN_ORDER_STATUSES] }, 1, 0] } },
+      cancelled: { $sum: { $cond: [{ $eq: ['$status', 'cancelled'] }, 1, 0] } },
+      sales: { $sum: { $cond: [{ $eq: ['$status', 'completed'] }, '$total', 0] } },
+    } }]),
+  ]);
+  const p = new Map(products.map((r) => [String(r._id), r]));
+  const o = new Map(orders.map((r) => [String(r._id), r]));
+  res.json(users
+    .map((u) => ({
+      _id: u._id, name: u.name, email: u.email, phone: u.phone, municipality: u.municipality, barangay: u.barangay, banned: u.banned,
+      shop: { ...u.shop, status: sellerStatus(u) },
+      products: p.get(String(u._id))?.products || 0,
+      live: p.get(String(u._id))?.live || 0,
+      sold: p.get(String(u._id))?.sold || 0,
+      orders: o.get(String(u._id))?.orders || 0,
+      openOrders: o.get(String(u._id))?.open || 0,
+      cancelled: o.get(String(u._id))?.cancelled || 0,
+      sales: o.get(String(u._id))?.sales || 0,
+    }))
+    .sort((a, b) => new Date(b.shop.appliedAt || 0) - new Date(a.shop.appliedAt || 0)));
+});
+
+// PATCH /api/shop/sellers/:id  { decision: approve|reject|suspend|restore, reason }  (admin)
+exports.decideSeller = asyncHandler(async (req, res) => {
+  const user = await User.findById(requireId(req.params.id, 'Seller'));
+  if (!user?.shop?.name) throw new HttpError(404, 'Seller not found.');
+  const decision = str(req.body.decision);
+  const reason = str(req.body.reason).slice(0, 300);
+  const from = sellerStatus(user);
+  const allowed = { approve: ['pending', 'rejected'], reject: ['pending'], suspend: ['approved'], restore: ['suspended'] };
+  if (!allowed[decision]) throw new HttpError(400, 'Choose approve, reject, suspend or restore.');
+  if (!allowed[decision].includes(from)) throw new HttpError(409, `This shop is ${from}; it cannot be ${decision === 'approve' ? 'approved' : `${decision}ed`} now. Reload to see the latest.`);
+  if ((decision === 'reject' || decision === 'suspend') && reason.length < 5) throw new HttpError(400, 'Write the reason the seller will see.', { reason: 'Write the reason the seller will see.' });
+
+  const status = { approve: 'approved', reject: 'rejected', suspend: 'suspended', restore: 'approved' }[decision];
+  user.shop.status = status;
+  user.shop.reason = status === 'approved' ? undefined : reason;
+  user.shop.decidedAt = new Date();
+  await user.save();
+  const text = {
+    approve: `Your shop "${user.shop.name}" is approved. You can now list products under Account → My shop.`,
+    reject: `Your seller application was not approved: ${reason} You can update it and apply again.`,
+    suspend: `Your shop "${user.shop.name}" is suspended and its products are hidden: ${reason}`,
+    restore: `Your shop "${user.shop.name}" is restored. Your products are back in the shop.`,
+  }[decision];
+  notify.shop(user._id, text);
+  res.json({ _id: user._id, shop: { ...user.shop.toObject(), status } });
 });
 
 // POST /api/shop/products  (owner: lists in their shop; admin: lists in the official store)
 exports.createProduct = asyncHandler(async (req, res) => {
   const data = productData(req.body);
   if (!isAdmin(req.user)) {
-    if (!req.user.shop?.name) throw new HttpError(400, 'Name your shop before listing products.');
+    const status = sellerStatus(req.user);
+    if (status !== 'approved') {
+      throw new HttpError(403, status === 'pending' ? 'Your seller application is still being reviewed by the PVO.' : status === 'suspended' ? 'Your shop is suspended.' : 'Apply to sell first, under Account → My shop.');
+    }
     data.seller = req.user._id;
   }
   res.status(201).json(await Product.create(data));
@@ -368,12 +467,13 @@ exports.updateOrder = asyncHandler(async (req, res) => {
 
 /** Marketplace numbers for the admin dashboard. */
 exports.stats = async () => {
-  const [byStatus, lowStock, revenue, sellers, products] = await Promise.all([
+  const [byStatus, lowStock, revenue, sellers, products, pendingSellers] = await Promise.all([
     Order.aggregate([{ $group: { _id: '$status', n: { $sum: 1 } } }]),
     Product.countDocuments({ active: true, stock: { $lte: 5 } }),
     Order.aggregate([{ $match: { status: 'completed' } }, { $group: { _id: null, total: { $sum: '$total' } } }]),
     Product.distinct('seller', { seller: { $ne: null } }),
     Product.countDocuments({ active: true }),
+    User.countDocuments({ 'shop.status': 'pending' }),
   ]);
   const s = Object.fromEntries(byStatus.map((r) => [r._id, r.n]));
   return {
@@ -383,6 +483,7 @@ exports.stats = async () => {
     revenue: revenue[0]?.total || 0,
     lowStock,
     sellers: sellers.length,
+    pendingSellers,
     products,
   };
 };

@@ -7,6 +7,8 @@ const orderLimit = rateLimit({ windowMs: 60 * 60e3, max: 15, message: 'You have 
 
 router.get('/picks', protect, c.picks);
 router.get('/shops', c.listShops);
+router.get('/sellers', protect, adminOnly, c.listSellers);
+router.patch('/sellers/:id', protect, adminOnly, c.decideSeller);
 router.route('/mine').get(protect, ownerOnly, c.myShop).put(protect, ownerOnly, c.updateMyShop);
 const listLimit = rateLimit({ windowMs: 60 * 60e3, max: 60, message: 'You have listed many products this hour. Please wait a little.' });
 

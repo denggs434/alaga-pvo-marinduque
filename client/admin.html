@@ -46,6 +46,7 @@
         <a href="#pets" data-view="pets"><span data-icon="paw"></span>Pets<span class="badge" data-badge="pets" hidden></span></a>
         <a href="#reports" data-view="reports"><span data-icon="flag"></span>Reports<span class="badge" data-badge="reports" hidden></span></a>
         <a href="#orders" data-view="orders"><span data-icon="bag"></span>Shop orders<span class="badge" data-badge="orders" hidden></span></a>
+        <a href="#sellers" data-view="sellers"><span data-icon="building"></span>Sellers<span class="badge" data-badge="sellers" hidden></span></a>
         <a href="#products" data-view="products"><span data-icon="box"></span>Shop products</a>
         <a href="#announcements" data-view="announcements"><span data-icon="megaphone"></span>Announcements</a>
         <a href="#owners" data-view="owners"><span data-icon="users"></span>Pet owners</a>
@@ -125,6 +126,15 @@
           <div class="toolbar"><div class="search-box"><label class="sr-only" for="order-q">Search orders</label><span data-icon="search"></span><input class="input" id="order-q" type="search" placeholder="Order no., buyer, shop or barangay"></div></div>
           <p class="muted small" style="margin:-4px 0 12px">Sellers handle their own orders. Staff handle Alaga Official Store orders and can step in on any order.</p>
           <div class="stack" id="orders-list"></div>
+        </section>
+
+        <!-- Sellers -->
+        <section data-panel="sellers" aria-labelledby="h-sellers" hidden>
+          <div class="console-top"><div><h1 id="h-sellers">Sellers</h1></div></div>
+          <div class="chips" id="seller-chips" role="group" aria-label="Status" style="margin-bottom:12px"></div>
+          <div class="toolbar"><div class="search-box"><label class="sr-only" for="seller-q">Search sellers</label><span data-icon="search"></span><input class="input" id="seller-q" type="search" placeholder="Shop, owner, email or town"></div></div>
+          <p class="muted small" style="margin:-4px 0 12px">Approve applications before owners can list products. Suspending a shop hides its products; open orders stay with the seller.</p>
+          <div class="stack" id="sellers-list"></div>
         </section>
 
         <!-- Shop products -->
