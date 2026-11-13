@@ -334,5 +334,13 @@
     "license": "CC0",
     "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0",
     "source": "https://commons.wikimedia.org/wiki/File:Dog_sleeping_in_a_dog_bed.JPG"
+  },
+  {
+    "image": "assets/img/pets/snowy-shihtzu.jpg",
+    "title": "Shih Tzu white puppies.jpg",
+    "author": "Sasipriya Narayanaswamy",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Shih_Tzu_white_puppies.jpg"
   }
 ]
