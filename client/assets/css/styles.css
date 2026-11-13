@@ -272,7 +272,7 @@ select.input { appearance: none; padding-right: 40px; background-image: url("dat
 .nav-pill { position: absolute; left: 0; top: calc(50% - 19px); height: 38px; width: 0; border-radius: var(--r-sm); background: var(--surface-2); opacity: 0; pointer-events: none; transition: transform 320ms var(--ease-out), width 320ms var(--ease-out), opacity 200ms var(--ease-out), background-color 200ms var(--ease-out); }
 .nav-link { position: relative; display: inline-flex; align-items: center; align-self: center; gap: 6px; padding: 8px 12px; border-radius: var(--r-sm); text-decoration: none; color: var(--ink-2); font-weight: 500; font-size: 0.9375rem; transition: color 200ms var(--ease-out); }
 .nav-link:hover { color: var(--ink); }
-.nav-link[aria-current='page'] { color: var(--brand-strong); font-weight: 600; background: var(--brand-soft); }
+.nav-link[aria-current='page'], .nav-link[aria-current='true'] { color: var(--brand-strong); font-weight: 600; background: var(--brand-soft); }
 .nav-link svg { width: 18px; height: 18px; }
 .nav-tools { display: flex; align-items: center; gap: 4px; margin-left: auto; }
 .nav-report { display: inline-flex; margin-right: 6px; }
@@ -313,6 +313,9 @@ dialog::backdrop { background: rgb(20 12 6 / 0.5); }
 .drawer-body svg { width: 20px; height: 20px; color: var(--brand); }
 .drawer-body a[aria-current='page'] svg { color: var(--brand); }
 .drawer-body hr { border: 0; border-top: 1px solid var(--line); margin: 8px 0; }
+/* Phone menu sections mirror the header groups (Pets, Market, PVO Office, You). */
+.drawer-group { display: grid; gap: 2px; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--line); }
+.drawer-group h2 { margin: 0 0 2px; padding: 0 12px; font: 600 0.8125rem/1.4 var(--font-body); color: var(--muted); letter-spacing: 0; }
 
 /* ---------- Footer ---------- */
 .site-footer { margin-top: 40px; background: var(--surface); border-top: 1px solid var(--line); padding: 28px 0 18px; font-size: 0.9375rem; }
