@@ -595,7 +595,6 @@ dialog::backdrop { background: rgb(20 12 6 / 0.5); }
 .seg { display: grid; grid-template-columns: 1fr 1fr; padding: 4px; border-radius: var(--r-sm); background: var(--surface-2); }
 .seg button { border: 0; background: none; padding: 10px; border-radius: 6px; font-weight: 600; color: var(--muted); cursor: pointer; }
 .seg button[aria-selected='true'] { background: var(--surface); color: var(--ink); box-shadow: var(--shadow-sm); }
-.demo-logins { font-size: 0.875rem; color: var(--muted); background: var(--surface-2); padding: 12px 14px; border-radius: var(--r-sm); }
 .dash-head { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; justify-content: space-between; padding: 32px 0 0; }
 .dash-head .avatar { width: 56px; height: 56px; font-size: 1.25rem; }
 .my-pet { display: grid; grid-template-columns: 72px minmax(0, 1fr) auto; gap: 14px; align-items: center; padding: 12px; }
