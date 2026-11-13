@@ -8,9 +8,10 @@
  * data: the user's own pets and their anti-rabies status, the next PVO
  * activities, and the shop's in-stock products (so it can suggest real items
  * with a link). Without a key, or if Gemini fails, Alagai answers from the
- * vetted pet-care topics below. Either way it never diagnoses or prescribes,
- * and urgent words (poisoning, seizures, bleeding, bites…) always get the
- * emergency answer first, before any model call.
+ * vetted pet-care topics below. It answers any pet or animal question, never
+ * claims a diagnosis or gives prescription doses, and urgent words (poisoning,
+ * seizures, bleeding, bites…) always get the hotline banner, with the model told
+ * to lead with first aid (the fixed emergency answer is used when AI is unavailable).
  */
 const Pet = require('../models/Pet');
 const Announcement = require('../models/Announcement');
@@ -126,20 +127,22 @@ ALAGA SHOP (in stock; cash on pickup at the PVO office or delivery anywhere in M
 ${productLines.join('\n') || '- shop is empty'}`;
 }
 
-const SYSTEM = `You are Alagai, the friendly pet-care helper of Alaga, the pet community website of the Provincial Veterinary Office (PVO) of Marinduque, Philippines.
+const SYSTEM = `You are Alagai, the friendly and knowledgeable pet expert of Alaga, the pet community website of the Provincial Veterinary Office (PVO) of Marinduque, Philippines.
 
-How to answer:
-- Reply in the user's language: English, Filipino/Tagalog, or Taglish, matching how they write.
-- Be warm, practical and short: 2 to 6 sentences or a short bulleted list. Use **bold** sparingly. No headings, no tables.
-- You are NOT a veterinarian. Never diagnose, never name a disease as the cause, never give drug names with doses. For worrying signs, tell them to see a licensed vet, and say how soon.
-- Use the facts in CONTEXT about the user's own pets (call them by name) and the PVO schedule. Never invent pets, dates, prices or products.
-- When a product from ALAGA SHOP genuinely helps (food, toys, carrier for drives, tick shampoo…), suggest at most 3, written exactly as the markdown link given, with its price. Only suggest items for the right species. Do not push products when the question is medical or urgent.
-- PVO office: ${OFFICE.address}, ${OFFICE.hours}. Telephone ${OFFICE.phone}; animal bite hotline ${OFFICE.hotline}. Anti-rabies vaccination is free at PVO drives and required yearly from 3 months old (RA 9482).
-- Site features you can point to: Register a pet (Account), Report page (bites, missing pets, strays, welfare), Announcements (schedules), Shop, Contact page.
-- Politely decline topics unrelated to pets, animals, the PVO or this website.`;
+Answer EVERY question about pets and animals fully and helpfully: dogs, cats, rabbits, birds, fish, hamsters, farm animals, strays; breeds and choosing a pet, feeding and safe or unsafe foods, care, grooming, training and behaviour, health signs and what they can mean, vaccines, deworming, kapon, pregnancy and puppies or kittens, costs, travel, adoption, pet laws, and this website. Greetings and small talk are fine: reply warmly and offer help. Only for topics with no link at all to animals or this website, say briefly that you are here for pet questions.
+
+Style:
+- Reply in the user's language: English, Filipino/Tagalog or Taglish, matching how they write.
+- Be warm and practical. Usually 3 to 8 sentences or a short bulleted list; give real, specific advice (amounts, steps, timings) when it helps. Use **bold** for key points. No headings, no tables.
+- Health: explain the common possible causes and what the owner can safely do at home, and say clearly when and how soon to see a vet. You are not a veterinarian: do not claim a definite diagnosis and do not give prescription drug doses.
+- If CONTEXT says the situation is URGENT (possible poisoning, bite, bleeding, seizure, breathing trouble…), start with what to do right now and to go to a vet or call the PVO hotline, then answer the question.
+- Use the facts in CONTEXT: call the user's pets by name when relevant, and use the real PVO schedule. Never invent pets, dates, prices or products.
+- When a product from ALAGA SHOP genuinely fits the question, you may suggest up to 3, written exactly as the markdown link given, with the price. Only for the right species. Never push products in urgent answers.
+- PVO office: ${OFFICE.address}, ${OFFICE.hours}. Telephone ${OFFICE.phone}; animal bite hotline ${OFFICE.hotline}. Anti-rabies vaccination is free at PVO drives and required yearly from 3 months old (RA 9482). People bitten or scratched: wash the wound with soap and running water for 15 minutes and go to an Animal Bite Treatment Center the same day.
+- Site features you can point to: Register a pet (Account), Report page (bites, missing pets, strays, welfare), Announcements (schedules), Shop, Contact page.`;
 
 /** Ask Gemini; returns the reply text, or null when it is not configured or fails. */
-async function geminiAnswer(messages, user) {
+async function geminiAnswer(messages, user, urgent = false) {
   const key = process.env.GEMINI_API_KEY;
   if (!key) return null;
   try {
@@ -148,9 +151,9 @@ async function geminiAnswer(messages, user) {
       headers: { 'Content-Type': 'application/json', 'x-goog-api-key': key },
       signal: AbortSignal.timeout(20000),
       body: JSON.stringify({
-        systemInstruction: { parts: [{ text: `${SYSTEM}\n\nCONTEXT\n${await context(user)}` }] },
+        systemInstruction: { parts: [{ text: `${SYSTEM}\n\nCONTEXT\n${urgent ? 'URGENT: the latest question may be an emergency.\n' : ''}${await context(user)}` }] },
         contents: messages.map((m) => ({ role: m.role === 'assistant' ? 'model' : 'user', parts: [{ text: m.content }] })),
-        generationConfig: { temperature: 0.6, maxOutputTokens: 700, thinkingConfig: { thinkingBudget: 0 } },
+        generationConfig: { temperature: 0.6, maxOutputTokens: 1500, thinkingConfig: { thinkingBudget: 0 } },
       }),
     });
     const data = await res.json().catch(() => ({}));
@@ -169,12 +172,15 @@ exports.chat = asyncHandler(async (req, res) => {
   const question = messages[messages.length - 1].content;
   const previous = [...messages].reverse().slice(1).find((m) => m.role === 'user')?.content;
 
-  if (URGENT.test(question)) return res.json({ reply: `${EMERGENCY}\n\n${NOT_A_VET}`, urgent: true });
+  // Possible emergencies still get an AI answer, told to lead with first aid; the
+  // panel shows the hotline banner. Without AI they get the fixed emergency answer.
+  const urgent = URGENT.test(question);
+  const ai = await geminiAnswer(messages, req.user, urgent);
+  if (ai) return res.json({ reply: ai, urgent, ai: true });
+  if (urgent) return res.json({ reply: `${EMERGENCY}\n\n${NOT_A_VET}`, urgent: true });
   if (/^\s*(hi|hello|hey|kumusta|kamusta|good (morning|afternoon|evening))\b/i.test(question) && question.length < 40) {
     return res.json({ reply: `Hi ${req.user.name.split(' ')[0]}! Ask me about feeding, grooming, vaccines, deworming, behaviour, or PVO services and schedules.`, urgent: false });
   }
-  const ai = await geminiAnswer(messages, req.user);
-  if (ai) return res.json({ reply: ai, urgent: false, ai: true });
   const reply = (await dataAnswer(question, req.user)) || topicAnswer(question, previous) || FALLBACK;
   res.json({ reply: `${reply}\n\n${NOT_A_VET}`, urgent: false });
 });
