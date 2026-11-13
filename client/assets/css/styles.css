@@ -1479,7 +1479,6 @@ body:has(.alagai-fab) .site-footer { padding-bottom: 72px; }
 body:has(.msg-page) .alagai-fab { display: none; }
 
 /* ---------- Alaga Market highlight ---------- */
-.nav-link-hot svg { width: 17px; height: 17px; color: var(--brand); }
 .market-hero { display: flex; justify-content: space-between; align-items: center; gap: 20px; flex-wrap: wrap; margin: 20px 0 18px; padding: 22px 24px; border-radius: var(--r-lg); background: var(--brand-soft); border: 1px solid color-mix(in srgb, var(--brand) 18%, var(--line)); }
 .market-hero h1 { font-size: clamp(1.75rem, 3vw, 2.25rem); letter-spacing: -0.02em; color: var(--brand-strong); }
 .market-hero p { margin: 4px 0 0; color: var(--ink-2); max-width: 52ch; }

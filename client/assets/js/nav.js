@@ -13,7 +13,7 @@ import { ICONS, BRAND_MARK } from './icons.js';
 const LINKS = [
   { key: 'wall', href: 'index.html', label: 'Community', icon: 'home' },
   { key: 'pets', href: 'pets.html', label: 'Pets', icon: 'paw' },
-  { key: 'shop', href: 'shop.html', label: 'Market', icon: 'bag', hot: true },
+  { key: 'shop', href: 'shop.html', label: 'Market', icon: 'bag' },
   { key: 'announcements', href: 'announcements.html', label: 'Announcements', icon: 'megaphone' },
 ];
 /** Less-used pages: a "More" menu on desktop, listed in full in the phone menu. */
@@ -49,7 +49,7 @@ function accountHtml() {
 }
 
 function headerHtml(active) {
-  const link = (l) => `<a class="nav-link${l.hot ? ' nav-link-hot' : ''}" href="${l.href}" ${l.key === active ? 'aria-current="page"' : ''}>${l.hot ? ICONS[l.icon] : ''}${l.label}</a>`;
+  const link = (l) => `<a class="nav-link" href="${l.href}" ${l.key === active ? 'aria-current="page"' : ''}>${l.label}</a>`;
   return `
   ${isAdmin() ? `<div class="staffbar"><div class="wrap"><span><b>PVO staff view.</b> You can moderate posts and see private records here.</span><a href="admin.html">Open admin console</a></div></div>` : ''}
   <header class="site-header" id="site-header">
