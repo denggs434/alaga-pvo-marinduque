@@ -206,6 +206,7 @@ function boot() {
     if (s.vaccinations.unverified) q.push(`<li><span><strong>${s.vaccinations.unverified} owner-entered vaccination${s.vaccinations.unverified === 1 ? '' : 's'}</strong><br><span>Approve or reject them in Pets → Review.</span></span><button class="btn btn-sm btn-ghost" type="button" data-goto-vax>Review</button></li>`);
     if (s.newMessages) q.push(`<li><span><strong>${s.newMessages} new message${s.newMessages === 1 ? '' : 's'}</strong><br><span>From the contact form.</span></span><a class="btn btn-sm btn-ghost" href="#messages">Read</a></li>`);
     $('#queue').innerHTML = q.join('') || '<li><span><strong>All clear.</strong><br><span>New reports and registrations will show up here.</span></span></li>';
+    renderQueueMore(q.length);
 
     // Coverage meter + species bars (single series: one colour, values labelled)
     $('#rabies-meter').innerHTML = `<div class="meter"><div class="row between"><strong style="font:900 2rem/1 var(--font-display)">${pct}%</strong>
@@ -224,6 +225,26 @@ function boot() {
     stackedBars($('#chart-reports'), months, Object.keys(REPORT_TYPES).map((t, i) => ({
       label: REPORT_TYPES[t].label, cls: `s${i + 1}`, values: s.monthly.map((m) => m.reports[t]),
     })), 'Reports filed per month by type, last 6 months');
+  }
+
+  /* "Needs attention" shows the first few items; the rest sit behind Show more */
+  const QUEUE_PREVIEW = 3;
+  let queueExpanded = false;
+  function renderQueueMore(total) {
+    const items = [...$('#queue').children];
+    items.forEach((li, i) => { li.hidden = !queueExpanded && i >= QUEUE_PREVIEW; });
+    let btn = $('#queue-more');
+    if (total <= QUEUE_PREVIEW) { if (btn) btn.remove(); return; }
+    if (!btn) {
+      btn = document.createElement('button');
+      btn.id = 'queue-more';
+      btn.type = 'button';
+      btn.className = 'btn btn-sm btn-ghost btn-block queue-more';
+      btn.addEventListener('click', () => { queueExpanded = !queueExpanded; renderQueueMore($('#queue').children.length); });
+      $('#queue').after(btn);
+    }
+    btn.setAttribute('aria-expanded', String(queueExpanded));
+    btn.textContent = queueExpanded ? 'Show less' : `Show ${total - QUEUE_PREVIEW} more`;
   }
 
   /* ---------- Pets ---------- */

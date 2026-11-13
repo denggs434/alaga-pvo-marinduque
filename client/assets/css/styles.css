@@ -702,6 +702,8 @@ dialog::backdrop { background: rgb(20 12 6 / 0.5); }
 .queue li > :only-child { grid-column: 1 / -1; }
 .queue strong { font-size: 0.9375rem; }
 .queue span { color: var(--muted); font-size: 0.8125rem; }
+.queue li[hidden] { display: none; }
+.queue-more { margin-top: 10px; }
 .case { display: grid; gap: 16px; grid-template-columns: minmax(0, 1fr) 280px; }
 .case dl:not(.facts) { display: grid; grid-template-columns: max-content 1fr; gap: 6px 14px; font-size: 0.9375rem; margin: 0; }
 .case dl:not(.facts) dt { color: var(--muted); font-weight: 600; }
