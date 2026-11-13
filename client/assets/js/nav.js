@@ -52,6 +52,7 @@ function accountHtml() {
              <a href="seller.html">${ICONS.box}Seller Center</a>
              <a href="account.html#settings">${ICONS.gear}Settings</a>
              <button type="button" data-open-alagai>${ICONS.sparkle}Ask Alagai</button>`}
+        <button type="button" data-theme-item></button>
         <hr class="popover-sep">
         <button type="button" data-logout class="popover-logout">${ICONS.logout}Log out</button>
       </div>
@@ -72,10 +73,12 @@ function headerHtml(active) {
       <nav aria-label="Main"><ul class="nav-links">${NAV.map((n) => `<li${n.items ? ' class="nav-more"' : ''}>${n.items ? group(n) : link(n)}</li>`).join('')}</ul></nav>
       <div class="nav-tools">
         ${isAdmin() ? '' : `<a class="btn btn-primary btn-sm nav-report" href="report.html" ${active === 'report' ? 'aria-current="page"' : ''}>${ICONS.flag}Report</a>`}
-        ${isAdmin() ? '' : `<a class="icon-btn cart-btn" id="cart-btn" href="shop.html#cart" aria-label="Cart">${ICONS.bag}<span class="cart-count" id="cart-count" hidden></span></a>`}
-        <button class="icon-btn" id="theme-toggle" type="button" aria-label="Switch colour theme">${ICONS.moon}</button>
-        ${isOwner() ? `<a class="icon-btn msg-btn" href="messages.html" aria-label="Messages" ${active === 'messages' ? 'aria-current="page"' : ''}>${ICONS.chat}<span class="dot msg-btn-dot" data-unread hidden></span></a>` : ''}
-        ${notificationsButton()}
+        <div class="nav-icons">
+          ${isOwner() ? `<a class="icon-btn msg-btn" href="messages.html" aria-label="Messages" ${active === 'messages' ? 'aria-current="page"' : ''}>${ICONS.chat}<span class="dot msg-btn-dot" data-unread hidden></span></a>` : ''}
+          ${notificationsButton()}
+          ${isAdmin() ? '' : `<a class="icon-btn cart-btn" id="cart-btn" href="shop.html#cart" aria-label="Cart">${ICONS.bag}<span class="cart-count" id="cart-count" hidden></span></a>`}
+          ${getUser() ? '' : `<button class="icon-btn" id="theme-toggle" type="button" aria-label="Switch colour theme">${ICONS.moon}</button>`}
+        </div>
         ${accountHtml()}
         <button class="icon-btn menu-toggle" id="menu-btn" type="button" aria-label="Open menu" aria-controls="mobile-nav">${ICONS.menu}</button>
       </div>
@@ -99,37 +102,48 @@ function headerHtml(active) {
            <a href="messages.html" ${active === 'messages' ? 'aria-current="page"' : ''}>${ICONS.chat}Messages<span class="dot" data-unread hidden><span class="sr-only">new reply</span></span></a>
            <a href="account.html#settings">${ICONS.gear}Settings</a>
            <a href="#alagai" data-open-alagai>${ICONS.sparkle}Ask Alagai</a>` : ''}`}
-      <button type="button" class="drawer-theme" id="drawer-theme">${ICONS.moon}<span>Dark mode</span></button>
+      <button type="button" class="drawer-theme" data-theme-item></button>
       </section>
     </nav>
   </dialog>`;
 }
 
 /* ---------- Behaviour ---------- */
+const isDark = () => (document.documentElement.dataset.theme || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')) === 'dark';
+
+/** Flip light/dark, remember it, and tell every theme control to repaint. */
+export function toggleTheme() {
+  const next = isDark() ? 'light' : 'dark';
+  const apply = () => {
+    document.documentElement.dataset.theme = next;
+    try { localStorage.setItem('alaga.theme', next); } catch { /* ignore */ }
+    document.dispatchEvent(new CustomEvent('theme:change'));
+  };
+  if (!document.startViewTransition || matchMedia('(prefers-reduced-motion: reduce)').matches) return apply();
+  // A short, quiet crossfade between the two themes.
+  document.startViewTransition(apply);
+}
+
+/** Icon button (logged-out header, admin console): sun and moon swap with a rotate + fade. */
 export function setupThemeToggle(btn = $('#theme-toggle')) {
   if (!btn) return;
-  const prefersDark = () => matchMedia('(prefers-color-scheme: dark)').matches;
-  const reduce = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const current = () => document.documentElement.dataset.theme || (prefersDark() ? 'dark' : 'light');
-  // Both icons live in the button; CSS turns one into the other (rotate + fade).
   btn.classList.add('theme-toggle');
   btn.innerHTML = `<span class="theme-icon theme-sun">${ICONS.sun}</span><span class="theme-icon theme-moon">${ICONS.moon}</span>`;
   const paint = () => {
-    const dark = current() === 'dark';
-    btn.dataset.mode = dark ? 'dark' : 'light';
-    btn.setAttribute('aria-label', dark ? 'Switch to light theme' : 'Switch to dark theme');
+    btn.dataset.mode = isDark() ? 'dark' : 'light';
+    btn.setAttribute('aria-label', isDark() ? 'Switch to light theme' : 'Switch to dark theme');
   };
-  const apply = (next) => {
-    document.documentElement.dataset.theme = next;
-    try { localStorage.setItem('alaga.theme', next); } catch { /* ignore */ }
-    paint();
-  };
-  btn.addEventListener('click', () => {
-    const next = current() === 'dark' ? 'light' : 'dark';
-    if (!document.startViewTransition || reduce()) return apply(next);
-    // A short, quiet crossfade between the two themes.
-    document.startViewTransition(() => apply(next));
-  });
+  btn.addEventListener('click', toggleTheme);
+  document.addEventListener('theme:change', paint);
+  paint();
+}
+
+/** Text switches ("Dark mode" / "Light mode") in the account menu and the phone menu. */
+function setupThemeItems() {
+  const items = $$('[data-theme-item]');
+  const paint = () => items.forEach((b) => { b.innerHTML = `${isDark() ? ICONS.sun : ICONS.moon}<span>${isDark() ? 'Light mode' : 'Dark mode'}</span>`; });
+  items.forEach((b) => b.addEventListener('click', toggleTheme));
+  document.addEventListener('theme:change', paint);
   paint();
 }
 
@@ -174,18 +188,6 @@ function setupGroupMenus() {
     const openPair = pairs.find(([, m]) => !m.hidden);
     if (openPair) { close(...openPair); openPair[0].focus(); }
   });
-}
-
-/** Theme switch inside the phone menu (the header keeps its icon on wider screens). */
-function setupDrawerTheme() {
-  const b = $('#drawer-theme');
-  if (!b) return;
-  const paint = () => {
-    const dark = (document.documentElement.dataset.theme || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')) === 'dark';
-    b.innerHTML = `${dark ? ICONS.sun : ICONS.moon}<span>${dark ? 'Light mode' : 'Dark mode'}</span>`;
-  };
-  b.addEventListener('click', () => { $('#theme-toggle')?.click(); setTimeout(paint, 50); });
-  paint();
 }
 
 function setupMobileMenu() {
@@ -265,7 +267,7 @@ export function renderHeader(active) {
   setupAccountMenu();
   setupMobileMenu();
   setupGroupMenus();
-  setupDrawerTheme();
+  setupThemeItems();
   setupCartButton();
   $$('[data-logout]').forEach((b) => b.addEventListener('click', () => logout()));
   refreshUnread();

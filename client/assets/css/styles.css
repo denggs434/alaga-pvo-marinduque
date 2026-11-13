@@ -276,6 +276,9 @@ select.input { appearance: none; padding-right: 40px; background-image: url("dat
 .nav-link svg { width: 18px; height: 18px; }
 .nav-tools { display: flex; align-items: center; gap: 4px; margin-left: auto; }
 .nav-report { display: inline-flex; margin-right: 6px; }
+/* Right side reads in three tiers: the Report action, then everyday icons, then the account. */
+.nav-icons { display: flex; align-items: center; gap: 2px; padding-inline: 8px; margin-right: 6px; border-inline: 1px solid var(--line); }
+.nav-icons:empty { display: none; }
 .avatar { display: inline-grid; place-items: center; width: 36px; height: 36px; border-radius: 999px; background: var(--brand); color: var(--brand-ink); font: 600 0.8125rem/1 var(--font-display); flex: none; overflow: hidden; letter-spacing: 0.02em; }
 .avatar img { width: 100%; height: 100%; object-fit: cover; }
 .account { position: relative; }
@@ -1473,6 +1476,7 @@ body:has(.alagai-fab) .site-footer { padding-bottom: 72px; }
   .nav-tools { gap: 0; }
   .nav-tools .icon-btn { width: 40px; height: 40px; }
   #theme-toggle { display: none; }
+  .nav-icons { border: 0; padding: 0; margin: 0; gap: 0; }
   .brand-word { font-size: 1.0625rem; }
 }
 /* Profile card has no inner padding: the cover runs edge to edge */
