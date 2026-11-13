@@ -4,7 +4,7 @@
  *  - right: the chosen conversation as chat bubbles, and a box to write again
  *  - "New" starts a conversation (topic + message)
  * On phones the list and the conversation take turns on screen.
- * Links: messages.html#<id> opens one conversation; #new opens the new-message form.
+ * Links: /messages#<id> opens one conversation; #new opens the new-message form.
  */
 import { api } from '../api.js';
 import { refreshUnread } from '../nav.js';
@@ -175,6 +175,6 @@ app.addEventListener('input', (e) => {
 });
 
 if (user) {
-  if (user.role === 'admin') location.replace('admin.html#messages');
+  if (user.role === 'admin') location.replace('/admin/messages');
   else load();
 }

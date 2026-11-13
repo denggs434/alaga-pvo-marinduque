@@ -1,5 +1,5 @@
 /**
- * Pet profile: pet.html?id=<id>
+ * Pet profile: /pets/<id>
  *  - everyone: photos, facts, rabies status, owner's public name, the pet's posts
  *  - owner / PVO: health records (vaccinations, medical history) + edit actions
  *  - PVO: verify the registration and vaccinations
@@ -15,7 +15,8 @@ import { petImg, sexIcon, petTags, petSubtitle, rabiesBox, createPostList } from
 
 initPage('pets');
 
-const id = new URLSearchParams(location.search).get('id');
+// /pets/<id> (old links used pet.html?id=<id>)
+const id = location.pathname.split('/')[2] || new URLSearchParams(location.search).get('id');
 const root = $('#profile');
 let pet;
 
@@ -30,11 +31,11 @@ function gallery(p) {
 
 function ownerActions(p) {
   // PVO staff review registrations in the admin console; they never edit the owner's details.
-  if (p.canReview) return `<div class="row"><a class="btn btn-primary btn-sm" href="admin.html#pets">${ICONS.shieldCheck}Review in the admin console</a></div>`;
+  if (p.canReview) return `<div class="row"><a class="btn btn-primary btn-sm" href="/admin/pets">${ICONS.shieldCheck}Review in the admin console</a></div>`;
   if (!p.canEdit) return '';
   return `<div class="row">
-    <a class="btn btn-primary btn-sm" href="pet-form.html?id=${p._id}">${ICONS.edit}${p.registrationStatus === 'rejected' ? 'Edit and resubmit' : 'Edit profile'}</a>
-    ${p.status !== 'missing' ? `<a class="btn btn-ghost btn-sm" href="report.html?type=missing&pet=${p._id}">${ICONS.search}Report missing</a>` : ''}
+    <a class="btn btn-primary btn-sm" href="/pets/${p._id}/edit">${ICONS.edit}${p.registrationStatus === 'rejected' ? 'Edit and resubmit' : 'Edit profile'}</a>
+    ${p.status !== 'missing' ? `<a class="btn btn-ghost btn-sm" href="/report?type=missing&pet=${p._id}">${ICONS.search}Report missing</a>` : ''}
     <button class="btn btn-danger btn-sm" type="button" id="delete-btn">${ICONS.trash}Delete</button>
   </div>`;
 }
@@ -52,8 +53,8 @@ function renderProfile(p) {
     ['Registered', formatDate(p.createdAt)],
   ];
   root.innerHTML = `
-    <p class="small" style="margin-top:20px"><a href="pets.html">Pets</a> / ${esc(p.name)}</p>
-    ${p.status === 'missing' ? `<p class="notice notice-warn" style="margin-top:12px"><b>${esc(p.name)} is missing.</b> If you have seen this pet, please call the PVO or message us from the <a href="contact.html">contact page</a>.</p>` : ''}
+    <p class="small" style="margin-top:20px"><a href="/pets">Pets</a> / ${esc(p.name)}</p>
+    ${p.status === 'missing' ? `<p class="notice notice-warn" style="margin-top:12px"><b>${esc(p.name)} is missing.</b> If you have seen this pet, please call the PVO or message us from the <a href="/contact">contact page</a>.</p>` : ''}
     ${p.isPublic === false ? `<p class="notice" style="margin-top:12px">This profile is <b>private</b>: only the owner and PVO staff can see it.</p>` : ''}
     <div class="profile-hero">
       ${gallery(p)}
@@ -84,7 +85,7 @@ function renderProfile(p) {
     try {
       await api(`/pets/${p._id}`, { method: 'DELETE' });
       toast(`${p.name}'s profile was removed.`);
-      setTimeout(() => (location.href = isAdmin() ? 'admin.html#pets' : 'account.html'), 600);
+      setTimeout(() => (location.href = isAdmin() ? '/admin/pets' : '/account'), 600);
     } catch (err) {
       toast(err.message, 'error');
     }
@@ -201,7 +202,7 @@ async function loadPosts() {
     const data = await api(`/posts${qs({ pet: id, page: postPage, limit: 6 })}`);
     if (postPage === 1) $('#pet-posts').innerHTML = '';
     if (!data.items.length && postPage === 1) {
-      $('#pet-posts').innerHTML = emptyState(`No posts about ${pet.name}`, pet.canEdit && !isAdmin() ? 'Share photos and updates on the community wall.' : '', pet.canEdit && !isAdmin() ? '<a class="btn btn-primary" href="index.html">Go to the wall</a>' : '');
+      $('#pet-posts').innerHTML = emptyState(`No posts about ${pet.name}`, pet.canEdit && !isAdmin() ? 'Share photos and updates on the community wall.' : '', pet.canEdit && !isAdmin() ? '<a class="btn btn-primary" href="/">Go to the wall</a>' : '');
       return;
     }
     postList.append(data.items);
@@ -247,7 +248,7 @@ function render() {
 
 async function boot() {
   if (!id) {
-    root.innerHTML = emptyState('No pet selected', '', '<a class="btn btn-primary" href="pets.html">Browse pets</a>');
+    root.innerHTML = emptyState('No pet selected', '', '<a class="btn btn-primary" href="/pets">Browse pets</a>');
     return;
   }
   try {
@@ -257,7 +258,7 @@ async function boot() {
     if (location.hash === '#health' && (pet.canEdit || pet.canReview)) selectTab('health');
     loadPosts();
   } catch (err) {
-    root.innerHTML = `<div style="margin-top:32px">${emptyState(err.status === 404 ? 'Pet not found' : 'Could not load this pet', err.message, '<a class="btn btn-primary" href="pets.html">Browse pets</a>')}</div>`;
+    root.innerHTML = `<div style="margin-top:32px">${emptyState(err.status === 404 ? 'Pet not found' : 'Could not load this pet', err.message, '<a class="btn btn-primary" href="/pets">Browse pets</a>')}</div>`;
   }
 }
 boot();

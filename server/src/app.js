@@ -36,9 +36,37 @@ app.use('/api', notFound);
 
 // --- Frontend (the /client folder) ---
 const clientDir = path.join(__dirname, '..', '..', 'client');
+const page = (name) => (req, res) => res.sendFile(path.join(clientDir, `${name}.html`));
+
+// Clean URLs, same as vercel.json: /pets/<id>, /admin/orders, /market... Old .html links redirect.
+const OLD = { index: '/', shop: '/market', 'pet-form': '/pets/new' };
+app.get(/^\/([a-z-]+)\.html$/, (req, res, next) => {
+  const name = req.params[0];
+  if (name === '404') return next();
+  const q = new URLSearchParams(req.query);
+  const id = q.get('id');
+  q.delete('id');
+  let to = OLD[name] ?? `/${name}`;
+  if (name === 'pet' && id) to = `/pets/${id}`;
+  if (name === 'pet-form' && id) to = `/pets/${id}/edit`;
+  res.redirect(301, `${to}${q.size ? `?${q}` : ''}`);
+});
+app.get('/shop', (req, res) => res.redirect(301, '/market'));
+app.get('/market', page('shop'));
+app.get('/pets/new', page('pet-form'));
+app.get('/pets/:id/edit', page('pet-form'));
+app.get('/pets/:id', page('pet'));
+app.get('/admin/:view', page('admin'));
+// Relative photo paths stored in the database (assets/img/...) on nested pages like /pets/<id>.
+app.get(/^\/(?:pets|admin)\/(?:.+\/)?assets\/(.+)$/, (req, res, next) => {
+  req.url = `/assets/${req.params[0]}`;
+  next();
+});
+
 app.use(
   express.static(clientDir, {
     extensions: ['html'],
+    redirect: false,
     setHeaders: (res, file) => {
       // Photos never change under the same name (uploads get random names): cache a week.
       // Pages, scripts and styles: always check for a newer copy after an update.

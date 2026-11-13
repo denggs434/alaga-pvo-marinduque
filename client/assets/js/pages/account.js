@@ -4,7 +4,7 @@
  *  - logged in (owner):
  *      Profile  (#pets, #reports, #orders): profile card with stats, My pets, My reports
  *               (status tracking), My orders (what I bought)
- *      Messages (messages.html) and the Seller Center (seller.html) have their own pages
+ *      Messages (/messages) and the Seller Center (/seller) have their own pages
  *      Settings (#settings): your details and password
  *  - Log out lives only in the account menu in the header
  *  - PVO staff are sent to the admin console
@@ -21,7 +21,7 @@ initPage('');
 const params = new URLSearchParams(location.search);
 const next = params.get('next');
 /** Only same-site pages may be used as the "next" redirect (no open redirects). */
-const safeNext = next && /^[a-z-]+\.html(\?[\w=&%.-]*)?$/i.test(next) ? next : null;
+const safeNext = next && /^\/[a-z0-9/-]*(\?[\w=&%.-]*)?$/i.test(next) && !next.startsWith('//') ? next : null;
 
 /* =========================================================================
    Logged out
@@ -38,8 +38,8 @@ function selectAuthTab(which) {
 function afterAuth(session, message) {
   setSession(session);
   toast(message);
-  if (session.user.role === 'admin') return void location.replace('admin.html');
-  location.replace(safeNext || 'account.html');
+  if (session.user.role === 'admin') return void location.replace('/admin');
+  location.replace(safeNext || '/account');
 }
 
 function showAuth() {
@@ -124,8 +124,8 @@ function selectTab(which) {
 /** #settings (or the old #profile link) shows Settings; anything else shows the Profile tabs. */
 function route() {
   const hash = location.hash.slice(1);
-  if (hash === 'messages') return void location.replace('messages.html');
-  if (hash === 'shop') return void location.replace('seller.html');
+  if (hash === 'messages') return void location.replace('/messages');
+  if (hash === 'shop') return void location.replace('/seller');
   const settings = hash === 'settings' || hash === 'profile';
   $('#profile-view').hidden = settings;
   $('#settings-view').hidden = !settings;
@@ -149,7 +149,7 @@ async function loadOrders() {
     $('#stat-orders').textContent = orders.length;
     box.innerHTML = orders.length
       ? `${open ? `<p class="muted small" style="margin:0">${open} order${open === 1 ? '' : 's'} in progress. You get a notification at every step.</p>` : ''}${orders.map((o) => orderCard(o, 'buyer')).join('')}`
-      : emptyState('No orders yet', 'Food, toys, collars and more from shops around Marinduque.', '<a class="btn btn-primary" href="shop.html">Browse Alaga Market</a>');
+      : emptyState('No orders yet', 'Food, toys, collars and more from shops around Marinduque.', '<a class="btn btn-primary" href="/market">Browse Alaga Market</a>');
   } catch (err) {
     box.innerHTML = errorState(err.message);
   }
@@ -190,17 +190,17 @@ async function loadPets() {
     $('#stat-pets').textContent = pets.length;
     $('#stat-rabies').textContent = pets.length ? `${ok} of ${pets.length}` : '–';
     box.innerHTML = pets.map((p) => `<article class="card pet-tile">
-        <a class="pet-tile-photo" href="pet.html?id=${p._id}">${petImg(p.photos?.[0], '', p.name)}
+        <a class="pet-tile-photo" href="/pets/${p._id}">${petImg(p.photos?.[0], '', p.name)}
           ${p.registrationStatus === 'pending' ? '<span class="tag tag-amber">Pending review</span>' : p.registrationStatus === 'rejected' ? '<span class="tag tag-red">Rejected</span>' : ''}</a>
         <div class="pet-tile-body">
-          <div class="row" style="gap:6px;justify-content:space-between;flex-wrap:nowrap"><h3><a href="pet.html?id=${p._id}">${esc(p.name)}</a></h3>${petTags(p)}</div>
+          <div class="row" style="gap:6px;justify-content:space-between;flex-wrap:nowrap"><h3><a href="/pets/${p._id}">${esc(p.name)}</a></h3>${petTags(p)}</div>
           <span class="muted small">${esc(p.breed || SPECIES[p.species])}${p.birthDate ? ` · ${ageText(p.birthDate)}` : ''}</span>
           <span class="mono small pet-tile-reg">${esc(p.registrationNo)}</span>
           ${rabiesLine(p.rabies)}
           ${p.registrationStatus === 'rejected' ? `<p class="small" style="color:var(--bad);margin:0">PVO: ${esc(p.rejectionReason || 'Please check the details.')} Edit the pet to resubmit.</p>` : ''}
-          <div class="pet-tile-actions"><a class="btn btn-ghost btn-sm" href="pet.html?id=${p._id}#health">${ICONS.syringe}Health</a><a class="btn btn-ghost btn-sm" href="pet-form.html?id=${p._id}">${ICONS.edit}Edit</a></div>
+          <div class="pet-tile-actions"><a class="btn btn-ghost btn-sm" href="/pets/${p._id}#health">${ICONS.syringe}Health</a><a class="btn btn-ghost btn-sm" href="/pets/${p._id}/edit">${ICONS.edit}Edit</a></div>
         </div>
-      </article>`).join('') + `<a class="pet-tile-add" href="pet-form.html">${ICONS.plus}<strong>${pets.length ? 'Register another pet' : 'Register your first pet'}</strong><span>Free. You get a PVO registration number right away.</span></a>`;
+      </article>`).join('') + `<a class="pet-tile-add" href="/pets/new">${ICONS.plus}<strong>${pets.length ? 'Register another pet' : 'Register your first pet'}</strong><span>Free. You get a PVO registration number right away.</span></a>`;
   } catch (err) {
     box.innerHTML = errorState(err.message);
   }
@@ -215,7 +215,7 @@ async function loadReports() {
     $('#stat-reports').textContent = reports.filter((r) => !['resolved', 'closed'].includes(r.status)).length;
     box.innerHTML = reports.length
       ? reports.map(reportCard).join('')
-      : emptyState('No reports filed', 'Report animal bites, missing pets, strays or welfare concerns to the PVO.', '<a class="btn btn-primary" href="report.html">Report an incident</a>');
+      : emptyState('No reports filed', 'Report animal bites, missing pets, strays or welfare concerns to the PVO.', '<a class="btn btn-primary" href="/report">Report an incident</a>');
     // Open the newest open report so its timeline is visible at a glance.
     box.querySelector('.report-card details')?.setAttribute('open', '');
   } catch (err) {
@@ -321,7 +321,7 @@ async function showDashboard() {
     return;
   }
   updateSessionUser(user);
-  if (user.role === 'admin') return void location.replace('admin.html');
+  if (user.role === 'admin') return void location.replace('/admin');
   $('#dashboard').hidden = false;
   paintHead(user);
   TABS.forEach((t) => $(`#tab-${t}`).addEventListener('click', () => selectTab(t)));
@@ -334,6 +334,6 @@ async function showDashboard() {
 }
 
 /* ---------- Boot ---------- */
-if (isAdmin()) location.replace('admin.html');
+if (isAdmin()) location.replace('/admin');
 else if (getUser()) showDashboard();
 else showAuth();

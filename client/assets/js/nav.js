@@ -15,21 +15,21 @@ import { ICONS, BRAND_MARK } from './icons.js';
  * that opens a menu of its pages. The phone menu shows the same groups as sections.
  */
 const NAV = [
-  { key: 'wall', href: 'index.html', label: 'Community', icon: 'home' },
+  { key: 'wall', href: '/', label: 'Community', icon: 'home' },
   { id: 'pets', label: 'Pets', items: [
-    { key: 'pets', href: 'pets.html', label: 'Pet directory', icon: 'paw', hint: 'Registered pets in the province' },
-    { key: 'pet-form', href: 'pet-form.html', label: 'Register a pet', icon: 'plus', hint: 'Get a PVO registration number', public: true },
-    { key: 'report', href: 'report.html', label: 'Report an incident', icon: 'flag', hint: 'Bites, strays, lost or found pets', public: true },
+    { key: 'pets', href: '/pets', label: 'Pet directory', icon: 'paw', hint: 'Registered pets in the province' },
+    { key: 'pet-form', href: '/pets/new', label: 'Register a pet', icon: 'plus', hint: 'Get a PVO registration number', public: true },
+    { key: 'report', href: '/report', label: 'Report an incident', icon: 'flag', hint: 'Bites, strays, lost or found pets', public: true },
   ] },
   { id: 'market', label: 'Market', items: [
-    { key: 'shop', href: 'shop.html', label: 'Shop supplies', icon: 'bag', hint: 'Food, care and gear from local sellers' },
-    { key: 'seller', href: 'seller.html', label: 'Seller Center', icon: 'box', hint: 'Sell pet supplies on Alaga', public: true },
+    { key: 'shop', href: '/market', label: 'Shop supplies', icon: 'bag', hint: 'Food, care and gear from local sellers' },
+    { key: 'seller', href: '/seller', label: 'Seller Center', icon: 'box', hint: 'Sell pet supplies on Alaga', public: true },
   ] },
   { id: 'office', label: 'PVO Office', items: [
-    { key: 'announcements', href: 'announcements.html', label: 'Announcements', icon: 'megaphone', hint: 'Drives, schedules and advisories' },
-    { key: 'services', href: 'services.html', label: 'Services', icon: 'stethoscope', hint: 'Vaccination, kapon, certificates' },
-    { key: 'contact', href: 'contact.html', label: 'Contact', icon: 'mail', hint: 'Office hours and hotline' },
-    { key: 'about', href: 'about.html', label: 'About the office', icon: 'info', hint: 'The PVO and this site' },
+    { key: 'announcements', href: '/announcements', label: 'Announcements', icon: 'megaphone', hint: 'Drives, schedules and advisories' },
+    { key: 'services', href: '/services', label: 'Services', icon: 'stethoscope', hint: 'Vaccination, kapon, certificates' },
+    { key: 'contact', href: '/contact', label: 'Contact', icon: 'mail', hint: 'Office hours and hotline' },
+    { key: 'about', href: '/about', label: 'About the office', icon: 'info', hint: 'The PVO and this site' },
   ] },
 ];
 /** Staff don't register pets, report or sell, so those items are hidden for them. */
@@ -37,7 +37,7 @@ const itemsOf = (g) => g.items.filter((l) => !l.public || !isAdmin());
 
 function accountHtml() {
   const user = getUser();
-  if (!user) return `<a class="btn btn-ghost btn-sm" href="account.html">${ICONS.user}<span>Log in</span></a>`;
+  if (!user) return `<a class="btn btn-ghost btn-sm" href="/account">${ICONS.user}<span>Log in</span></a>`;
   return `
     <div class="account">
       <button class="avatar-btn" type="button" id="account-btn" aria-expanded="false" aria-controls="account-menu" aria-label="Account menu for ${esc(user.name)}">
@@ -46,11 +46,11 @@ function accountHtml() {
       <div class="popover" id="account-menu" hidden>
         <div class="popover-head"><strong>${esc(user.name)}</strong><span>${esc(user.email)}</span></div>
         ${isAdmin()
-          ? `<a href="admin.html">${ICONS.shield}PVO admin console</a>`
-          : `<a href="account.html#pets">${ICONS.user}Profile<small class="popover-hint">My pets and reports</small></a>
-             <a href="account.html#orders">${ICONS.bag}My orders</a>
-             <a href="seller.html">${ICONS.box}Seller Center</a>
-             <a href="account.html#settings">${ICONS.gear}Settings</a>
+          ? `<a href="/admin">${ICONS.shield}PVO admin console</a>`
+          : `<a href="/account#pets">${ICONS.user}Profile<small class="popover-hint">My pets and reports</small></a>
+             <a href="/account#orders">${ICONS.bag}My orders</a>
+             <a href="/seller">${ICONS.box}Seller Center</a>
+             <a href="/account#settings">${ICONS.gear}Settings</a>
              <button type="button" data-open-alagai>${ICONS.sparkle}Ask Alagai</button>`}
         <button type="button" data-theme-item></button>
         <hr class="popover-sep">
@@ -66,17 +66,17 @@ function headerHtml(active) {
           <div class="popover more-menu" id="menu-${g.id}" hidden>${itemsOf(g).map((l) => `<a href="${l.href}" ${cur(l)}>${ICONS[l.icon]}<span><strong>${l.label}</strong><small>${l.hint}</small></span></a>`).join('')}</div>`;
   const drawerLink = (l) => `<a href="${l.href}" ${cur(l)}>${ICONS[l.icon]}${l.label}</a>`;
   return `
-  ${isAdmin() ? `<div class="staffbar"><div class="wrap"><span><b>PVO staff view.</b> You can moderate posts and see private records here.</span><a href="admin.html">Open admin console</a></div></div>` : ''}
+  ${isAdmin() ? `<div class="staffbar"><div class="wrap"><span><b>PVO staff view.</b> You can moderate posts and see private records here.</span><a href="/admin">Open admin console</a></div></div>` : ''}
   <header class="site-header" id="site-header">
     <div class="wrap nav">
-      <a class="brand" href="index.html" aria-label="${SITE.name} home">${BRAND_MARK}<span class="brand-word">${SITE.name}<small>PVO ${SITE.province}</small></span></a>
+      <a class="brand" href="/" aria-label="${SITE.name} home">${BRAND_MARK}<span class="brand-word">${SITE.name}<small>PVO ${SITE.province}</small></span></a>
       <nav aria-label="Main"><ul class="nav-links">${NAV.map((n) => `<li${n.items ? ' class="nav-more"' : ''}>${n.items ? group(n) : link(n)}</li>`).join('')}</ul></nav>
       <div class="nav-tools">
-        ${isAdmin() ? '' : `<a class="btn btn-primary btn-sm nav-report" href="report.html" ${active === 'report' ? 'aria-current="page"' : ''}>${ICONS.flag}Report</a>`}
+        ${isAdmin() ? '' : `<a class="btn btn-primary btn-sm nav-report" href="/report" ${active === 'report' ? 'aria-current="page"' : ''}>${ICONS.flag}Report</a>`}
         <div class="nav-icons">
-          ${isOwner() ? `<a class="icon-btn msg-btn" href="messages.html" aria-label="Messages" ${active === 'messages' ? 'aria-current="page"' : ''}>${ICONS.chat}<span class="dot msg-btn-dot" data-unread hidden></span></a>` : ''}
+          ${isOwner() ? `<a class="icon-btn msg-btn" href="/messages" aria-label="Messages" ${active === 'messages' ? 'aria-current="page"' : ''}>${ICONS.chat}<span class="dot msg-btn-dot" data-unread hidden></span></a>` : ''}
           ${notificationsButton()}
-          ${isAdmin() ? '' : `<a class="icon-btn cart-btn" id="cart-btn" href="shop.html#cart" aria-label="Cart">${ICONS.bag}<span class="cart-count" id="cart-count" hidden></span></a>`}
+          ${isAdmin() ? '' : `<a class="icon-btn cart-btn" id="cart-btn" href="/market#cart" aria-label="Cart">${ICONS.bag}<span class="cart-count" id="cart-count" hidden></span></a>`}
           ${getUser() ? '' : `<button class="icon-btn" id="theme-toggle" type="button" aria-label="Switch colour theme">${ICONS.moon}</button>`}
         </div>
         ${accountHtml()}
@@ -86,7 +86,7 @@ function headerHtml(active) {
   </header>
   <dialog class="drawer" id="mobile-nav" aria-label="Menu">
     <div class="drawer-head">
-      <a class="brand" href="index.html">${BRAND_MARK}<span class="brand-word">${SITE.name}<small>PVO ${SITE.province}</small></span></a>
+      <a class="brand" href="/">${BRAND_MARK}<span class="brand-word">${SITE.name}<small>PVO ${SITE.province}</small></span></a>
       <button class="icon-btn" type="button" data-close aria-label="Close menu">${ICONS.close}</button>
     </div>
     <nav class="drawer-body" aria-label="Mobile">
@@ -95,12 +95,12 @@ function headerHtml(active) {
         : drawerLink(n))).join('')}
       <section class="drawer-group" aria-labelledby="dg-you"><h2 id="dg-you">${isAdmin() ? 'Staff' : 'You'}</h2>
       ${isAdmin()
-        ? `<a href="admin.html">${ICONS.shield}PVO admin console</a>`
-        : `${getUser() ? '' : `<a href="account.html">${ICONS.user}Log in or sign up</a>`}
-           ${getUser() ? `<a href="account.html#pets">${ICONS.user}Profile</a>
-           <a href="account.html#orders">${ICONS.bag}My orders</a>
-           <a href="messages.html" ${active === 'messages' ? 'aria-current="page"' : ''}>${ICONS.chat}Messages<span class="dot" data-unread hidden><span class="sr-only">new reply</span></span></a>
-           <a href="account.html#settings">${ICONS.gear}Settings</a>
+        ? `<a href="/admin">${ICONS.shield}PVO admin console</a>`
+        : `${getUser() ? '' : `<a href="/account">${ICONS.user}Log in or sign up</a>`}
+           ${getUser() ? `<a href="/account#pets">${ICONS.user}Profile</a>
+           <a href="/account#orders">${ICONS.bag}My orders</a>
+           <a href="/messages" ${active === 'messages' ? 'aria-current="page"' : ''}>${ICONS.chat}Messages<span class="dot" data-unread hidden><span class="sr-only">new reply</span></span></a>
+           <a href="/account#settings">${ICONS.gear}Settings</a>
            <a href="#alagai" data-open-alagai>${ICONS.sparkle}Ask Alagai</a>` : ''}`}
       <button type="button" class="drawer-theme" data-theme-item></button>
       </section>
@@ -197,7 +197,7 @@ function setupMobileMenu() {
   dialog.addEventListener('click', (e) => e.target === dialog && dialog.close());
 }
 
-export function logout(to = 'index.html') {
+export function logout(to = '/') {
   clearSession();
   location.href = to;
 }

@@ -40,7 +40,7 @@ function renderPager(pages) {
 }
 
 async function load() {
-  history.replaceState(null, '', `pets.html${qs({ ...state, sort: state.sort === 'newest' ? '' : state.sort, page: state.page > 1 ? state.page : '' })}`);
+  history.replaceState(null, '', `/pets${qs({ ...state, sort: state.sort === 'newest' ? '' : state.sort, page: state.page > 1 ? state.page : '' })}`);
   results.innerHTML = skeleton(6, 280);
   try {
     const data = await api(`/pets${qs({ ...state, limit: PAGE_SIZE })}`);

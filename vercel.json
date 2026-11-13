@@ -3,10 +3,72 @@
   "framework": null,
   "buildCommand": "",
   "outputDirectory": "client",
+  "cleanUrls": true,
+  "trailingSlash": false,
+  "redirects": [
+    {
+      "source": "/shop",
+      "destination": "/market",
+      "permanent": true
+    },
+    {
+      "source": "/pet",
+      "has": [
+        {
+          "type": "query",
+          "key": "id",
+          "value": "(?<id>[a-f0-9]{24})"
+        }
+      ],
+      "destination": "/pets/:id",
+      "permanent": true
+    },
+    {
+      "source": "/pet-form",
+      "has": [
+        {
+          "type": "query",
+          "key": "id",
+          "value": "(?<id>[a-f0-9]{24})"
+        }
+      ],
+      "destination": "/pets/:id/edit",
+      "permanent": true
+    },
+    {
+      "source": "/pet-form",
+      "destination": "/pets/new",
+      "permanent": true
+    }
+  ],
   "rewrites": [
     {
       "source": "/api/(.*)",
       "destination": "/api"
+    },
+    {
+      "source": "/(pets|admin)/(.*/)?assets/(.*)",
+      "destination": "/assets/$3"
+    },
+    {
+      "source": "/market",
+      "destination": "/shop"
+    },
+    {
+      "source": "/pets/new",
+      "destination": "/pet-form"
+    },
+    {
+      "source": "/pets/:id/edit",
+      "destination": "/pet-form"
+    },
+    {
+      "source": "/pets/:id",
+      "destination": "/pet"
+    },
+    {
+      "source": "/admin/:view",
+      "destination": "/admin"
     }
   ],
   "functions": {

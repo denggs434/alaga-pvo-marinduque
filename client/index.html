@@ -7,11 +7,11 @@
   <meta name="description" content="Alaga is the pet community of the Marinduque Provincial Veterinary Office: register pets, keep vaccination records, follow vaccination drives and report animal incidents online.">
   <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
   <meta name="theme-color" content="#151d24" media="(prefers-color-scheme: dark)">
-  <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
-  <link rel="icon" href="assets/img/favicon-32.png" sizes="32x32" type="image/png">
-  <link rel="apple-touch-icon" href="assets/img/apple-touch-icon.png">
-  <link rel="manifest" href="manifest.webmanifest">
-  <link rel="stylesheet" href="assets/css/styles.css">
+  <link rel="icon" href="/assets/img/favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="/assets/img/favicon-32.png" sizes="32x32" type="image/png">
+  <link rel="apple-touch-icon" href="/assets/img/apple-touch-icon.png">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="stylesheet" href="/assets/css/styles.css">
 </head>
 <body>
   <main>
@@ -21,10 +21,10 @@
           <h1>Pet care for every town in Marinduque</h1>
           <p>Register your dogs and cats with the Provincial Veterinary Office, keep their vaccination record in one place, and hear about free anti-rabies drives before they happen.</p>
           <div class="hero-actions">
-            <a class="btn btn-primary" href="pet-form.html" id="hero-register">Register your pet</a>
-            <a class="btn btn-ghost" href="report.html">Report an incident</a>
+            <a class="btn btn-primary" href="/pets/new" id="hero-register">Register your pet</a>
+            <a class="btn btn-ghost" href="/report">Report an incident</a>
           </div>
-          <a class="hero-next" id="hero-next" href="announcements.html?view=schedules" hidden></a>
+          <a class="hero-next" id="hero-next" href="/announcements?view=schedules" hidden></a>
         </div>
         <div class="hero-collage" id="collage" aria-label="Recently registered pets"></div>
       </div>
@@ -34,12 +34,12 @@
 
       <section class="feed" aria-labelledby="feed-title">
         <section class="focus-post" id="focus-post" hidden aria-labelledby="focus-title">
-          <div class="feed-head"><h2 id="focus-title">From your notifications</h2><a href="index.html">Close</a></div>
+          <div class="feed-head"><h2 id="focus-title">From your notifications</h2><a href="/">Close</a></div>
           <div id="focus-list" class="stack"></div>
         </section>
         <div id="composer"></div>
         <section class="panel community-pets" id="community-pets" aria-labelledby="cp-title">
-          <div class="panel-head"><h2 id="cp-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="4" r="2"/><circle cx="18" cy="8" r="2"/><circle cx="20" cy="16" r="2"/><path d="M9 10a5 5 0 0 1 5 5v3.5a3.5 3.5 0 0 1-6.84 1.05Q6.52 17.48 4.46 16.84A3.5 3.5 0 0 1 5.5 10Z"/></svg>Pets in the community</h2><a href="pets.html">Browse all pets</a></div>
+          <div class="panel-head"><h2 id="cp-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="4" r="2"/><circle cx="18" cy="8" r="2"/><circle cx="20" cy="16" r="2"/><path d="M9 10a5 5 0 0 1 5 5v3.5a3.5 3.5 0 0 1-6.84 1.05Q6.52 17.48 4.46 16.84A3.5 3.5 0 0 1 5.5 10Z"/></svg>Pets in the community</h2><a href="/pets">Browse all pets</a></div>
           <ul class="mini-pets" id="community-pets-list"><li class="skeleton" style="height:84px"></li><li class="skeleton" style="height:84px"></li><li class="skeleton" style="height:84px"></li></ul>
         </section>
         <div class="feed-head">
@@ -60,20 +60,20 @@
           <div class="alert-list" id="alerts"></div>
         </section>
         <section class="panel" aria-labelledby="sched-title">
-          <div class="panel-head"><h2 id="sched-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>Upcoming schedules</h2><a href="announcements.html?view=schedules">All</a></div>
+          <div class="panel-head"><h2 id="sched-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>Upcoming schedules</h2><a href="/announcements?view=schedules">All</a></div>
           <ul class="sched" id="schedules"><li class="skeleton" style="height:56px"></li></ul>
         </section>
         <section class="panel" aria-labelledby="news-title">
-          <div class="panel-head"><h2 id="news-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 11 18-5v12L3 14v-3z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/></svg>Announcements</h2><a href="announcements.html">All</a></div>
+          <div class="panel-head"><h2 id="news-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 11 18-5v12L3 14v-3z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/></svg>Announcements</h2><a href="/announcements">All</a></div>
           <ul class="mini-list" id="news"><li class="skeleton" style="height:48px"></li></ul>
         </section>
         <section class="panel" aria-labelledby="new-title">
-          <div class="panel-head"><h2 id="new-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="4" r="2"/><circle cx="18" cy="8" r="2"/><circle cx="20" cy="16" r="2"/><path d="M9 10a5 5 0 0 1 5 5v3.5a3.5 3.5 0 0 1-6.84 1.05Q6.52 17.48 4.46 16.84A3.5 3.5 0 0 1 5.5 10Z"/></svg>New on Alaga</h2><a href="pets.html">All pets</a></div>
+          <div class="panel-head"><h2 id="new-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="4" r="2"/><circle cx="18" cy="8" r="2"/><circle cx="20" cy="16" r="2"/><path d="M9 10a5 5 0 0 1 5 5v3.5a3.5 3.5 0 0 1-6.84 1.05Q6.52 17.48 4.46 16.84A3.5 3.5 0 0 1 5.5 10Z"/></svg>New on Alaga</h2><a href="/pets">All pets</a></div>
           <div class="new-pets" id="new-pets"></div>
         </section>
       </aside>
     </div>
   </main>
-  <script type="module" src="assets/js/pages/home.js"></script>
+  <script type="module" src="/assets/js/pages/home.js"></script>
 </body>
 </html>

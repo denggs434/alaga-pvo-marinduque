@@ -1,16 +1,16 @@
 /**
  * PVO admin console.
  *
- * Views (switched with the URL hash so each can be bookmarked):
- *   #overview       dashboard: totals, what needs attention, coverage, monthly charts
- *   #pets           the pet registry: verify registrations, record vaccinations, remove
- *   #reports        incident cases: filter, open a case, update status with a note
- *   #orders         marketplace orders from every shop: confirm, ready, complete, cancel
- *   #sellers        seller applications: approve or reject; suspend or restore shops
- *   #products       every listing: edit, hide or remove; add official-store products
- *   #announcements  publish news and scheduled activities (vaccination drives…)
- *   #owners         accounts: suspend / delete
- *   #messages       contact-form inbox
+ * Views live at /admin/<view> (pushState, so each can be bookmarked; /admin is the overview):
+ *   overview        dashboard: totals, what needs attention, coverage, monthly charts
+ *   pets            the pet registry: verify registrations, record vaccinations, remove
+ *   reports         incident cases: filter, open a case, update status with a note
+ *   orders          marketplace orders from every shop: confirm, ready, complete, cancel
+ *   sellers         seller applications: approve or reject; suspend or restore shops
+ *   products        every listing: edit, hide or remove; add official-store products
+ *   announcements   publish news and scheduled activities (vaccination drives…)
+ *   owners          accounts: suspend / delete
+ *   messages        contact-form inbox
  *
  * Every request carries the admin's token; the server enforces the admin role.
  * This page only decides what to show.
@@ -32,7 +32,7 @@ import { productEditor } from '../product-editor.js';
 initAdminPage();
 const brand = `${BRAND_MARK}<span class="brand-word">Alaga<small>PVO admin</small></span>`;
 $('#login-brand').innerHTML = brand;
-$$('[data-logout]').forEach((b) => b.addEventListener('click', () => { clearSession(); location.href = 'admin.html'; }));
+$$('[data-logout]').forEach((b) => b.addEventListener('click', () => { clearSession(); location.href = '/admin'; }));
 
 if (isAdmin()) boot();
 else if (getUser()) $('#denied').hidden = false;
@@ -125,7 +125,8 @@ function boot() {
 
   const VIEWS = ['overview', 'pets', 'reports', 'orders', 'sellers', 'products', 'announcements', 'owners', 'messages'];
   function showView() {
-    const view = VIEWS.includes(location.hash.slice(1)) ? location.hash.slice(1) : 'overview';
+    const seg = location.pathname.split('/')[2] || '';
+    const view = VIEWS.includes(seg) ? seg : 'overview';
     $$('[data-panel]').forEach((p) => (p.hidden = p.dataset.panel !== view));
     $$('[data-view]').forEach((a) => a.toggleAttribute('aria-current', a.dataset.view === view));
     const link = $(`.console-nav [data-view="${view}"]`);
@@ -137,7 +138,19 @@ function boot() {
     side.classList.remove('is-open');
     window.scrollTo(0, 0);
   }
-  addEventListener('hashchange', showView);
+  // Old bookmarks (admin.html#pets) land on /admin/pets.
+  const oldHash = location.hash.slice(1);
+  if (VIEWS.includes(oldHash)) history.replaceState(null, '', oldHash === 'overview' ? '/admin' : `/admin/${oldHash}`);
+  // In-console links switch views without reloading the data.
+  document.addEventListener('click', (e) => {
+    const a = e.target.closest('a[href^="/admin"]');
+    if (!a || e.defaultPrevented || e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0 || a.target) return;
+    e.preventDefault();
+    if (a.pathname !== location.pathname) history.pushState(null, '', a.pathname);
+    showView();
+  });
+  addEventListener('popstate', showView);
+  const goView = (v) => { history.pushState(null, '', v === 'overview' ? '/admin' : `/admin/${v}`); showView(); };
   showView();
 
   /* ---------- Data ---------- */
@@ -220,10 +233,10 @@ function boot() {
       <button class="btn btn-sm btn-primary" type="button" data-open-report="${r._id}">Open case</button></li>`));
     if (s.pets.pending) q.push(`<li><span><strong>${s.pets.pending} pet registration${s.pets.pending === 1 ? '' : 's'} to review</strong><br><span>Check the owner's details and photos, then approve or reject.</span></span><button class="btn btn-sm btn-ghost" type="button" data-goto-pending>Review</button></li>`);
     if (s.vaccinations.unverified) q.push(`<li><span><strong>${s.vaccinations.unverified} owner-entered vaccination${s.vaccinations.unverified === 1 ? '' : 's'}</strong><br><span>Approve or reject them in Pets → Review.</span></span><button class="btn btn-sm btn-ghost" type="button" data-goto-vax>Review</button></li>`);
-    if (s.shop.pendingSellers) q.push(`<li><span><strong>${s.shop.pendingSellers} seller application${s.shop.pendingSellers === 1 ? '' : 's'}</strong><br><span>Owners waiting to open a shop.</span></span><a class="btn btn-sm btn-ghost" href="#sellers">Review</a></li>`);
-    if (s.shop.newOrders) q.push(`<li><span><strong>${s.shop.newOrders} new shop order${s.shop.newOrders === 1 ? '' : 's'}</strong><br><span>Waiting for the seller or the official store to confirm.</span></span><a class="btn btn-sm btn-ghost" href="#orders">View</a></li>`);
+    if (s.shop.pendingSellers) q.push(`<li><span><strong>${s.shop.pendingSellers} seller application${s.shop.pendingSellers === 1 ? '' : 's'}</strong><br><span>Owners waiting to open a shop.</span></span><a class="btn btn-sm btn-ghost" href="/admin/sellers">Review</a></li>`);
+    if (s.shop.newOrders) q.push(`<li><span><strong>${s.shop.newOrders} new shop order${s.shop.newOrders === 1 ? '' : 's'}</strong><br><span>Waiting for the seller or the official store to confirm.</span></span><a class="btn btn-sm btn-ghost" href="/admin/orders">View</a></li>`);
     if (s.shop.lowStock) q.push(`<li><span><strong>${s.shop.lowStock} product${s.shop.lowStock === 1 ? '' : 's'} low on stock</strong><br><span>5 or fewer left in the shop.</span></span><button class="btn btn-sm btn-ghost" type="button" data-goto-low>Check</button></li>`);
-    if (s.newMessages) q.push(`<li><span><strong>${s.newMessages} new message${s.newMessages === 1 ? '' : 's'}</strong><br><span>From the contact form.</span></span><a class="btn btn-sm btn-ghost" href="#messages">Read</a></li>`);
+    if (s.newMessages) q.push(`<li><span><strong>${s.newMessages} new message${s.newMessages === 1 ? '' : 's'}</strong><br><span>From the contact form.</span></span><a class="btn btn-sm btn-ghost" href="/admin/messages">Read</a></li>`);
     $('#queue').innerHTML = q.join('') || '<li><span><strong>All clear.</strong><br><span>New reports and registrations will show up here.</span></span></li>';
     renderQueueMore(q.length);
 
@@ -296,7 +309,7 @@ function boot() {
       && (!term || `${p.name} ${p.breed} ${p.registrationNo} ${p.owner.name} ${p.owner.email}`.toLowerCase().includes(term)));
     $('#pets-table').innerHTML = `<thead><tr><th>Pet</th><th>Owner</th><th>Species / breed</th><th>Municipality</th><th>Anti-rabies</th><th></th></tr></thead>
       <tbody>${rows.map((p) => `<tr class="${p.status === 'deceased' ? 'is-muted' : ''}">
-        <td><div class="cell-pet">${petImg(p.photos?.[0], '', p.name)}<span><strong><a href="pet.html?id=${p._id}" target="_blank" rel="noopener">${esc(p.name)}</a></strong>
+        <td><div class="cell-pet">${petImg(p.photos?.[0], '', p.name)}<span><strong><a href="/pets/${p._id}" target="_blank" rel="noopener">${esc(p.name)}</a></strong>
           <span class="muted small mono">${esc(p.registrationNo)}</span><span class="cell-tags">${REG[p.registrationStatus] || ''}${p.status === 'missing' ? '<span class="tag tag-solid-red">Missing</span>' : ''}${p.isPublic ? '' : '<span class="tag">Private</span>'}</span></span></div></td>
         <td>${esc(p.owner.name)}<br><span class="muted small">${esc(p.owner.phone || p.owner.email || '')}</span></td>
         <td>${esc(SPECIES[p.species])}<br><span class="muted small">${esc(p.breed || '—')}</span></td>
@@ -446,7 +459,7 @@ function boot() {
           <dl>
             <dt>Happened</dt><dd>${formatDate(r.incidentDate)} (filed ${formatDate(r.createdAt)})</dd>
             <dt>Where</dt><dd>${esc(r.location.details ? `${r.location.details}, ` : '')}Brgy. ${esc(r.location.barangay)}, ${esc(r.location.municipality)}</dd>
-            <dt>Animal</dt><dd>${esc(SPECIES[r.animalSpecies] || 'Not sure')}${r.pet ? ` · <a href="pet.html?id=${r.pet._id}" target="_blank" rel="noopener">${esc(r.pet.name)} (${esc(r.pet.registrationNo)})</a>` : ''}</dd>
+            <dt>Animal</dt><dd>${esc(SPECIES[r.animalSpecies] || 'Not sure')}${r.pet ? ` · <a href="/pets/${r.pet._id}" target="_blank" rel="noopener">${esc(r.pet.name)} (${esc(r.pet.registrationNo)})</a>` : ''}</dd>
             <dt>Contact</dt><dd>${esc(r.contact.name)} · <a href="tel:${esc(r.contact.phone.replace(/\s/g, ''))}">${esc(r.contact.phone)}</a>${r.contact.email ? ` · <a href="mailto:${esc(r.contact.email)}">${esc(r.contact.email)}</a>` : ''}</dd>
           </dl>
           <h3 style="font-size:1rem">Timeline</h3>
@@ -539,7 +552,7 @@ function boot() {
       const actions = {
         pending: `<button class="btn btn-primary btn-sm" type="button" data-seller="${s._id}" data-decision="approve">Approve</button><button class="btn btn-danger btn-sm" type="button" data-seller="${s._id}" data-ask-reason="reject">Reject</button>`,
         rejected: `<button class="btn btn-ghost btn-sm" type="button" data-seller="${s._id}" data-decision="approve">Approve anyway</button>`,
-        approved: `<a class="btn btn-ghost btn-sm" href="shop.html?shop=${s._id}" target="_blank" rel="noopener">View shop</a><button class="btn btn-danger btn-sm" type="button" data-seller="${s._id}" data-ask-reason="suspend">Suspend</button>`,
+        approved: `<a class="btn btn-ghost btn-sm" href="/market?shop=${s._id}" target="_blank" rel="noopener">View shop</a><button class="btn btn-danger btn-sm" type="button" data-seller="${s._id}" data-ask-reason="suspend">Suspend</button>`,
         suspended: `<button class="btn btn-primary btn-sm" type="button" data-seller="${s._id}" data-decision="restore">Restore</button>`,
       }[st] || '';
       return `<article class="card seller-card">
@@ -595,7 +608,7 @@ function boot() {
         <td class="num">${p.sold}</td>
         <td>${p.active ? '<span class="tag tag-green">For sale</span>' : '<span class="tag">Hidden</span>'}</td>
         <td><div class="cell-actions">
-          <a class="btn btn-ghost btn-sm" href="shop.html?p=${p._id}" target="_blank" rel="noopener" title="View">${ICONS.eye}<span class="sr-only">View</span></a>
+          <a class="btn btn-ghost btn-sm" href="/market?p=${p._id}" target="_blank" rel="noopener" title="View">${ICONS.eye}<span class="sr-only">View</span></a>
           <button class="btn btn-ghost btn-sm" type="button" data-hide-product="${p._id}" data-to="${!p.active}">${p.active ? 'Hide' : 'Show'}</button>
           <button class="btn btn-ghost btn-sm" type="button" data-edit-product="${p._id}">${ICONS.edit}<span class="sr-only">Edit</span></button>
           <button class="btn btn-danger btn-sm" type="button" data-del-product="${p._id}">${ICONS.trash}<span class="sr-only">Delete</span></button>
@@ -611,7 +624,7 @@ function boot() {
         <td>${a.event?.startsAt ? `${esc(eventWhen(a.event))}<br><span class="muted small">${esc(a.event.venue || '')}</span>` : '<span class="muted">—</span>'}</td>
         <td>${formatDate(a.createdAt)}</td>
         <td><div class="cell-actions">
-          <a class="btn btn-ghost btn-sm" href="announcements.html#a-${a._id}" target="_blank" rel="noopener" title="View">${ICONS.eye}<span class="sr-only">View</span></a>
+          <a class="btn btn-ghost btn-sm" href="/announcements#a-${a._id}" target="_blank" rel="noopener" title="View">${ICONS.eye}<span class="sr-only">View</span></a>
           <button class="btn btn-ghost btn-sm" type="button" data-edit-ann="${a._id}">${ICONS.edit}<span class="sr-only">Edit</span></button>
           <button class="btn btn-danger btn-sm" type="button" data-del-ann="${a._id}">${ICONS.trash}<span class="sr-only">Delete</span></button>
         </div></td></tr>`).join('') || `<tr><td colspan="5">${emptyState('No announcements yet')}</td></tr>`}</tbody>`;
@@ -650,7 +663,7 @@ function boot() {
     syncEvent();
     annDialog.showModal();
   }
-  $$('[data-new-announcement]').forEach((b) => b.addEventListener('click', (e) => { e.preventDefault(); location.hash = 'announcements'; openAnnouncement(); }));
+  $$('[data-new-announcement]').forEach((b) => b.addEventListener('click', (e) => { e.preventDefault(); goView('announcements'); openAnnouncement(); }));
 
   annForm.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -789,13 +802,13 @@ function boot() {
     if (d.askReason) { state.deciding = { id: d.seller, decision: d.askReason }; renderSellers(); $(`[data-decide="${d.seller}"] textarea`)?.focus(); }
     if (d.cancelDecide !== undefined) { state.deciding = null; renderSellers(); }
     if (d.decision && d.seller) act(() => api(`/shop/sellers/${d.seller}`, { method: 'PATCH', body: { decision: d.decision } }), { approve: 'Seller approved. They can list products now.', restore: 'Shop restored. Its products are back.' }[d.decision]);
-    if (d.gotoLow !== undefined) { $('#prod-state').value = 'low'; renderProducts(); location.hash = 'products'; }
+    if (d.gotoLow !== undefined) { $('#prod-state').value = 'low'; renderProducts(); goView('products'); }
     if (d.editProduct) editor.open(state.products.find((p) => p._id === d.editProduct));
     if (d.hideProduct) act(() => api(`/shop/products/${d.hideProduct}`, { method: 'PUT', body: { active: d.to === 'true' } }), d.to === 'true' ? 'Product is back in the shop.' : 'Product hidden from the shop.');
     if (d.delProduct && armed(b, 'Delete?')) act(() => api(`/shop/products/${d.delProduct}`, { method: 'DELETE' }), 'Product deleted. The seller was notified.');
     if (d.orderStatus && (d.orderStatus !== 'cancelled' || armed(b, 'Cancel order?'))) act(() => api(`/shop/orders/${d.order}`, { method: 'PATCH', body: { status: d.orderStatus } }), d.orderStatus === 'cancelled' ? 'Order cancelled. Items are back in stock.' : 'Order updated. The buyer was notified.');
-    if (d.gotoPending !== undefined) { $('#pet-reg').value = 'pending'; $('#pet-vax').value = ''; renderPets(); location.hash = 'pets'; }
-    if (d.gotoVax !== undefined) { $('#pet-reg').value = ''; $('#pet-vax').value = 'pending'; renderPets(); location.hash = 'pets'; }
+    if (d.gotoPending !== undefined) { $('#pet-reg').value = 'pending'; $('#pet-vax').value = ''; renderPets(); goView('pets'); }
+    if (d.gotoVax !== undefined) { $('#pet-reg').value = ''; $('#pet-vax').value = 'pending'; renderPets(); goView('pets'); }
     if (d.review) openReview(pet(d.review));
     if (d.editAnn) openAnnouncement(state.anns.find((a) => a._id === d.editAnn));
     if (d.delAnn && armed(b, 'Delete?')) act(() => api(`/announcements/${d.delAnn}`, { method: 'DELETE' }), 'Announcement deleted.');

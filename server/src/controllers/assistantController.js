@@ -116,7 +116,7 @@ async function context(user) {
     return `- ${p.name}: ${p.species}${p.breed ? `, ${p.breed}` : ''}${p.sex ? `, ${p.sex}` : ''}${p.birthDate ? `, born ${fmt(p.birthDate)}` : ''}${p.neutered ? ', kapon done' : ''}${p.status === 'missing' ? ', currently MISSING' : ''}; ${rabies}`;
   });
   const eventLines = events.map((e) => `- ${fmt(e.event.startsAt)}: ${e.title}${e.event.venue ? `, ${e.event.venue}` : ''}${e.event.municipality ? ` (${e.event.municipality})` : ''}`);
-  const productLines = products.map((p) => `- [${p.name}](shop.html?p=${p._id}) · ${CATEGORY_LABEL[p.category] || p.category} · for ${p.species.length ? p.species.join('/') : 'any pet'} · ₱${p.price}${p.brand ? ` · ${p.brand}` : ''}`);
+  const productLines = products.map((p) => `- [${p.name}](/market?p=${p._id}) · ${CATEGORY_LABEL[p.category] || p.category} · for ${p.species.length ? p.species.join('/') : 'any pet'} · ₱${p.price}${p.brand ? ` · ${p.brand}` : ''}`);
   return `TODAY: ${fmt(new Date())}
 USER: ${user.name.split(' ')[0]}${user.role === 'admin' ? ' (PVO staff)' : ''}${user.municipality ? `, lives in ${user.municipality}` : ''}
 USER'S PETS:

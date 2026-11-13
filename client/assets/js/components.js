@@ -36,7 +36,7 @@ export function petTags(p) {
 }
 
 export function petCard(p) {
-  return `<a class="pet-card" href="pet.html?id=${p._id}">
+  return `<a class="pet-card" href="/pets/${p._id}">
     <div class="pet-card-photo">${petImg(p.photos?.[0], '', `${p.name}, ${p.breed || SPECIES[p.species]}`)}<div class="tags">${petTags(p)}</div></div>
     <div class="pet-card-body">
       <h3>${esc(p.name)} ${sexIcon(p.sex)}</h3>
@@ -98,7 +98,7 @@ export function postCard(p, open = false) {
         ? `<form class="comment-form" data-comment-form="${p._id}"><label class="sr-only" for="c-${p._id}">Write a comment</label>
             <input class="input" id="c-${p._id}" name="text" maxlength="500" placeholder="Write a comment…" autocomplete="off" required>
             <button class="btn btn-primary btn-sm" type="submit">Send</button></form>`
-        : '<p class="small"><a href="account.html">Log in</a> to like and comment.</p>'}
+        : '<p class="small"><a href="/account">Log in</a> to like and comment.</p>'}
     </div>
   </article>`;
 }
@@ -158,7 +158,7 @@ export function createPostList(container, { onEmpty = () => {} } = {}) {
     }
 
     if (d.share) {
-      const url = new URL(`pet.html?id=${d.share}`, location.href).href;
+      const url = new URL(`/pets/${d.share}`, location.href).href;
       try { await navigator.clipboard.writeText(url); toast('Link copied.'); } catch { prompt('Copy this link:', url); }
     }
 
@@ -241,7 +241,7 @@ export function eventWhen(e) {
 }
 
 export function scheduleItem(a) {
-  return `<li><a href="announcements.html#a-${a._id}">${dateTile(a.event.startsAt)}
+  return `<li><a href="/announcements#a-${a._id}">${dateTile(a.event.startsAt)}
     <span><strong>${esc(a.title)}</strong><span>${esc(a.event.municipality || '')}${a.event.municipality ? ' · ' : ''}${formatTime(a.event.startsAt)}</span></span></a></li>`;
 }
 
@@ -249,7 +249,7 @@ export function scheduleItem(a) {
 
 export function alertCard(a) {
   const name = a.name || `${SPECIES[a.species] || 'Pet'}`;
-  return `<a class="alert-card" href="${a.petId ? `pet.html?id=${a.petId}` : 'report.html'}">
+  return `<a class="alert-card" href="${a.petId ? `/pets/${a.petId}` : '/report'}">
     ${petImg(a.photo, '', name)}
     <span class="stack-sm" style="gap:2px">
       <strong>${esc(name)}${a.breed ? ` · ${esc(a.breed)}` : ''}</strong>

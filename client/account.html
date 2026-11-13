@@ -6,11 +6,11 @@
   <title>My account | Alaga · PVO Marinduque</title>
   <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
   <meta name="theme-color" content="#151d24" media="(prefers-color-scheme: dark)">
-  <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
-  <link rel="icon" href="assets/img/favicon-32.png" sizes="32x32" type="image/png">
-  <link rel="apple-touch-icon" href="assets/img/apple-touch-icon.png">
-  <link rel="manifest" href="manifest.webmanifest">
-  <link rel="stylesheet" href="assets/css/styles.css">
+  <link rel="icon" href="/assets/img/favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="/assets/img/favicon-32.png" sizes="32x32" type="image/png">
+  <link rel="apple-touch-icon" href="/assets/img/apple-touch-icon.png">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="stylesheet" href="/assets/css/styles.css">
 </head>
 <body>
   <main class="wrap">
@@ -43,7 +43,7 @@
             <label class="field span-2"><span>Barangay <span class="muted">(optional)</span></span><input class="input" name="barangay" maxlength="60"><small class="field-error"></small></label>
           </div>
           <label class="field"><span>Password</span><input class="input" type="password" name="password" autocomplete="new-password" minlength="8" maxlength="72" required><small class="hint">At least 8 characters.</small><small class="field-error"></small></label>
-          <label class="check"><input type="checkbox" name="agree" required><span>I agree that the PVO may store my details to manage pet registrations and reports. <a href="about.html#privacy" target="_blank" rel="noopener">How we use your data</a></span></label>
+          <label class="check"><input type="checkbox" name="agree" required><span>I agree that the PVO may store my details to manage pet registrations and reports. <a href="/about#privacy" target="_blank" rel="noopener">How we use your data</a></span></label>
           <small class="field-error" data-for="agree"></small>
           <p class="notice notice-error" id="register-error" hidden role="alert"></p>
           <button class="btn btn-primary btn-block" type="submit">Create account</button>
@@ -60,8 +60,8 @@
           <span class="avatar profile-avatar" id="dash-avatar"></span>
           <div class="profile-id"><h1 id="dash-name"></h1><p id="dash-who"></p></div>
           <div class="profile-actions">
-            <a class="btn btn-primary btn-sm" href="pet-form.html">+ Register a pet</a>
-            <a class="btn btn-ghost btn-sm" href="messages.html">Message the PVO</a>
+            <a class="btn btn-primary btn-sm" href="/pets/new">+ Register a pet</a>
+            <a class="btn btn-ghost btn-sm" href="/messages">Message the PVO</a>
             <a class="icon-btn" href="#settings" aria-label="Settings" title="Settings" id="settings-link"></a>
           </div>
         </div>
@@ -112,6 +112,6 @@
       </section>
     </section>
   </main>
-  <script type="module" src="assets/js/pages/account.js"></script>
+  <script type="module" src="/assets/js/pages/account.js"></script>
 </body>
 </html>

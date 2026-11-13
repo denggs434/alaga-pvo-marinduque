@@ -34,10 +34,10 @@ function saveHistory(list) {
   try { sessionStorage.setItem(storeKey(), JSON.stringify(list.slice(-30))); } catch { /* storage blocked */ }
 }
 
-/** Escape, then render **bold**, [links](page.html?…) to this site, "- " / "1. " lists and paragraphs. */
+/** Escape, then render **bold**, [links](/page?…) to this site, "- " / "1. " lists and paragraphs. */
 export function renderReply(text) {
   const inline = (s) => esc(s)
-    .replace(/\[([^\]]+)\]\(([a-z-]+\.html(?:\?[\w=.-]*)?(?:#[\w-]*)?)\)/g, '<a href="$2">$1</a>')
+    .replace(/\[([^\]]+)\]\((\/[a-z0-9/-]*(?:\?[\w=.-]*)?(?:#[\w-]*)?)\)/g, '<a href="$2">$1</a>')
     .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
   const out = [];
   let para = [];

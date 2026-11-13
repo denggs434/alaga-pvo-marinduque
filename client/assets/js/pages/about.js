@@ -13,7 +13,7 @@ $('#office').innerHTML = [
   [ICONS.mail, `<a href="mailto:${SITE.email}">${SITE.email}</a>`],
 ].map(([icon, text]) => `<li>${icon}<span>${text}</span></li>`).join('');
 
-fetch('assets/img/credits.json')
+fetch('/assets/img/credits.json')
   .then((r) => r.json())
   .then((list) => {
     $('#credit-list').innerHTML = list.map((c) => `<li>

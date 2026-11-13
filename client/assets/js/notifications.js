@@ -3,7 +3,7 @@
  *  - badge with the unread count, refreshed every minute while the tab is visible
  *  - panel with the latest 30: likes, comments, replies in threads you joined,
  *    posts or comments the PVO removed, and shop order updates
- *  - opening one marks it read and goes to the post (index.html?post=<id>)
+ *  - opening one marks it read and goes to the post (/?post=<id>)
  *  - "Mark all as read"
  */
 import { api } from './api.js';
@@ -30,7 +30,7 @@ function itemHtml(n) {
   const inner = `<span class="notif-icon notif-${n.type}" aria-hidden="true">${ICONS[ICON[n.type]] || ICONS.info}</span>
     <span class="notif-body"><span class="notif-text">${line(n)}</span><time datetime="${n.createdAt}">${timeAgo(n.createdAt)}</time></span>
     ${n.read ? '' : '<span class="notif-dot" aria-label="Unread"></span>'}`;
-  const href = n.post ? `index.html?post=${n.post}` : n.type === 'order' ? 'account.html#orders' : n.type === 'shop' ? 'seller.html' : '';
+  const href = n.post ? `/?post=${n.post}` : n.type === 'order' ? '/account#orders' : n.type === 'shop' ? '/seller' : '';
   return href
     ? `<li><a class="notif${n.read ? '' : ' is-unread'}" href="${href}" data-notif="${n._id}">${inner}</a></li>`
     : `<li><div class="notif${n.read ? '' : ' is-unread'}" data-notif="${n._id}">${inner}</div></li>`;

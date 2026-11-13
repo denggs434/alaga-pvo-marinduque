@@ -28,7 +28,7 @@ let loading = false;
 const feed = createPostList(postsEl, { onEmpty: showEmptyFeed });
 
 function showEmptyFeed() {
-  postsEl.innerHTML = emptyState('The wall is quiet', 'Be the first to share a pet update.', user ? '' : '<a class="btn btn-primary" href="account.html?mode=register">Join Alaga</a>');
+  postsEl.innerHTML = emptyState('The wall is quiet', 'Be the first to share a pet update.', user ? '' : '<a class="btn btn-primary" href="/account?mode=register">Join Alaga</a>');
 }
 
 /* ---------- Welcome (logged in) ---------- */
@@ -41,19 +41,19 @@ function renderWelcome() {
   $('.hero-inner > div', hero).innerHTML = `
     <h1>${hello}, ${esc(user.name.split(' ')[0])}</h1>
     <p>${isAdmin() ? 'Here is what pet owners are sharing today.' : 'Here is what pets around the island are up to.'}</p>
-    <a class="hero-next" id="hero-next" href="announcements.html?view=schedules" hidden></a>`;
+    <a class="hero-next" id="hero-next" href="/announcements?view=schedules" hidden></a>`;
 }
 
 /** "Next PVO activity" line in the hero, from the real schedule. */
 function renderNextActivity(item) {
   const el = $('#hero-next');
   if (!el || !item) return;
-  el.href = `announcements.html#a-${item._id}`;
+  el.href = `/announcements#a-${item._id}`;
   el.innerHTML = `${dateTile(item.event.startsAt)}<span><strong>Next PVO activity</strong><br>${esc(item.title)}${item.event.venue ? `, ${esc(item.event.venue)}` : ''}${item.event.municipality && !`${item.title} ${item.event.venue || ''}`.includes(item.event.municipality) ? `, ${esc(item.event.municipality)}` : ''}</span>`;
   el.hidden = false;
 }
 
-/* ---------- One post from a notification (index.html?post=<id>) ---------- */
+/* ---------- One post from a notification (/?post=<id>) ---------- */
 const focusId = new URLSearchParams(location.search).get('post');
 async function showFocusedPost() {
   if (!focusId || !/^[a-f\d]{24}$/i.test(focusId)) return;
@@ -137,14 +137,14 @@ function renderComposer() {
   if (isAdmin()) {
     box.innerHTML = `<div class="card join-card"><strong>You are signed in as PVO staff.</strong>
       <p class="muted">Publish news and schedules from the admin console. You can remove posts or comments here if they break community rules.</p>
-      <a class="btn btn-primary" href="admin.html#announcements" style="justify-self:start">Write an announcement</a></div>`;
+      <a class="btn btn-primary" href="/admin/announcements" style="justify-self:start">Write an announcement</a></div>`;
     return;
   }
   if (!user) {
     box.innerHTML = `<div class="card join-card">
       <strong style="font-family:var(--font-display);font-size:1.125rem">Share your pet's day with the community</strong>
       <p class="muted">Create a free account to register your pets, post updates, and get reminders for vaccination drives.</p>
-      <div class="row"><a class="btn btn-primary" href="account.html?mode=register">Create an account</a><a class="btn btn-ghost" href="account.html">Log in</a></div></div>`;
+      <div class="row"><a class="btn btn-primary" href="/account?mode=register">Create an account</a><a class="btn btn-ghost" href="/account">Log in</a></div></div>`;
     return;
   }
 
@@ -159,7 +159,7 @@ function renderComposer() {
       <div class="composer-quick">
         <button type="button" data-compose="photo"><span class="q-photo">${ICONS.image}</span>Photo</button>
         <button type="button" data-compose="pet"><span class="q-pet">${ICONS.paw}</span>Pet update</button>
-        <a href="report.html?type=missing"><span class="q-lost">${ICONS.search}</span>Lost pet</a>
+        <a href="/report?type=missing"><span class="q-lost">${ICONS.search}</span>Lost pet</a>
       </div>
     </div>
     <dialog class="modal composer-modal" id="composer-dialog" aria-labelledby="composer-title">
@@ -260,16 +260,16 @@ function renderMeCard() {
   card.hidden = !user;
   if (!user) {
     card.innerHTML = `<div class="me-card"><strong>Welcome to Alaga</strong><p class="muted small">Browse pets and PVO news as a visitor, or join to register your own pets.</p>
-      <a class="btn btn-primary btn-sm" href="account.html?mode=register">Join now</a></div>`;
+      <a class="btn btn-primary btn-sm" href="/account?mode=register">Join now</a></div>`;
     return;
   }
   card.innerHTML = `<div class="me-card">
     <div class="row"><span class="avatar">${esc(initials(user.name))}</span><span><strong>${esc(user.name)}</strong><br><span class="muted small">${isAdmin() ? 'PVO staff' : esc(user.municipality || 'Pet owner')}</span></span></div>
     ${isAdmin()
-      ? '<a class="btn btn-soft btn-sm" href="admin.html">Open admin console</a>'
-      : `<div class="me-pets">${myPets.map((p) => `<a href="pet.html?id=${p._id}" title="${esc(p.name)}">${petImg(p.photos?.[0], '', p.name)}</a>`).join('')}
-         <a href="pet-form.html" title="Register a pet" aria-label="Register a pet" class="pet-placeholder" style="width:40px;height:40px;border-radius:999px">${ICONS.plus}</a></div>
-         <a class="small" href="account.html">My pets and reports</a>`}
+      ? '<a class="btn btn-soft btn-sm" href="/admin">Open admin console</a>'
+      : `<div class="me-pets">${myPets.map((p) => `<a href="/pets/${p._id}" title="${esc(p.name)}">${petImg(p.photos?.[0], '', p.name)}</a>`).join('')}
+         <a href="/pets/new" title="Register a pet" aria-label="Register a pet" class="pet-placeholder" style="width:40px;height:40px;border-radius:999px">${ICONS.plus}</a></div>
+         <a class="small" href="/account">My pets and reports</a>`}
   </div>`;
 }
 
@@ -289,7 +289,7 @@ function renderCommunityPets(items) {
   const box = $('#community-pets');
   if (!others.length) { box.hidden = true; return; }
   box.hidden = false;
-  $('#community-pets-list').innerHTML = others.map((p) => `<li><a class="mini-pet" href="pet.html?id=${p._id}">
+  $('#community-pets-list').innerHTML = others.map((p) => `<li><a class="mini-pet" href="/pets/${p._id}">
       ${petImg(p.photos?.[0], '', `${p.name}, ${p.breed || SPECIES[p.species]}`)}
       <span class="mini-pet-body"><strong>${esc(p.name)}</strong>
         <span>${esc(SPECIES[p.species] || '')}${p.breed ? ` · ${esc(p.breed)}` : ''}</span>
@@ -317,16 +317,16 @@ async function loadSide() {
   } else $('#schedules').innerHTML = '<li class="muted small">Could not load schedules.</li>';
 
   if (news.status === 'fulfilled') {
-    $('#news').innerHTML = news.value.items.map((a) => `<li><a href="announcements.html#a-${a._id}">${esc(a.title)}</a>
+    $('#news').innerHTML = news.value.items.map((a) => `<li><a href="/announcements#a-${a._id}">${esc(a.title)}</a>
       <small>${categoryTag(a.category)} · ${formatDate(a.createdAt)}</small></li>`).join('') || '<li class="muted small">No announcements yet.</li>';
   } else $('#news').innerHTML = '<li class="muted small">Could not load announcements.</li>';
 
   if (pets.status === 'fulfilled') {
     const items = pets.value.items;
-    $('#new-pets').innerHTML = items.slice(0, 8).map((p) => `<a href="pet.html?id=${p._id}">${petImg(p.photos?.[0], '', p.name)}<span>${esc(p.name)}</span></a>`).join('');
+    $('#new-pets').innerHTML = items.slice(0, 8).map((p) => `<a href="/pets/${p._id}">${petImg(p.photos?.[0], '', p.name)}<span>${esc(p.name)}</span></a>`).join('');
     if (!user) {
       $('#collage').innerHTML = items.filter((p) => p.photos?.length).slice(0, 5)
-        .map((p) => `<a href="pet.html?id=${p._id}">${petImg(p.photos[0], '', `${p.name}, ${p.breed}`)}<span>${esc(p.name)}</span></a>`).join('');
+        .map((p) => `<a href="/pets/${p._id}">${petImg(p.photos[0], '', `${p.name}, ${p.breed}`)}<span>${esc(p.name)}</span></a>`).join('');
     }
     renderCommunityPets(items);
   } else {
@@ -340,7 +340,7 @@ async function boot() {
   if (isOwner()) {
     try { myPets = await api('/pets/mine'); } catch { myPets = []; }
   }
-  if (isAdmin()) $('#hero-register')?.setAttribute('href', 'admin.html#pets');
+  if (isAdmin()) $('#hero-register')?.setAttribute('href', '/admin/pets');
   renderMeCard();
   renderComposer();
   setupFeedTabs();

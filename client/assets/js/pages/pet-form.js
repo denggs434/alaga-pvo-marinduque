@@ -1,5 +1,5 @@
 /**
- * Register a pet (pet-form.html) or edit one (pet-form.html?id=<id>).
+ * Register a pet (/pets/new) or edit one (/pets/<id>/edit).
  * Owners register their own pets; PVO staff can edit any pet.
  */
 import { api } from '../api.js';
@@ -12,14 +12,16 @@ initPage('pets');
 
 
 const form = $('#pet-form');
-const id = new URLSearchParams(location.search).get('id');
+// /pets/<id>/edit, or /pets/new for a new pet
+const seg = location.pathname.split('/')[2];
+const id = (seg && seg !== 'new' ? seg : null) || new URLSearchParams(location.search).get('id');
 const user = requireLogin(id ? 'Log in to edit this pet.' : 'Log in or create an account to register your pet.');
 
 if (user && isAdmin()) {
   // Staff accounts do not own pets and never edit an owner's details: they review them.
   $('main').innerHTML = id
-    ? emptyState("PVO staff can't edit pet details", "The owner's submitted information stays as they entered it. Review it and approve or reject the registration in the admin console.", '<a class="btn btn-primary" href="admin.html#pets">Open the pets list</a>')
-    : emptyState('PVO staff accounts do not register pets', 'Owners register their pets from their own accounts. Review registrations in the admin console.', '<a class="btn btn-primary" href="admin.html#pets">Open the pets list</a>');
+    ? emptyState("PVO staff can't edit pet details", "The owner's submitted information stays as they entered it. Review it and approve or reject the registration in the admin console.", '<a class="btn btn-primary" href="/admin/pets">Open the pets list</a>')
+    : emptyState('PVO staff accounts do not register pets', 'Owners register their pets from their own accounts. Review registrations in the admin console.', '<a class="btn btn-primary" href="/admin/pets">Open the pets list</a>');
 } else if (user) {
   boot();
 }
@@ -75,10 +77,10 @@ async function boot() {
       $('#form-title').textContent = `Edit ${p.name}'s profile`;
       $('#form-intro').textContent = 'Changes appear on the profile and the community wall right away.';
       $('#save').textContent = 'Save changes';
-      $('#cancel').href = `pet.html?id=${p._id}`;
+      $('#cancel').href = `/pets/${p._id}`;
       $('#status-field').hidden = false;
     } catch (err) {
-      $('main').innerHTML = emptyState('Cannot edit this pet', err.message, '<a class="btn btn-primary" href="account.html">Back to my pets</a>');
+      $('main').innerHTML = emptyState('Cannot edit this pet', err.message, '<a class="btn btn-primary" href="/account">Back to my pets</a>');
       return;
     }
   }
@@ -118,7 +120,7 @@ async function boot() {
     try {
       const pet = await api(id ? `/pets/${id}` : '/pets', { method: id ? 'PUT' : 'POST', body });
       toast(id ? 'Profile saved.' : `${pet.name} is registered! Registration no. ${pet.registrationNo}`);
-      setTimeout(() => (location.href = `pet.html?id=${pet._id}`), 700);
+      setTimeout(() => (location.href = `/pets/${pet._id}`), 700);
     } catch (err) {
       $('#form-error').textContent = err.message;
       $('#form-error').hidden = false;

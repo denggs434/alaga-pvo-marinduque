@@ -27,25 +27,25 @@ function renderFooter() {
   footer.innerHTML = `
     <div class="wrap footer-grid">
       <div class="stack-sm">
-        <a class="brand" href="index.html">${BRAND_MARK}<span class="brand-word">${SITE.name}<small>${SITE.office}</small></span></a>
+        <a class="brand" href="/">${BRAND_MARK}<span class="brand-word">${SITE.name}<small>${SITE.office}</small></span></a>
         <p class="muted">The pet community of ${SITE.province}: register your pets, keep their health records, stay updated on vaccination drives and report animal incidents to the PVO.</p>
       </div>
       <div>
         <h4>Community</h4>
         <ul>
-          <li><a href="index.html">Community wall</a></li>
-          <li><a href="pets.html">Browse pets</a></li>
-          <li><a href="pet-form.html">Register a pet</a></li>
-          <li><a href="announcements.html">Announcements</a></li>
+          <li><a href="/">Community wall</a></li>
+          <li><a href="/pets">Browse pets</a></li>
+          <li><a href="/pets/new">Register a pet</a></li>
+          <li><a href="/announcements">Announcements</a></li>
         </ul>
       </div>
       <div>
         <h4>PVO</h4>
         <ul>
-          <li><a href="services.html">Services</a></li>
-          <li><a href="report.html">Report an incident</a></li>
-          <li><a href="about.html">About the office</a></li>
-          <li><a href="contact.html">Contact us</a></li>
+          <li><a href="/services">Services</a></li>
+          <li><a href="/report">Report an incident</a></li>
+          <li><a href="/about">About the office</a></li>
+          <li><a href="/contact">Contact us</a></li>
         </ul>
       </div>
       <div>
@@ -60,7 +60,7 @@ function renderFooter() {
     </div>
     <div class="wrap footer-base">
       <span>© ${new Date().getFullYear()} ${SITE.name}. A student project; not an official government website. Names, records and contact numbers are samples.</span>
-      <span><a href="about.html#credits">Photo credits</a> · <a href="about.html#privacy">Privacy</a></span>
+      <span><a href="/about#credits">Photo credits</a> · <a href="/about#privacy">Privacy</a></span>
     </div>`;
   document.body.append(footer);
 }
@@ -86,9 +86,9 @@ export function initAdminPage() {
 export function requireLogin(message = 'Please log in first.') {
   const user = getUser();
   if (user) return user;
-  const next = location.pathname.split('/').pop() + location.search;
+  const next = location.pathname + location.search;
   try { sessionStorage.setItem('alaga.flash', message); } catch { /* storage blocked: skip the message */ }
-  location.replace(`account.html?next=${encodeURIComponent(next || 'index.html')}`);
+  location.replace(`/account?next=${encodeURIComponent(next || '/')}`);
   return null;
 }
 

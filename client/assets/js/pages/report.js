@@ -1,7 +1,7 @@
 /**
  * Online report form: animal bite, missing pet, stray/abandoned, welfare concern.
  * Requires a pet-owner account (so the reporter can track the status).
- * Supports report.html?type=missing&pet=<id> links from a pet's profile.
+ * Supports /report?type=missing&pet=<id> links from a pet's profile.
  */
 import { api } from '../api.js';
 import { isAdmin } from '../store.js';
@@ -23,7 +23,7 @@ const params = new URLSearchParams(location.search);
 const user = requireLogin('Log in or create a free account to file a report and track its status.');
 
 if (user && isAdmin()) {
-  $('#report-root').innerHTML = emptyState('Reports are filed by pet owners', 'PVO staff manage reports from the admin console.', '<a class="btn btn-primary" href="admin.html#reports">Open reports</a>');
+  $('#report-root').innerHTML = emptyState('Reports are filed by pet owners', 'PVO staff manage reports from the admin console.', '<a class="btn btn-primary" href="/admin/reports">Open reports</a>');
 } else if (user) {
   boot();
 }
@@ -60,7 +60,7 @@ async function boot() {
   form.addEventListener('change', (e) => ['type', 'pet'].includes(e.target.name) && syncType());
   f.description.addEventListener('input', () => ($('#desc-count').textContent = `${f.description.value.length} / 3000 (at least 20 characters)`));
 
-  // Prefill from links such as report.html?type=missing&pet=<id>
+  // Prefill from links such as /report?type=missing&pet=<id>
   if (REPORT_TYPES[params.get('type')]) f.type.value = params.get('type');
   if (params.get('pet') && myPets.some((p) => p._id === params.get('pet'))) f.pet.value = params.get('pet');
   syncType();
@@ -119,7 +119,7 @@ function showDone(r) {
       ? 'Bite reports are high priority. Our team will call you. If the wound is not yet treated, go to an Animal Bite Treatment Center today.'
       : 'PVO staff will review your report and post updates on its timeline. We may call you for more details.'}</p>
     ${r.publicAlert ? '<p class="notice notice-warn">Your missing-pet alert is now on the community wall.</p>' : ''}
-    <div class="row" style="justify-content:center"><a class="btn btn-primary" href="account.html#reports">Track my reports</a><a class="btn btn-ghost" href="index.html">Back to the wall</a></div>
+    <div class="row" style="justify-content:center"><a class="btn btn-primary" href="/account#reports">Track my reports</a><a class="btn btn-ghost" href="/">Back to the wall</a></div>
   </div>`;
   toast('Report submitted.');
   window.scrollTo({ top: 0, behavior: 'smooth' });

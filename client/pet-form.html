@@ -6,11 +6,11 @@
   <title>Register a pet | Alaga · PVO Marinduque</title>
   <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
   <meta name="theme-color" content="#151d24" media="(prefers-color-scheme: dark)">
-  <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
-  <link rel="icon" href="assets/img/favicon-32.png" sizes="32x32" type="image/png">
-  <link rel="apple-touch-icon" href="assets/img/apple-touch-icon.png">
-  <link rel="manifest" href="manifest.webmanifest">
-  <link rel="stylesheet" href="assets/css/styles.css">
+  <link rel="icon" href="/assets/img/favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="/assets/img/favicon-32.png" sizes="32x32" type="image/png">
+  <link rel="apple-touch-icon" href="/assets/img/apple-touch-icon.png">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="stylesheet" href="/assets/css/styles.css">
 </head>
 <body>
   <main class="wrap" style="max-width:860px">
@@ -62,16 +62,16 @@
           <small>Visitors see the photos, name, breed, age, municipality, rabies status and your first name. Your email, phone, barangay and the health records are never public.</small></span></label>
         <label class="field" id="status-field" hidden><span>Status</span>
           <select class="input" name="status"><option value="active">Active</option><option value="missing">Missing</option><option value="deceased">Passed away (in memory)</option></select>
-          <small class="hint">To report a missing pet with a public alert, use <a href="report.html?type=missing">Report an incident</a>.</small></label>
+          <small class="hint">To report a missing pet with a public alert, use <a href="/report?type=missing">Report an incident</a>.</small></label>
       </section>
 
       <p class="notice notice-error" id="form-error" hidden role="alert"></p>
       <div class="row" style="justify-content:flex-end">
-        <a class="btn btn-ghost" href="account.html" id="cancel">Cancel</a>
+        <a class="btn btn-ghost" href="/account" id="cancel">Cancel</a>
         <button class="btn btn-primary" type="submit" id="save">Register pet</button>
       </div>
     </form>
   </main>
-  <script type="module" src="assets/js/pages/pet-form.js"></script>
+  <script type="module" src="/assets/js/pages/pet-form.js"></script>
 </body>
 </html>

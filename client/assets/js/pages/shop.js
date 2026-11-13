@@ -57,7 +57,7 @@ function banner(s) {
       <p class="muted small">${esc(s.about || (s.official ? 'Run by the Provincial Veterinary Office. Pick up at the PVO office in Boac.' : ''))}</p>
       <p class="small">${s.products} product${s.products === 1 ? '' : 's'} · ${s.sold} sold${s.municipality ? ` · ${esc(s.municipality)}` : ''}${s.since ? ` · on Alaga since ${formatDate(s.since)}` : ''}</p>
     </div>
-    <a class="btn btn-ghost btn-sm" href="shop.html">All shops</a>`;
+    <a class="btn btn-ghost btn-sm" href="/market">All shops</a>`;
   $('h1').textContent = s.name;
   document.title = `${s.name} | Alaga Market`;
   $('.market-hero')?.classList.add('is-shop');
@@ -68,7 +68,7 @@ async function loadExtras() {
   api('/shop/shops').then((shops) => {
     if (!shops.length) return;
     $('#shops').hidden = false;
-    $('#shops-list').innerHTML = shops.map((s) => `<a class="shop-chip" href="shop.html?shop=${esc(s.id)}">
+    $('#shops-list').innerHTML = shops.map((s) => `<a class="shop-chip" href="/market?shop=${esc(s.id)}">
       <span class="shop-avatar${s.official ? ' is-official' : ''}" aria-hidden="true">${s.official ? ICONS.shieldCheck : esc(s.name[0])}</span>
       <span><strong>${esc(s.name)}</strong><small>${s.products} items · ${s.sold} sold</small></span></a>`).join('');
   }).catch(() => {});
@@ -104,7 +104,7 @@ async function openProduct(id) {
       <div class="stack-sm pd-info">
         <h3 class="pd-name">${esc(p.name)}</h3>
         <div class="row" style="gap:10px"><span class="pd-price">${peso(p.price)}</span>${p.sold ? `<span class="muted small">${p.sold} sold</span>` : ''}</div>
-        <a class="pd-shop" href="shop.html?shop=${esc(p.shop.id)}">${p.shop.official ? ICONS.shieldCheck : ICONS.bag}<span><strong>${esc(p.shop.name)}</strong><small>${esc(p.shop.municipality || 'Marinduque')} · view shop</small></span></a>
+        <a class="pd-shop" href="/market?shop=${esc(p.shop.id)}">${p.shop.official ? ICONS.shieldCheck : ICONS.bag}<span><strong>${esc(p.shop.name)}</strong><small>${esc(p.shop.municipality || 'Marinduque')} · view shop</small></span></a>
         <dl class="pd-facts"><dt>For</dt><dd>${esc(forWho)}</dd>${p.brand ? `<dt>Brand</dt><dd>${esc(p.brand)}</dd>` : ''}<dt>Stock</dt><dd>${out ? 'Sold out' : `${p.stock} available`}</dd><dt>Payment</dt><dd>Cash on pickup or delivery</dd></dl>
         <p class="pd-desc">${esc(p.description)}</p>
         ${out ? '<p class="notice">Sold out for now. Check back soon.</p>' : `<div class="row pd-buy">
@@ -171,7 +171,7 @@ function renderCart() {
     return;
   }
   body.innerHTML = groups.map((g) => `<section class="cart-shop">
-    <a class="cart-shop-name" href="shop.html?shop=${esc(g.shopId)}">${ICONS.bag}${esc(g.shop)}</a>
+    <a class="cart-shop-name" href="/market?shop=${esc(g.shopId)}">${ICONS.bag}${esc(g.shop)}</a>
     <ul>${g.lines.map((l) => `<li class="cart-line">
       ${productImg(l)}
       <div class="stack-sm" style="gap:4px"><span class="cart-name">${esc(l.name)}</span><b>${peso(l.price)}</b>
@@ -266,7 +266,7 @@ coForm.addEventListener('submit', async (e) => {
     coForm.querySelector('.modal-body').innerHTML = `<div class="empty" style="padding:8px 0">${ICONS.check}<h3>Thank you! ${orders.length > 1 ? `${orders.length} orders placed` : 'Your order is placed'}.</h3>
       <p>${orders.map((o) => `<span class="mono">${esc(o.reference)}</span> · ${esc(o.shopName)} · ${peso(o.total)}`).join('<br>')}</p>
       <p>The seller will confirm by text. Track it under My orders; you will get a notification at every step.</p></div>`;
-    coForm.querySelector('.modal-foot').innerHTML = '<a class="btn btn-ghost" href="shop.html">Keep shopping</a><a class="btn btn-primary" href="account.html#orders">View my orders</a>';
+    coForm.querySelector('.modal-foot').innerHTML = '<a class="btn btn-ghost" href="/market">Keep shopping</a><a class="btn btn-primary" href="/account#orders">View my orders</a>';
     load();
   } catch (err) {
     $('#co-error').textContent = err.message;

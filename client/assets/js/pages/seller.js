@@ -50,11 +50,11 @@ function renderShop() {
   const FILTERS = { open: ['To do', todo.length], completed: ['Completed', done.length], cancelled: ['Cancelled', orders.filter((o) => o.status === 'cancelled').length], all: ['All', orders.length] };
   const shown = orders.filter((o) => (shopState.filter === 'all' ? true : shopState.filter === 'open' ? todo.includes(o) : o.status === shopState.filter));
   const tile = (label, value, note, warn) => `<div class="kpi${warn ? ' is-warn' : ''}"><span>${label}</span><strong>${value}</strong><small>${note}</small></div>`;
-  box.innerHTML = `${shop.status === 'suspended' ? `<p class="notice notice-error" style="margin-bottom:14px"><strong>Your shop is suspended.</strong> Your products are hidden from Alaga Market. Reason: ${esc(shop.reason || 'not given')}. <a href="messages.html">Message the PVO</a> to have it restored.</p>` : ''}
+  box.innerHTML = `${shop.status === 'suspended' ? `<p class="notice notice-error" style="margin-bottom:14px"><strong>Your shop is suspended.</strong> Your products are hidden from Alaga Market. Reason: ${esc(shop.reason || 'not given')}. <a href="/messages">Message the PVO</a> to have it restored.</p>` : ''}
     <header class="sc-head">
       <div class="row" style="gap:14px;flex-wrap:nowrap"><span class="shop-avatar sc-avatar" aria-hidden="true">${esc(shop.name[0])}</span>
         <div><p class="sc-kicker">Seller Center</p><h1>${esc(shop.name)}</h1><p class="muted small" style="margin:0">${esc(shop.pickup || '')}${shop.status === 'approved' ? ' · <span class="sc-live">Open for orders</span>' : ''}</p></div></div>
-      <div class="row" style="gap:8px"><a class="btn btn-ghost btn-sm" href="shop.html?shop=${esc(shop.id)}">${ICONS.eye}View shop</a><button class="btn btn-ghost btn-sm" type="button" data-edit-shop>${ICONS.edit}Shop details</button>${shop.status === 'approved' ? `<button class="btn btn-primary btn-sm" type="button" data-new-product>${ICONS.plus}Add product</button>` : ''}</div>
+      <div class="row" style="gap:8px"><a class="btn btn-ghost btn-sm" href="/market?shop=${esc(shop.id)}">${ICONS.eye}View shop</a><button class="btn btn-ghost btn-sm" type="button" data-edit-shop>${ICONS.edit}Shop details</button>${shop.status === 'approved' ? `<button class="btn btn-primary btn-sm" type="button" data-new-product>${ICONS.plus}Add product</button>` : ''}</div>
     </header>
     <div class="kpi-row">
       ${tile('Orders to handle', todo.length, fresh ? `${fresh} new, confirm them first` : 'All caught up', fresh > 0)}
@@ -170,6 +170,6 @@ $('#seller-root').addEventListener('click', async (e) => {
 
 
 if (user) {
-  if (user.role === 'admin') location.replace('admin.html#sellers');
+  if (user.role === 'admin') location.replace('/admin/sellers');
   else loadShop();
 }

@@ -2,7 +2,7 @@
  * Announcements and scheduled PVO activities.
  * A news feed: All / Schedules switch, title search and a category menu.
  * Each scheduled activity can be saved to the visitor's calendar as an .ics file.
- * Links like announcements.html#a-<id> open and highlight one announcement.
+ * Links like /announcements#a-<id> open and highlight one announcement.
  */
 import { api, qs } from '../api.js';
 import { CATEGORIES } from '../config.js';
@@ -98,7 +98,7 @@ list.addEventListener('click', async (e) => {
   }
   if (b.dataset.ics) downloadIcs(byId.get(b.dataset.ics));
   if (b.dataset.copy) {
-    const url = new URL(`announcements.html#a-${b.dataset.copy}`, location.href).href;
+    const url = new URL(`/announcements#a-${b.dataset.copy}`, location.href).href;
     try {
       await navigator.clipboard.writeText(url);
       const html = b.innerHTML;

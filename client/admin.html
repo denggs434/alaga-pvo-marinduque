@@ -7,23 +7,23 @@
   <meta name="robots" content="noindex">
   <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
   <meta name="theme-color" content="#151d24" media="(prefers-color-scheme: dark)">
-  <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
-  <link rel="icon" href="assets/img/favicon-32.png" sizes="32x32" type="image/png">
-  <link rel="apple-touch-icon" href="assets/img/apple-touch-icon.png">
-  <link rel="manifest" href="manifest.webmanifest">
-  <link rel="stylesheet" href="assets/css/styles.css">
+  <link rel="icon" href="/assets/img/favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="/assets/img/favicon-32.png" sizes="32x32" type="image/png">
+  <link rel="apple-touch-icon" href="/assets/img/apple-touch-icon.png">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="stylesheet" href="/assets/css/styles.css">
 </head>
 <body>
   <!-- Not signed in -->
   <main class="wrap auth-wrap" id="admin-login" hidden>
     <form class="card auth-card" id="admin-login-form" novalidate>
-      <a class="brand" href="index.html" id="login-brand"></a>
+      <a class="brand" href="/" id="login-brand"></a>
       <div class="stack-sm"><h1 style="font-size:1.75rem">PVO staff sign in</h1><p class="muted">Manage pets, announcements, schedules and reports.</p></div>
       <label class="field"><span>Email</span><input class="input" type="email" name="email" autocomplete="username" required></label>
       <label class="field"><span>Password</span><input class="input" type="password" name="password" autocomplete="current-password" required></label>
       <p class="notice notice-error" id="admin-login-error" hidden role="alert"></p>
       <button class="btn btn-primary btn-block" type="submit">Sign in</button>
-      <a class="small" href="index.html">← Back to the community wall</a>
+      <a class="small" href="/">← Back to the community wall</a>
     </form>
   </main>
 
@@ -32,7 +32,7 @@
     <div class="card auth-card">
       <h1 style="font-size:1.75rem">Staff only</h1>
       <p>You are signed in with a pet owner account. The admin console is for Provincial Veterinary Office staff.</p>
-      <div class="row"><a class="btn btn-primary" href="account.html">Go to my account</a><a class="btn btn-ghost" href="index.html">Back to the community wall</a></div>
+      <div class="row"><a class="btn btn-primary" href="/account">Go to my account</a><a class="btn btn-ghost" href="/">Back to the community wall</a></div>
       <p class="muted small">To switch accounts, log out from the account menu at the top right of the site.</p>
     </div>
   </main>
@@ -40,29 +40,29 @@
   <!-- Console -->
   <div class="console" id="console" hidden>
     <aside class="console-side" id="console-side" aria-label="Admin navigation">
-      <a class="brand" href="admin.html" id="side-brand"></a>
+      <a class="brand" href="/admin" id="side-brand"></a>
       <!-- Grouped by the daily flow: see the overview, answer the public, keep records, run the market, publish. -->
       <nav class="console-nav" aria-label="Sections">
-        <a href="#overview" data-view="overview"><span data-icon="chart"></span><span class="nav-label">Overview</span></a>
+        <a href="/admin" data-view="overview"><span data-icon="chart"></span><span class="nav-label">Overview</span></a>
         <div class="console-group" role="group" aria-labelledby="cg-inbox"><h2 id="cg-inbox">Inbox</h2>
-          <a href="#reports" data-view="reports"><span data-icon="flag"></span><span class="nav-label">Incident reports</span><span class="badge" data-badge="reports" hidden></span></a>
-          <a href="#messages" data-view="messages"><span data-icon="inbox"></span><span class="nav-label">Messages</span><span class="badge" data-badge="messages" hidden></span></a>
+          <a href="/admin/reports" data-view="reports"><span data-icon="flag"></span><span class="nav-label">Incident reports</span><span class="badge" data-badge="reports" hidden></span></a>
+          <a href="/admin/messages" data-view="messages"><span data-icon="inbox"></span><span class="nav-label">Messages</span><span class="badge" data-badge="messages" hidden></span></a>
         </div>
         <div class="console-group" role="group" aria-labelledby="cg-records"><h2 id="cg-records">Records</h2>
-          <a href="#pets" data-view="pets"><span data-icon="paw"></span><span class="nav-label">Pet registrations</span><span class="badge" data-badge="pets" hidden></span></a>
-          <a href="#owners" data-view="owners"><span data-icon="users"></span><span class="nav-label">Pet owners</span></a>
+          <a href="/admin/pets" data-view="pets"><span data-icon="paw"></span><span class="nav-label">Pet registrations</span><span class="badge" data-badge="pets" hidden></span></a>
+          <a href="/admin/owners" data-view="owners"><span data-icon="users"></span><span class="nav-label">Pet owners</span></a>
         </div>
         <div class="console-group" role="group" aria-labelledby="cg-market"><h2 id="cg-market">Alaga Market</h2>
-          <a href="#sellers" data-view="sellers"><span data-icon="building"></span><span class="nav-label">Sellers</span><span class="badge" data-badge="sellers" hidden></span></a>
-          <a href="#products" data-view="products"><span data-icon="box"></span><span class="nav-label">Products</span></a>
-          <a href="#orders" data-view="orders"><span data-icon="bag"></span><span class="nav-label">Orders</span><span class="badge" data-badge="orders" hidden></span></a>
+          <a href="/admin/sellers" data-view="sellers"><span data-icon="building"></span><span class="nav-label">Sellers</span><span class="badge" data-badge="sellers" hidden></span></a>
+          <a href="/admin/products" data-view="products"><span data-icon="box"></span><span class="nav-label">Products</span></a>
+          <a href="/admin/orders" data-view="orders"><span data-icon="bag"></span><span class="nav-label">Orders</span><span class="badge" data-badge="orders" hidden></span></a>
         </div>
         <div class="console-group" role="group" aria-labelledby="cg-publish"><h2 id="cg-publish">Publish</h2>
-          <a href="#announcements" data-view="announcements"><span data-icon="megaphone"></span><span class="nav-label">Announcements</span></a>
+          <a href="/admin/announcements" data-view="announcements"><span data-icon="megaphone"></span><span class="nav-label">Announcements</span></a>
         </div>
       </nav>
       <div class="console-foot">
-        <a class="btn btn-ghost btn-sm" href="index.html" target="_blank" rel="noopener">View public site</a>
+        <a class="btn btn-ghost btn-sm" href="/" target="_blank" rel="noopener">View public site</a>
         <div class="console-account">
           <div class="popover console-menu" id="console-menu" hidden>
             <div class="popover-head"><strong id="menu-name"></strong><span id="menu-email"></span></div>
@@ -82,7 +82,7 @@
       <div class="console-mobilebar">
         <button class="icon-btn" type="button" id="side-toggle" aria-label="Open navigation" aria-controls="console-side" aria-expanded="false"><span data-icon="menu"></span></button>
         <strong id="mobile-title">Overview</strong>
-        <a class="btn btn-ghost btn-sm" href="index.html">Site</a>
+        <a class="btn btn-ghost btn-sm" href="/">Site</a>
       </div>
 
       <main class="console-main" id="main">
@@ -90,7 +90,7 @@
         <section data-panel="overview" aria-labelledby="h-overview">
           <div class="console-top">
             <div><span class="label" id="today-date"></span><h1 id="h-overview">Good day, <span id="greet-name"></span></h1></div>
-            <a class="btn btn-primary btn-sm" href="#announcements" data-new-announcement>+ New announcement</a>
+            <a class="btn btn-primary btn-sm" href="/admin/announcements" data-new-announcement>+ New announcement</a>
           </div>
           <div class="stat-grid" id="stats"></div>
           <div class="chart-grid">
@@ -129,7 +129,7 @@
 
         <!-- Shop orders -->
         <section data-panel="orders" aria-labelledby="h-orders" hidden>
-          <div class="console-top"><div><h1 id="h-orders">Market orders</h1></div><a class="btn btn-ghost btn-sm" href="shop.html" target="_blank" rel="noopener">Open Alaga Market</a></div>
+          <div class="console-top"><div><h1 id="h-orders">Market orders</h1></div><a class="btn btn-ghost btn-sm" href="/market" target="_blank" rel="noopener">Open Alaga Market</a></div>
           <div class="stat-grid" id="shop-stats" style="margin-bottom:14px"></div>
           <div class="chips" id="order-chips" role="group" aria-label="Status" style="margin-bottom:12px"></div>
           <div class="toolbar"><div class="search-box"><label class="sr-only" for="order-q">Search orders</label><span data-icon="search"></span><input class="input" id="order-q" type="search" placeholder="Order no., buyer, shop or barangay"></div></div>
@@ -225,6 +225,6 @@
     <div class="modal-body" id="review-body"></div>
   </dialog>
 
-  <script type="module" src="assets/js/pages/admin.js"></script>
+  <script type="module" src="/assets/js/pages/admin.js"></script>
 </body>
 </html>
