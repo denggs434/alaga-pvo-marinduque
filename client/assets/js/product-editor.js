@@ -26,7 +26,7 @@ export function productEditor({ onSaved = () => {} } = {}) {
           <fieldset class="field span-2" style="border:0;padding:0;margin:0"><legend class="field-label" style="margin-bottom:6px">For which pets? <span class="muted">(none = any pet)</span></legend>
             <div class="species-checks">${Object.entries(SPECIES).map(([k, l]) => `<label class="check"><input type="checkbox" name="species" value="${k}"><span>${esc(l)}</span></label>`).join('')}</div></fieldset>
           <label class="field span-2"><span>Description</span><textarea class="input" name="description" maxlength="2000" required placeholder="Size, material, how to use, what is included"></textarea><small class="field-error"></small></label>
-          <label class="check span-2"><input type="checkbox" name="active" checked><span>Show in the shop</span></label>
+          <label class="check span-2"><input type="checkbox" name="active" checked><span>Show in Alaga Market</span></label>
         </div>
         <p class="notice notice-error" id="pe-error" hidden role="alert"></p>
       </div>

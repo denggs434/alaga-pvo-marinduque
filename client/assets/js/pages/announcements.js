@@ -1,13 +1,13 @@
 /**
  * Announcements and scheduled PVO activities.
- * Filters: category chips, title search, "upcoming schedules only".
+ * A news feed: All / Schedules switch, title search and a category menu.
  * Each scheduled activity can be saved to the visitor's calendar as an .ics file.
  * Links like announcements.html#a-<id> open and highlight one announcement.
  */
 import { api, qs } from '../api.js';
 import { CATEGORIES } from '../config.js';
-import { initPage, emptyState, errorState, skeleton, debounce, esc, formatDate, ICONS, $, $$ } from '../ui.js';
-import { categoryTag, dateTile, eventWhen, scheduleItem } from '../components.js';
+import { initPage, emptyState, errorState, skeleton, debounce, esc, formatDate, dateParts, options, ICONS, $, $$ } from '../ui.js';
+import { eventWhen, scheduleItem } from '../components.js';
 
 initPage('announcements');
 
@@ -15,37 +15,36 @@ const params = new URLSearchParams(location.search);
 const state = { category: params.get('category') || '', q: '', upcoming: params.get('view') === 'schedules' };
 const list = $('#ann-list');
 const byId = new Map();
-$('#upcoming-only').checked = state.upcoming;
 
 function card(a) {
   const e = a.event?.startsAt ? a.event : null;
   const past = e && new Date(e.endsAt || e.startsAt) < new Date();
-  const long = a.body.length > 260 || /\n\s*\n/.test(a.body);
-  return `<article class="card ann ${a.pinned ? 'is-pinned' : ''}" id="a-${a._id}">
-    <div class="row" style="gap:8px">${categoryTag(a.category)}${a.pinned ? `<span class="tag">${ICONS.star}Pinned</span>` : ''}<span class="muted small">Posted ${formatDate(a.createdAt)}</span></div>
-    <h2>${esc(a.title)}</h2>
-    ${e ? `<div class="ann-event ${past ? 'is-past' : ''}">${dateTile(e.startsAt)}
-      <div class="stack-sm" style="gap:4px">
-        <p>${ICONS.clock}${esc(eventWhen(e))}${past ? ' <span class="tag">Done</span>' : ''}</p>
-        <p>${ICONS.pin}${esc(e.venue || '')}${e.municipality ? `, ${esc(e.municipality)}` : ''}</p>
-        ${past ? '' : `<button class="link-btn small" type="button" data-ics="${a._id}" style="justify-self:start;display:inline-flex;gap:6px;align-items:center">Add to my calendar</button>`}
-      </div></div>` : ''}
-    ${a.image ? `<img class="ann-image" src="${esc(a.image)}" alt="" loading="lazy">` : ''}
-    <div class="ann-body ${long ? 'is-clamped' : ''}">${a.body.split(/\n\s*\n/).map((para) => `<p>${esc(para.trim())}</p>`).join('')}</div>
-    <div class="row" style="gap:16px">
-      ${long ? `<button class="link-btn" type="button" data-expand="${a._id}" aria-expanded="false">Read more</button>` : ''}
-      <button class="link-btn" type="button" data-copy="${a._id}">Copy link</button>
+  const long = a.body.length > 220 || /\n\s*\n/.test(a.body);
+  const d = dateParts(e ? e.startsAt : a.createdAt);
+  return `<article class="ann-item${a.pinned ? ' is-pinned' : ''}${past ? ' is-past' : ''}" id="a-${a._id}">
+    <div class="ann-date${e ? ' is-event' : ''}" aria-hidden="true"><small>${esc(d.month)}</small><b>${esc(d.day)}</b><small>${esc(d.weekday)}</small></div>
+    <div class="ann-main">
+      <p class="ann-meta">${a.pinned ? `<span class="ann-pin">${ICONS.pin}Pinned</span>` : ''}<span>${esc(CATEGORIES[a.category]?.label || a.category)}</span><span>Posted ${formatDate(a.createdAt)}</span></p>
+      <h2>${esc(a.title)}</h2>
+      ${e ? `<p class="ann-when">${ICONS.clock}<span>${esc(eventWhen(e))}${past ? ' · done' : ''}</span></p><p class="ann-when">${ICONS.pin}<span>${esc(e.venue || '')}${e.municipality ? `, ${esc(e.municipality)}` : ''}</span></p>` : ''}
+      <div class="ann-body ${long ? 'is-clamped' : ''}">${a.body.split(/\n\s*\n/).map((para) => `<p>${esc(para.trim())}</p>`).join('')}</div>
+      <div class="ann-actions">
+        ${long ? `<button class="text-btn" type="button" data-expand="${a._id}" aria-expanded="false">Read more</button>` : ''}
+        ${e && !past ? `<button class="text-btn" type="button" data-ics="${a._id}">${ICONS.calendarPlus}Add to calendar</button>` : ''}
+        <button class="text-btn" type="button" data-copy="${a._id}">${ICONS.link}Copy link</button>
+      </div>
     </div>
+    ${a.image ? `<img class="ann-thumb" src="${esc(a.image)}" alt="" loading="lazy">` : ''}
   </article>`;
 }
 
-function renderChips() {
-  const chip = (k, label) => `<button class="chip" type="button" data-cat="${k}" aria-pressed="${state.category === k}">${label}</button>`;
-  $('#cat-chips').innerHTML = chip('', 'All') + Object.entries(CATEGORIES).map(([k, c]) => chip(k, c.label)).join('');
+function renderFilters() {
+  $('#ann-cat').innerHTML = options(Object.fromEntries(Object.entries(CATEGORIES).map(([k, c]) => [k, c.label])), state.category, 'All categories');
+  $$('[data-view]').forEach((b) => b.setAttribute('aria-pressed', String((b.dataset.view === 'schedules') === state.upcoming)));
 }
 
 async function load() {
-  list.innerHTML = skeleton(3, 160);
+  list.innerHTML = skeleton(4, 120);
   try {
     const data = await api(`/announcements${qs({ category: state.category, q: state.q, upcoming: state.upcoming ? 'true' : '', limit: 50 })}`);
     data.items.forEach((a) => byId.set(a._id, a));
@@ -102,22 +101,21 @@ list.addEventListener('click', async (e) => {
     const url = new URL(`announcements.html#a-${b.dataset.copy}`, location.href).href;
     try {
       await navigator.clipboard.writeText(url);
-      b.textContent = 'Link copied';
-      setTimeout(() => { if (b.isConnected) b.textContent = 'Copy link'; }, 2000);
+      const html = b.innerHTML;
+      b.innerHTML = `${ICONS.check}Link copied`;
+      setTimeout(() => { if (b.isConnected) b.innerHTML = html; }, 2000);
     } catch { prompt('Copy this link:', url); }
   }
 });
-$('#cat-chips').addEventListener('click', (e) => {
-  const b = e.target.closest('[data-cat]');
-  if (!b) return;
-  state.category = b.dataset.cat;
-  $$('[data-cat]').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+$('#ann-cat').addEventListener('change', (e) => { state.category = e.target.value; load(); });
+$$('[data-view]').forEach((b) => b.addEventListener('click', () => {
+  state.upcoming = b.dataset.view === 'schedules';
+  renderFilters();
   load();
-});
+}));
 $('#ann-q').addEventListener('input', debounce((e) => { state.q = e.target.value.trim(); load(); }));
-$('#upcoming-only').addEventListener('change', (e) => { state.upcoming = e.target.checked; load(); });
 
-renderChips();
+renderFilters();
 load();
 api(`/announcements${qs({ upcoming: 'true', limit: 8 })}`)
   .then((d) => ($('#upcoming').innerHTML = d.items.map(scheduleItem).join('') || '<li class="muted small">No activities scheduled right now.</li>'))

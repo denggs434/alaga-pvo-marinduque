@@ -13,13 +13,14 @@ import { ICONS } from './icons.js';
 
 const POLL_MS = 60000;
 
-const ICON = { like: 'heart', comment: 'comment', reply: 'comment', removed: 'alert', order: 'bag' };
+const ICON = { like: 'heart', comment: 'comment', reply: 'comment', removed: 'alert', order: 'bag', shop: 'box' };
 
 function line(n) {
   const who = `<strong>${esc(n.actorName || 'Someone')}</strong>`;
   const quote = n.snippet ? ` <span class="notif-quote">“${esc(n.snippet)}”</span>` : '';
   if (n.type === 'like') return `${who} liked your post${quote}`;
   if (n.type === 'comment') return `${who} commented on your post:${quote}`;
+  if (n.type === 'shop') return esc(n.snippet || 'News for your shop.');
   if (n.type === 'order') return `${who} updated your order: ${esc(n.snippet || '')}`;
   if (n.type === 'reply') return `${who} also commented on a post you commented on:${quote}`;
   return esc(n.snippet || 'The PVO removed something you posted.');
@@ -29,7 +30,7 @@ function itemHtml(n) {
   const inner = `<span class="notif-icon notif-${n.type}" aria-hidden="true">${ICONS[ICON[n.type]] || ICONS.info}</span>
     <span class="notif-body"><span class="notif-text">${line(n)}</span><time datetime="${n.createdAt}">${timeAgo(n.createdAt)}</time></span>
     ${n.read ? '' : '<span class="notif-dot" aria-label="Unread"></span>'}`;
-  const href = n.post ? `index.html?post=${n.post}` : n.type === 'order' ? 'account.html#orders' : '';
+  const href = n.post ? `index.html?post=${n.post}` : n.type === 'order' ? 'account.html#orders' : n.type === 'shop' ? 'seller.html' : '';
   return href
     ? `<li><a class="notif${n.read ? '' : ' is-unread'}" href="${href}" data-notif="${n._id}">${inner}</a></li>`
     : `<li><div class="notif${n.read ? '' : ' is-unread'}" data-notif="${n._id}">${inner}</div></li>`;

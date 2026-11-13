@@ -1,8 +1,10 @@
 /**
  * A message sent from the Contact page, and the PVO's replies to it.
  *  - Anyone can send one. When the sender is logged in, the message is linked
- *    to their account so they can read the replies under Account → Messages.
+ *    to their account so they can read the replies on the Messages page.
  *  - Staff answer with a written reply (status becomes "replied" only then).
+ *  - A logged-in sender can write follow-ups in the same conversation (Messages
+ *    page); that puts it back to "new" so staff see it needs an answer.
  *  - Messages are never deleted: staff archive them and can restore them.
  */
 const mongoose = require('mongoose');
@@ -11,6 +13,7 @@ const { CONTACT_TOPICS, EMAIL, PHONE } = require('../config/constants');
 const replySchema = new mongoose.Schema({
   by: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   byName: { type: String, trim: true, maxlength: 80 }, // kept even if the staff account is removed later
+  fromSender: { type: Boolean, default: false }, // a follow-up from the person who wrote in (not staff)
   text: { type: String, required: [true, 'Write a reply first.'], trim: true, minlength: [2, 'Write a reply first.'], maxlength: [2000, 'Replies are limited to 2000 characters.'] },
   createdAt: { type: Date, default: Date.now },
 });

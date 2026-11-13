@@ -45,9 +45,9 @@
         <a href="#overview" data-view="overview"><span data-icon="chart"></span>Overview</a>
         <a href="#pets" data-view="pets"><span data-icon="paw"></span>Pets<span class="badge" data-badge="pets" hidden></span></a>
         <a href="#reports" data-view="reports"><span data-icon="flag"></span>Reports<span class="badge" data-badge="reports" hidden></span></a>
-        <a href="#orders" data-view="orders"><span data-icon="bag"></span>Shop orders<span class="badge" data-badge="orders" hidden></span></a>
+        <a href="#orders" data-view="orders"><span data-icon="bag"></span>Market orders<span class="badge" data-badge="orders" hidden></span></a>
         <a href="#sellers" data-view="sellers"><span data-icon="building"></span>Sellers<span class="badge" data-badge="sellers" hidden></span></a>
-        <a href="#products" data-view="products"><span data-icon="box"></span>Shop products</a>
+        <a href="#products" data-view="products"><span data-icon="box"></span>Market products</a>
         <a href="#announcements" data-view="announcements"><span data-icon="megaphone"></span>Announcements</a>
         <a href="#owners" data-view="owners"><span data-icon="users"></span>Pet owners</a>
         <a href="#messages" data-view="messages"><span data-icon="inbox"></span>Messages<span class="badge" data-badge="messages" hidden></span></a>
@@ -120,7 +120,7 @@
 
         <!-- Shop orders -->
         <section data-panel="orders" aria-labelledby="h-orders" hidden>
-          <div class="console-top"><div><h1 id="h-orders">Shop orders</h1></div><a class="btn btn-ghost btn-sm" href="shop.html" target="_blank" rel="noopener">Open the shop</a></div>
+          <div class="console-top"><div><h1 id="h-orders">Market orders</h1></div><a class="btn btn-ghost btn-sm" href="shop.html" target="_blank" rel="noopener">Open Alaga Market</a></div>
           <div class="stat-grid" id="shop-stats" style="margin-bottom:14px"></div>
           <div class="chips" id="order-chips" role="group" aria-label="Status" style="margin-bottom:12px"></div>
           <div class="toolbar"><div class="search-box"><label class="sr-only" for="order-q">Search orders</label><span data-icon="search"></span><input class="input" id="order-q" type="search" placeholder="Order no., buyer, shop or barangay"></div></div>
@@ -139,7 +139,7 @@
 
         <!-- Shop products -->
         <section data-panel="products" aria-labelledby="h-products" hidden>
-          <div class="console-top"><div><h1 id="h-products">Shop products</h1></div><button class="btn btn-primary btn-sm" type="button" data-new-product>+ Official store product</button></div>
+          <div class="console-top"><div><h1 id="h-products">Market products</h1></div><button class="btn btn-primary btn-sm" type="button" data-new-product>+ Official store product</button></div>
           <div class="toolbar">
             <div class="search-box"><label class="sr-only" for="prod-q">Search products</label><span data-icon="search"></span><input class="input" id="prod-q" type="search" placeholder="Product or shop"></div>
             <label><span class="sr-only">Shop</span><select class="input" id="prod-shop"></select></label>
@@ -166,7 +166,7 @@
         <section data-panel="messages" aria-labelledby="h-msg" hidden>
           <div class="console-top"><div><h1 id="h-msg">Contact messages</h1></div>
             <div class="chips" role="group" aria-label="Show"><button class="chip" type="button" data-mfilter="inbox" aria-pressed="true">Inbox <b data-mcount="inbox"></b></button><button class="chip" type="button" data-mfilter="new" aria-pressed="false">Needs reply <b data-mcount="new"></b></button><button class="chip" type="button" data-mfilter="archived" aria-pressed="false">Archived <b data-mcount="archived"></b></button></div></div>
-          <p class="muted small" style="margin:-4px 0 14px">Replies are saved with the message. Senders who were logged in read them under Account → Messages; for others, also answer by email.</p>
+          <p class="muted small" style="margin:-4px 0 14px">Replies are saved with the message. Senders who were logged in read them on their Messages page and can write back; for others, also answer by email.</p>
           <ul class="inbox" id="messages-list"></ul>
         </section>
       </main>

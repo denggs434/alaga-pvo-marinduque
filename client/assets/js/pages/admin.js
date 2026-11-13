@@ -722,7 +722,7 @@ function boot() {
   function messageHtml(m) {
     const replying = state.replying === m._id;
     const sender = m.hasAccount
-      ? `<span class="tag tag-green" title="Reads replies under Account → Messages">${ICONS.user}Has an account</span>`
+      ? `<span class="tag tag-green" title="Reads replies on the Messages page">${ICONS.user}Has an account</span>`
       : '<span class="tag" title="Not logged in when sending: also reply by email">Visitor</span>';
     return `<li class="card st-${m.archived ? 'archived' : m.status}" id="msg-${m._id}">
       <div class="row between"><div class="row" style="gap:8px"><span class="tag tag-blue">${esc(CONTACT_TOPICS[m.topic] || m.topic)}</span><strong>${esc(m.name)}</strong>${sender}
@@ -730,10 +730,12 @@ function boot() {
         <time class="muted small" datetime="${m.createdAt}" title="${formatDateTime(m.createdAt)}">${timeAgo(m.createdAt)}</time></div>
       <p style="white-space:pre-line">${esc(m.message)}</p>
       <div class="row small"><a href="mailto:${esc(m.email)}?subject=${encodeURIComponent('Re: your message to the PVO')}">${esc(m.email)}</a>${m.phone ? `<span class="muted">${esc(m.phone)}</span>` : ''}</div>
-      ${(m.replies || []).map((r) => `<div class="thread-msg thread-staff"><span class="thread-who">${ICONS.reply}${esc(r.byName || 'PVO staff')} replied <time datetime="${r.createdAt}">${formatDateTime(r.createdAt)}</time></span><p>${esc(r.text)}</p></div>`).join('')}
+      ${(m.replies || []).map((r) => r.fromSender
+        ? `<div class="thread-msg thread-mine"><span class="thread-who">${esc(m.name)} wrote again <time datetime="${r.createdAt}">${formatDateTime(r.createdAt)}</time></span><p>${esc(r.text)}</p></div>`
+        : `<div class="thread-msg thread-staff"><span class="thread-who">${ICONS.reply}${esc(r.byName || 'PVO staff')} replied <time datetime="${r.createdAt}">${formatDateTime(r.createdAt)}</time></span><p>${esc(r.text)}</p></div>`).join('')}
       ${replying ? `<form class="reply-form stack-sm" data-reply-form="${m._id}" novalidate>
           <label class="field"><span>Reply to ${esc(m.name.split(' ')[0])}</span><textarea class="input" name="text" maxlength="2000" required placeholder="Write your answer…"></textarea><small class="field-error"></small></label>
-          <p class="muted small" style="margin:0">${m.hasAccount ? 'They will see this under Account → Messages.' : 'This sender has no account: the reply is saved here, so also send it by email.'}</p>
+          <p class="muted small" style="margin:0">${m.hasAccount ? 'They will see this on the Messages page.' : 'This sender has no account: the reply is saved here, so also send it by email.'}</p>
           <div class="row"><button class="btn btn-primary btn-sm" type="submit">${ICONS.send}Send reply</button><button class="btn btn-ghost btn-sm" type="button" data-cancel-reply>Cancel</button></div>
         </form>` : ''}
       <div class="row">

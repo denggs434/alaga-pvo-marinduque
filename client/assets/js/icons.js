@@ -76,6 +76,7 @@ export const ICONS = {
   bed: s('<path d="M2 4v16"/><path d="M2 8h18a2 2 0 0 1 2 2v10"/><path d="M2 17h20"/><path d="M6 8v9"/>'),
   ball: s('<circle cx="12" cy="12" r="10"/><path d="M4.93 4.93c4.08 2.38 8.03 6.33 10.42 10.42"/><path d="M19.07 4.93c-4.08 2.38-8.03 6.33-10.42 10.42"/>'),
   bowl: s('<path d="M3 11h18a9 9 0 0 1-18 0Z"/><path d="M8 7c0-1 1-2 2-2M14 7c0-1 1-2 2-2"/>'),
+  chevronDown: s('<path d="m6 9 6 6 6-6"/>'),
   minus: s('<path d="M5 12h14"/>'),
   chat: s('<path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/>'),
 };

@@ -59,7 +59,8 @@ function banner(s) {
     </div>
     <a class="btn btn-ghost btn-sm" href="shop.html">All shops</a>`;
   $('h1').textContent = s.name;
-  document.title = `${s.name} | Alaga Shop`;
+  document.title = `${s.name} | Alaga Market`;
+  $('.market-hero')?.classList.add('is-shop');
 }
 
 async function loadExtras() {

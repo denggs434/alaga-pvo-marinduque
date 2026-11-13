@@ -2,7 +2,7 @@
  * Contact messages.
  *  - Anyone can send one; a logged-in sender's message is linked to their account.
  *  - Staff read them, reply in writing, archive and restore. There is no delete.
- *  - Senders read their messages and the PVO's replies under Account → Messages.
+ *  - Senders read their conversations on the Messages page and can write follow-ups.
  */
 const ContactMessage = require('../models/ContactMessage');
 const HttpError = require('../utils/httpError');
@@ -17,7 +17,8 @@ const forSender = (m) => ({
   status: m.status,
   createdAt: m.createdAt,
   unread: m.unreadByUser,
-  replies: (m.replies || []).map((r) => ({ _id: r._id, text: r.text, by: r.byName || 'PVO staff', createdAt: r.createdAt })),
+  updatedAt: m.updatedAt,
+  replies: (m.replies || []).map((r) => ({ _id: r._id, text: r.text, mine: !!r.fromSender, by: r.fromSender ? 'You' : r.byName || 'PVO staff', createdAt: r.createdAt })),
 });
 
 async function findMessage(id) {
@@ -28,7 +29,11 @@ async function findMessage(id) {
 
 // POST /api/contact  (anyone; linked to the account when logged in)
 exports.createMessage = asyncHandler(async (req, res) => {
-  const { name, email, phone, topic, message } = req.body;
+  const { topic, message } = req.body;
+  // Logged in: the account's own name and email, so the Messages page needs only the text.
+  const name = req.user?.name || req.body.name;
+  const email = req.user?.email || req.body.email;
+  const phone = req.body.phone || req.user?.phone;
   const doc = await ContactMessage.create({ user: req.user?._id, name, email, phone: phone || undefined, topic, message });
   res.status(201).json({ message: 'Message received.', id: doc._id, linked: !!req.user });
 });
@@ -69,6 +74,21 @@ exports.replyToMessage = asyncHandler(async (req, res) => {
   await doc.save();
   await doc.populate('user', 'name email');
   res.status(201).json({ ...doc.toObject(), hasAccount: !!doc.user });
+});
+
+// POST /api/contact/:id/followups  { text }  (the sender) — write again in the same conversation
+exports.followUp = asyncHandler(async (req, res) => {
+  const text = typeof req.body.text === 'string' ? req.body.text.trim() : '';
+  if (text.length < 2) throw new HttpError(400, 'Write a message first.', { text: 'Write a message first.' });
+  if (text.length > 2000) throw new HttpError(400, 'Messages are limited to 2000 characters.');
+  const doc = await ContactMessage.findOne({ _id: requireId(req.params.id, 'Message'), user: req.user._id });
+  if (!doc) throw new HttpError(404, 'Message not found.');
+  doc.replies.push({ by: req.user._id, byName: req.user.name, text, fromSender: true });
+  doc.status = 'new';
+  doc.archived = false;
+  doc.archivedAt = undefined;
+  await doc.save();
+  res.status(201).json(forSender(doc.toObject()));
 });
 
 // PATCH /api/contact/:id  { archived: true|false }  (admin) — archive or restore, never delete

@@ -22,7 +22,7 @@ const SUGGESTIONS = [
   'When is the next vaccination drive?',
   'Is my pets\' anti-rabies up to date?',
   'My dog keeps scratching. What can I do?',
-  'What should I buy for my pet from the shop?',
+  'What should I buy for my pet from Alaga Market?',
 ];
 const MAX_LEN = 1500;
 

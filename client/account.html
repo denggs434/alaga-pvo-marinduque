@@ -54,30 +54,34 @@
     <!-- Logged in -->
     <section id="dashboard" hidden>
       <div id="profile-view">
-      <div class="dash-head">
-        <div class="row" style="flex-wrap:nowrap">
-          <span class="avatar" id="dash-avatar"></span>
-          <div><h1 style="font-size:1.75rem" id="dash-name"></h1><p class="muted" id="dash-who"></p></div>
+      <section class="profile-card card" aria-labelledby="dash-name">
+        <div class="profile-cover" aria-hidden="true"></div>
+        <div class="profile-main">
+          <span class="avatar profile-avatar" id="dash-avatar"></span>
+          <div class="profile-id"><h1 id="dash-name"></h1><p id="dash-who"></p></div>
+          <div class="profile-actions">
+            <a class="btn btn-primary btn-sm" href="pet-form.html">+ Register a pet</a>
+            <a class="btn btn-ghost btn-sm" href="messages.html">Message the PVO</a>
+            <a class="icon-btn" href="#settings" aria-label="Settings" title="Settings" id="settings-link"></a>
+          </div>
         </div>
-        <div class="row"><a class="btn btn-primary btn-sm" href="pet-form.html">+ Register a pet</a><a class="btn btn-ghost btn-sm" href="report.html">Report an incident</a></div>
-      </div>
+        <dl class="profile-stats">
+          <div><dt>Pets</dt><dd id="stat-pets">–</dd></div>
+          <div><dt>Anti-rabies up to date</dt><dd id="stat-rabies">–</dd></div>
+          <div><dt>Open reports</dt><dd id="stat-reports">–</dd></div>
+          <div><dt>Orders</dt><dd id="stat-orders">–</dd></div>
+        </dl>
+      </section>
 
-      <div class="tabs tabs-grid" role="tablist" aria-label="Profile sections">
+      <div class="tabs profile-tabs" role="tablist" aria-label="Profile sections">
         <button class="tab" role="tab" id="tab-pets" aria-controls="panel-pets" aria-selected="true">My pets <span class="tag" id="pets-count"></span></button>
         <button class="tab" role="tab" id="tab-reports" aria-controls="panel-reports" aria-selected="false">My reports <span class="tag" id="reports-count"></span></button>
         <button class="tab" role="tab" id="tab-orders" aria-controls="panel-orders" aria-selected="false">My orders <span class="tag" id="orders-count"></span></button>
-        <button class="tab" role="tab" id="tab-shop" aria-controls="panel-shop" aria-selected="false">My shop <span class="tag" id="shop-count"></span></button>
-        <button class="tab" role="tab" id="tab-messages" aria-controls="panel-messages" aria-selected="false">Messages <span class="tag" id="messages-count"></span></button>
       </div>
 
-      <section id="panel-pets" role="tabpanel" aria-labelledby="tab-pets"><div class="stack" id="my-pets"></div></section>
+      <section id="panel-pets" role="tabpanel" aria-labelledby="tab-pets"><div class="my-pet-grid" id="my-pets"></div></section>
       <section id="panel-reports" role="tabpanel" aria-labelledby="tab-reports" hidden><div class="stack" id="my-reports"></div></section>
       <section id="panel-orders" role="tabpanel" aria-labelledby="tab-orders" hidden><div class="stack" id="my-orders"></div></section>
-      <section id="panel-shop" role="tabpanel" aria-labelledby="tab-shop" hidden><div id="my-shop"></div></section>
-      <section id="panel-messages" role="tabpanel" aria-labelledby="tab-messages" hidden>
-        <div class="row between" style="margin-bottom:12px"><p class="muted small" style="margin:0">Your messages to the PVO and the office's replies.</p><a class="btn btn-soft btn-sm" href="contact.html">New message</a></div>
-        <div class="stack" id="my-messages"></div>
-      </section>
       </div>
 
       <section id="settings-view" aria-labelledby="settings-title" hidden>

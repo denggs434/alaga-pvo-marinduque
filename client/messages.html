@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Messages | Alaga · PVO Marinduque</title>
+  <meta name="robots" content="noindex">
+  <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#151d24" media="(prefers-color-scheme: dark)">
+  <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="assets/img/favicon-32.png" sizes="32x32" type="image/png">
+  <link rel="apple-touch-icon" href="assets/img/apple-touch-icon.png">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="stylesheet" href="assets/css/styles.css">
+</head>
+<body>
+  <main class="wrap msg-page">
+    <div class="msg-app card" id="msg-app">
+      <aside class="msg-list-pane" aria-label="Conversations">
+        <div class="msg-pane-head">
+          <h1>Messages</h1>
+          <button class="btn btn-primary btn-sm" type="button" id="msg-new">New</button>
+        </div>
+        <p class="msg-hint">Talk to the Provincial Veterinary Office. Replies usually come within one working day.</p>
+        <ul class="msg-list" id="msg-list"></ul>
+      </aside>
+      <section class="msg-thread-pane" id="msg-thread" aria-live="polite"></section>
+    </div>
+  </main>
+  <script type="module" src="assets/js/pages/messages.js"></script>
+</body>
+</html>

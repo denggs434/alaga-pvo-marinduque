@@ -16,27 +16,30 @@
 <body>
   <main class="wrap">
     <header class="page-head">
-      <h1>Announcements & schedules</h1>
-      <p>Free vaccination and deworming drives, anti-rabies campaigns, spay and neuter programs, veterinary services and animal health advisories.</p>
+      <h1>Announcements</h1>
+      <p>Vaccination drives, free programs and health advisories from the Provincial Veterinary Office.</p>
     </header>
 
     <div class="ann-layout">
       <section aria-label="Announcements">
-        <div class="toolbar">
+        <div class="ann-tools">
+          <div class="seg" role="group" aria-label="Show">
+            <button type="button" data-view="all" aria-pressed="true">All</button>
+            <button type="button" data-view="schedules" aria-pressed="false">Schedules</button>
+          </div>
           <div class="search-box">
             <label class="sr-only" for="ann-q">Search announcements</label>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
-            <input class="input" id="ann-q" type="search" placeholder="Search titles" autocomplete="off">
+            <input class="input" id="ann-q" type="search" placeholder="Search" autocomplete="off">
           </div>
-          <label class="check" style="font-size:.9375rem"><input type="checkbox" id="upcoming-only"><span>Upcoming schedules only</span></label>
+          <label><span class="sr-only">Category</span><select class="input" id="ann-cat"></select></label>
         </div>
-        <div class="chips" id="cat-chips" role="group" aria-label="Category" style="margin-bottom:16px"></div>
-        <div class="ann-list" id="ann-list" aria-live="polite"></div>
+        <div class="ann-feed" id="ann-list" aria-live="polite"></div>
       </section>
 
       <aside class="stack" aria-label="Calendar">
         <section class="panel">
-          <div class="panel-head"><h2>Upcoming schedules</h2></div>
+          <div class="panel-head"><h2>Coming up</h2></div>
           <ul class="sched" id="upcoming"><li class="skeleton" style="height:56px"></li></ul>
         </section>
         <section class="panel stack-sm">

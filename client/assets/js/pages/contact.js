@@ -24,7 +24,7 @@ if (user) {
   form.elements.name.value = user.name;
   form.elements.email.value = user.email;
   form.elements.phone.value = user.phone || '';
-  $('#reply-note').innerHTML = 'Our reply will appear in <a href="account.html#messages">Messages</a>.';
+  $('#reply-note').innerHTML = 'Our reply will appear in <a href="messages.html">Messages</a>.';
 } else {
   $('#reply-note').innerHTML = 'We reply by email, or <a href="account.html?next=contact.html">log in</a> to read it here.';
 }
@@ -52,9 +52,9 @@ form.addEventListener('submit', async (e) => {
     form.innerHTML = `<div class="stack" style="justify-items:start">
       <h2>Thanks, ${esc(f.name.value.trim().split(' ')[0])}!</h2>
       <p>${sent.linked
-        ? 'We usually reply within one working day. You will find the reply under Account → Messages.'
+        ? 'We usually reply within one working day. You will find the reply on the Messages page.'
         : `We will reply to ${esc(f.email.value.trim())} within one working day.`}</p>
-      <div class="row">${sent.linked ? '<a class="btn btn-primary" href="account.html#messages">Go to my messages</a>' : ''}<a class="btn btn-ghost" href="index.html">Back to the community wall</a></div></div>`;
+      <div class="row">${sent.linked ? '<a class="btn btn-primary" href="messages.html">Go to my messages</a>' : ''}<a class="btn btn-ghost" href="index.html">Back to the community wall</a></div></div>`;
     toast('Message sent.');
   } catch (err) {
     $('#contact-error').textContent = err.message;

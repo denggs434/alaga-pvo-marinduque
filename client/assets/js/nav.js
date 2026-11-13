@@ -13,11 +13,17 @@ import { ICONS, BRAND_MARK } from './icons.js';
 const LINKS = [
   { key: 'wall', href: 'index.html', label: 'Community', icon: 'home' },
   { key: 'pets', href: 'pets.html', label: 'Pets', icon: 'paw' },
-  { key: 'shop', href: 'shop.html', label: 'Shop', icon: 'bag' },
+  { key: 'shop', href: 'shop.html', label: 'Market', icon: 'bag', badge: 'New' },
   { key: 'announcements', href: 'announcements.html', label: 'Announcements', icon: 'megaphone' },
-  { key: 'services', href: 'services.html', label: 'Services', icon: 'stethoscope' },
-  { key: 'contact', href: 'contact.html', label: 'Contact', icon: 'mail' },
 ];
+/** Less-used pages: a "More" menu on desktop, listed in full in the phone menu. */
+const MORE = [
+  { key: 'seller', href: 'seller.html', label: 'Seller Center', icon: 'box', hint: 'Sell pet supplies on Alaga', owner: true },
+  { key: 'services', href: 'services.html', label: 'Services', icon: 'stethoscope', hint: 'Vaccination, kapon, certificates' },
+  { key: 'contact', href: 'contact.html', label: 'Contact', icon: 'mail', hint: 'Office hours and hotline' },
+  { key: 'about', href: 'about.html', label: 'About the office', icon: 'info', hint: 'The PVO and this site' },
+];
+const moreLinks = () => MORE.filter((l) => !l.owner || !isAdmin());
 
 function accountHtml() {
   const user = getUser();
@@ -26,7 +32,6 @@ function accountHtml() {
     <div class="account">
       <button class="avatar-btn" type="button" id="account-btn" aria-expanded="false" aria-controls="account-menu" aria-label="Account menu for ${esc(user.name)}">
         <span class="avatar">${esc(initials(user.name))}</span>
-        <span class="dot avatar-dot" data-unread hidden></span>
       </button>
       <div class="popover" id="account-menu" hidden>
         <div class="popover-head"><strong>${esc(user.name)}</strong><span>${esc(user.email)}</span></div>
@@ -34,7 +39,7 @@ function accountHtml() {
           ? `<a href="admin.html">${ICONS.shield}PVO admin console</a>`
           : `<a href="account.html#pets">${ICONS.user}Profile<small class="popover-hint">My pets and reports</small></a>
              <a href="account.html#orders">${ICONS.bag}My orders</a>
-             <a href="account.html#messages">${ICONS.inbox}Messages<span class="dot" data-unread hidden><span class="sr-only">new reply</span></span></a>
+             <a href="seller.html">${ICONS.box}Seller Center</a>
              <a href="account.html#settings">${ICONS.gear}Settings</a>
              <button type="button" data-open-alagai>${ICONS.sparkle}Ask Alagai</button>`}
         <hr class="popover-sep">
@@ -44,17 +49,20 @@ function accountHtml() {
 }
 
 function headerHtml(active) {
-  const link = (l) => `<a class="nav-link" href="${l.href}" ${l.key === active ? 'aria-current="page"' : ''}>${l.label}</a>`;
+  const link = (l) => `<a class="nav-link${l.badge ? ' nav-link-hot' : ''}" href="${l.href}" ${l.key === active ? 'aria-current="page"' : ''}>${l.badge ? ICONS[l.icon] : ''}${l.label}${l.badge ? `<span class="nav-badge">${l.badge}</span>` : ''}</a>`;
   return `
   ${isAdmin() ? `<div class="staffbar"><div class="wrap"><span><b>PVO staff view.</b> You can moderate posts and see private records here.</span><a href="admin.html">Open admin console</a></div></div>` : ''}
   <header class="site-header" id="site-header">
     <div class="wrap nav">
       <a class="brand" href="index.html" aria-label="${SITE.name} home">${BRAND_MARK}<span class="brand-word">${SITE.name}<small>PVO ${SITE.province}</small></span></a>
-      <nav aria-label="Main"><ul class="nav-links">${LINKS.map((l) => `<li>${link(l)}</li>`).join('')}</ul></nav>
+      <nav aria-label="Main"><ul class="nav-links">${LINKS.map((l) => `<li>${link(l)}</li>`).join('')}
+        <li class="nav-more"><button class="nav-link" type="button" id="more-btn" aria-expanded="false" aria-controls="more-menu" ${moreLinks().some((l) => l.key === active) ? 'aria-current="page"' : ''}>More${ICONS.chevronDown}</button>
+          <div class="popover more-menu" id="more-menu" hidden>${moreLinks().map((l) => `<a href="${l.href}" ${l.key === active ? 'aria-current="page"' : ''}>${ICONS[l.icon]}<span><strong>${l.label}</strong><small>${l.hint}</small></span></a>`).join('')}</div></li></ul></nav>
       <div class="nav-tools">
         ${isAdmin() ? '' : `<a class="btn btn-primary btn-sm nav-report" href="report.html" ${active === 'report' ? 'aria-current="page"' : ''}>${ICONS.flag}Report</a>`}
         ${isAdmin() ? '' : `<a class="icon-btn cart-btn" id="cart-btn" href="shop.html#cart" aria-label="Cart">${ICONS.bag}<span class="cart-count" id="cart-count" hidden></span></a>`}
         <button class="icon-btn" id="theme-toggle" type="button" aria-label="Switch colour theme">${ICONS.moon}</button>
+        ${isOwner() ? `<a class="icon-btn msg-btn" href="messages.html" aria-label="Messages" ${active === 'messages' ? 'aria-current="page"' : ''}>${ICONS.chat}<span class="dot msg-btn-dot" data-unread hidden></span></a>` : ''}
         ${notificationsButton()}
         ${accountHtml()}
         <button class="icon-btn menu-toggle" id="menu-btn" type="button" aria-label="Open menu" aria-controls="mobile-nav">${ICONS.menu}</button>
@@ -67,8 +75,8 @@ function headerHtml(active) {
       <button class="icon-btn" type="button" data-close aria-label="Close menu">${ICONS.close}</button>
     </div>
     <nav class="drawer-body" aria-label="Mobile">
-      ${LINKS.map((l) => `<a href="${l.href}" ${l.key === active ? 'aria-current="page"' : ''}>${ICONS[l.icon]}${l.label}</a>`).join('')}
-      <a href="about.html" ${active === 'about' ? 'aria-current="page"' : ''}>${ICONS.info}About the office</a>
+      ${[...LINKS, ...moreLinks()].map((l) => `<a href="${l.href}" ${l.key === active ? 'aria-current="page"' : ''}>${ICONS[l.icon]}${l.label}</a>`).join('')}
+      <button type="button" class="drawer-theme" id="drawer-theme">${ICONS.moon}<span>Dark mode</span></button>
       <hr>
       ${isAdmin()
         ? `<a href="admin.html">${ICONS.shield}PVO admin console</a>`
@@ -77,7 +85,7 @@ function headerHtml(active) {
            ${getUser() ? '' : `<a href="account.html">${ICONS.user}Log in or sign up</a>`}
            ${getUser() ? `<a href="account.html#pets">${ICONS.user}Profile</a>
            <a href="account.html#orders">${ICONS.bag}My orders</a>
-           <a href="account.html#messages">${ICONS.inbox}Messages<span class="dot" data-unread hidden><span class="sr-only">new reply</span></span></a>
+           <a href="messages.html" ${active === 'messages' ? 'aria-current="page"' : ''}>${ICONS.chat}Messages<span class="dot" data-unread hidden><span class="sr-only">new reply</span></span></a>
            <a href="account.html#settings">${ICONS.gear}Settings</a>
            <a href="#alagai" data-open-alagai>${ICONS.sparkle}Ask Alagai</a>` : ''}`}
     </nav>
@@ -131,6 +139,35 @@ function setupAccountMenu() {
   });
 }
 
+/** The "More" menu in the main nav. */
+function setupMoreMenu() {
+  const btn = $('#more-btn');
+  const menu = $('#more-menu');
+  if (!btn) return;
+  const close = () => { menu.hidden = true; btn.setAttribute('aria-expanded', 'false'); };
+  btn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const open = menu.hidden;
+    menu.hidden = !open;
+    btn.setAttribute('aria-expanded', String(open));
+    if (open) menu.querySelector('a')?.focus();
+  });
+  document.addEventListener('click', (e) => !menu.contains(e.target) && close());
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !menu.hidden) { close(); btn.focus(); } });
+}
+
+/** Theme switch inside the phone menu (the header keeps its icon on wider screens). */
+function setupDrawerTheme() {
+  const b = $('#drawer-theme');
+  if (!b) return;
+  const paint = () => {
+    const dark = (document.documentElement.dataset.theme || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')) === 'dark';
+    b.innerHTML = `${dark ? ICONS.sun : ICONS.moon}<span>${dark ? 'Light mode' : 'Dark mode'}</span>`;
+  };
+  b.addEventListener('click', () => { $('#theme-toggle')?.click(); setTimeout(paint, 50); });
+  paint();
+}
+
 function setupMobileMenu() {
   const dialog = $('#mobile-nav');
   $('#menu-btn').addEventListener('click', () => dialog.showModal());
@@ -143,14 +180,14 @@ export function logout(to = 'index.html') {
   location.href = to;
 }
 
-/** Show a dot on the account menu when the PVO replied to one of the owner's messages. */
+/** Show a dot on the Messages icon when the PVO replied to one of the owner's messages. */
 export async function refreshUnread() {
   if (!isOwner()) return;
   try {
     const { count } = await api('/contact/mine/unread');
     $$('[data-unread]').forEach((d) => (d.hidden = !count));
-    const btn = $('#account-btn');
-    if (btn) btn.setAttribute('aria-label', `Account menu for ${getUser()?.name || ''}${count ? `, ${count} new ${count === 1 ? 'reply' : 'replies'}` : ''}`);
+    const msg = $('.msg-btn');
+    if (msg) msg.setAttribute('aria-label', count ? `Messages, ${count} new ${count === 1 ? 'reply' : 'replies'}` : 'Messages');
   } catch { /* the dot is a nicety */ }
 }
 
@@ -207,6 +244,8 @@ export function renderHeader(active) {
   setupNavPill();
   setupAccountMenu();
   setupMobileMenu();
+  setupMoreMenu();
+  setupDrawerTheme();
   setupCartButton();
   $$('[data-logout]').forEach((b) => b.addEventListener('click', () => logout()));
   refreshUnread();
