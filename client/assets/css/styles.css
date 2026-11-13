@@ -356,7 +356,8 @@ dialog::backdrop { background: rgb(20 12 6 / 0.5); }
 .skeleton { background: var(--surface-2); border-radius: var(--r-sm); animation: pulse 1.4s var(--ease-in-out) infinite; }
 @keyframes pulse { 50% { opacity: 0.55; } }
 
-.toast-host { position: fixed; z-index: 200; bottom: 20px; left: 50%; transform: translateX(-50%); display: grid; gap: 8px; width: min(420px, calc(100vw - 32px)); }
+.toast-host { position: fixed; z-index: 200; inset: auto auto 20px 50%; transform: translateX(-50%); display: grid; gap: 8px; width: min(420px, calc(100vw - 32px)); margin: 0; padding: 0; border: 0; background: none; overflow: visible; color: inherit; }
+.toast-host:popover-open { display: grid; }
 .toast { padding: 12px 16px; border-radius: var(--r-sm); background: var(--ink); color: var(--surface); font-weight: 500; font-size: 0.9375rem; box-shadow: var(--shadow-lg); animation: toast-in 280ms var(--ease-out); }
 .toast.error { background: var(--bad); color: #fff; }
 @keyframes toast-in { from { transform: translateY(100%); opacity: 0; } }

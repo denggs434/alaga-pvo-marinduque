@@ -100,13 +100,25 @@ export function toast(message, type = 'info') {
     host.className = 'toast-host';
     host.setAttribute('role', 'status');
     host.setAttribute('aria-live', 'polite');
+    host.popover = 'manual';
     document.body.append(host);
+  }
+  // Open dialogs (product, cart, checkout) sit in the browser's top layer. Showing the
+  // host as a popover (again) puts it in the top layer above the newest dialog.
+  if (host.showPopover) {
+    try {
+      if (host.matches(':popover-open')) host.hidePopover();
+      host.showPopover();
+    } catch { /* older browser: falls back to z-index */ }
   }
   const el = document.createElement('div');
   el.className = `toast ${type}`;
   el.textContent = message;
   host.append(el);
-  setTimeout(() => el.remove(), 4000);
+  setTimeout(() => {
+    el.remove();
+    if (!host.children.length && host.matches?.(':popover-open')) host.hidePopover();
+  }, 4000);
 }
 
 /* ---------- States ---------- */
