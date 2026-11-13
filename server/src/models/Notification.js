@@ -4,11 +4,13 @@
  *  - comment: someone commented on your post
  *  - reply:   someone commented on a post you also commented on
  *  - removed: PVO staff removed your post or comment
+ *  - order:   a seller updated one of your orders
+ *  - shop:    news for your own shop (new or cancelled order, listing removed)
  * Old notifications expire after 90 days.
  */
 const mongoose = require('mongoose');
 
-const TYPES = ['like', 'comment', 'reply', 'removed'];
+const TYPES = ['like', 'comment', 'reply', 'removed', 'order', 'shop'];
 
 const notificationSchema = new mongoose.Schema(
   {
@@ -17,6 +19,7 @@ const notificationSchema = new mongoose.Schema(
     actor: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     actorName: { type: String, trim: true, maxlength: 80 },
     post: { type: mongoose.Schema.Types.ObjectId, ref: 'Post' },
+    order: { type: mongoose.Schema.Types.ObjectId, ref: 'Order' },
     snippet: { type: String, trim: true, maxlength: 140 }, // the comment, or the start of the post
     read: { type: Boolean, default: false },
   },

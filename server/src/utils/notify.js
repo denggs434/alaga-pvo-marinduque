@@ -41,5 +41,15 @@ exports.commented = (post, actor, text) => safe(async () => {
 /** PVO staff removed someone's post or comment. */
 exports.removed = (userId, what, text) => safe(() => Notification.create({ user: userId, type: 'removed', actorName: 'PVO staff', snippet: short(`${what}: ${text || 'photo'}`) }));
 
+/** The shop changed the status of an order, or wrote to the buyer. */
+exports.order = (order, text) => safe(() => Notification.create({
+  user: order.buyer?._id || order.buyer, type: 'order', actorName: 'Alaga Shop', order: order._id, snippet: short(`${order.reference}: ${text}`),
+}));
+
+/** Something happened in the user's own shop (a new order, a cancelled order, a removed listing). */
+exports.shop = (sellerId, text, orderId) => safe(() => Notification.create({
+  user: sellerId, type: 'shop', actorName: 'Alaga Shop', order: orderId, snippet: short(text),
+}));
+
 /** A post was deleted: its notifications point nowhere now. */
 exports.postGone = (postId) => safe(() => Notification.deleteMany({ post: postId, type: { $ne: 'removed' } }));

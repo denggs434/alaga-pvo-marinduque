@@ -19,11 +19,19 @@ module.exports = {
 
   CONTACT_TOPICS: ['general', 'registration', 'vaccination', 'report', 'other'],
 
+  // Marketplace: owners open shops and sell pet supplies; paid in cash on pickup or delivery.
+  PRODUCT_CATEGORIES: ['food', 'treats', 'toys', 'accessories', 'grooming', 'health', 'beds'],
+  ORDER_STATUSES: ['placed', 'confirmed', 'ready', 'completed', 'cancelled'],
+  OPEN_ORDER_STATUSES: ['placed', 'confirmed', 'ready'],
+  FULFILLMENT: ['pickup', 'delivery'],
+  DELIVERY_FEE: 60, // pesos, anywhere in the province
+  FREE_DELIVERY_FROM: 1000, // orders this size or more ship free
+
   /**
    * Image paths the API accepts: files we ship, or files saved by POST /api/uploads
    * (local disk, or the Vercel Blob store when deployed on Vercel).
    */
-  IMAGE_PATH: /^(assets\/img\/(uploads|pets)\/[\w.-]+|https:\/\/[a-z0-9]+\.public\.blob\.vercel-storage\.com\/uploads\/[\w.-]+)\.(jpe?g|png|webp)$/,
+  IMAGE_PATH: /^(assets\/img\/(uploads|pets|shop)\/[\w.-]+|https:\/\/[a-z0-9]+\.public\.blob\.vercel-storage\.com\/uploads\/[\w.-]+)\.(jpe?g|png|webp)$/,
   PHONE: /^[0-9+()\s-]{7,20}$/,
   EMAIL: /^\S+@\S+\.\S+$/,
 };

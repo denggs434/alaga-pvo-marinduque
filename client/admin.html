@@ -45,6 +45,8 @@
         <a href="#overview" data-view="overview"><span data-icon="chart"></span>Overview</a>
         <a href="#pets" data-view="pets"><span data-icon="paw"></span>Pets<span class="badge" data-badge="pets" hidden></span></a>
         <a href="#reports" data-view="reports"><span data-icon="flag"></span>Reports<span class="badge" data-badge="reports" hidden></span></a>
+        <a href="#orders" data-view="orders"><span data-icon="bag"></span>Shop orders<span class="badge" data-badge="orders" hidden></span></a>
+        <a href="#products" data-view="products"><span data-icon="box"></span>Shop products</a>
         <a href="#announcements" data-view="announcements"><span data-icon="megaphone"></span>Announcements</a>
         <a href="#owners" data-view="owners"><span data-icon="users"></span>Pet owners</a>
         <a href="#messages" data-view="messages"><span data-icon="inbox"></span>Messages<span class="badge" data-badge="messages" hidden></span></a>
@@ -113,6 +115,27 @@
             <label><span class="sr-only">Municipality</span><select class="input" id="rep-town"></select></label>
           </div>
           <div class="table-wrap"><table class="table" id="reports-table"></table></div>
+        </section>
+
+        <!-- Shop orders -->
+        <section data-panel="orders" aria-labelledby="h-orders" hidden>
+          <div class="console-top"><div><h1 id="h-orders">Shop orders</h1></div><a class="btn btn-ghost btn-sm" href="shop.html" target="_blank" rel="noopener">Open the shop</a></div>
+          <div class="stat-grid" id="shop-stats" style="margin-bottom:14px"></div>
+          <div class="chips" id="order-chips" role="group" aria-label="Status" style="margin-bottom:12px"></div>
+          <div class="toolbar"><div class="search-box"><label class="sr-only" for="order-q">Search orders</label><span data-icon="search"></span><input class="input" id="order-q" type="search" placeholder="Order no., buyer, shop or barangay"></div></div>
+          <p class="muted small" style="margin:-4px 0 12px">Sellers handle their own orders. Staff handle Alaga Official Store orders and can step in on any order.</p>
+          <div class="stack" id="orders-list"></div>
+        </section>
+
+        <!-- Shop products -->
+        <section data-panel="products" aria-labelledby="h-products" hidden>
+          <div class="console-top"><div><h1 id="h-products">Shop products</h1></div><button class="btn btn-primary btn-sm" type="button" data-new-product>+ Official store product</button></div>
+          <div class="toolbar">
+            <div class="search-box"><label class="sr-only" for="prod-q">Search products</label><span data-icon="search"></span><input class="input" id="prod-q" type="search" placeholder="Product or shop"></div>
+            <label><span class="sr-only">Shop</span><select class="input" id="prod-shop"></select></label>
+            <label><span class="sr-only">Show</span><select class="input" id="prod-state"><option value="">All products</option><option value="low">Low stock (5 or less)</option><option value="hidden">Hidden</option></select></label>
+          </div>
+          <div class="table-wrap"><table class="table" id="products-table"></table></div>
         </section>
 
         <!-- Announcements -->

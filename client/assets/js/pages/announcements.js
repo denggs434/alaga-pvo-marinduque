@@ -22,7 +22,7 @@ function card(a) {
   const past = e && new Date(e.endsAt || e.startsAt) < new Date();
   const long = a.body.length > 260 || /\n\s*\n/.test(a.body);
   return `<article class="card ann ${a.pinned ? 'is-pinned' : ''}" id="a-${a._id}">
-    <div class="row" style="gap:8px">${categoryTag(a.category)}${a.pinned ? `<span class="tag tag-solid-green">${ICONS.star}Pinned</span>` : ''}<span class="muted small">Posted ${formatDate(a.createdAt)}</span></div>
+    <div class="row" style="gap:8px">${categoryTag(a.category)}${a.pinned ? `<span class="tag">${ICONS.star}Pinned</span>` : ''}<span class="muted small">Posted ${formatDate(a.createdAt)}</span></div>
     <h2>${esc(a.title)}</h2>
     ${e ? `<div class="ann-event ${past ? 'is-past' : ''}">${dateTile(e.startsAt)}
       <div class="stack-sm" style="gap:4px">

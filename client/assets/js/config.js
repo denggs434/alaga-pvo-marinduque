@@ -25,11 +25,11 @@ export const MEDICAL_TYPES = { checkup: 'Check-up', illness: 'Illness', injury: 
 export const VACCINES = ['Anti-rabies', '5-in-1 (DHPPiL)', '6-in-1 (DHPPiL + Corona)', '4-in-1 (FVRCP)', 'Kennel cough (Bordetella)', 'Leptospirosis'];
 
 export const CATEGORIES = {
-  vaccination: { label: 'Vaccination schedule', tag: 'tag-blue', icon: 'syringe' },
-  'anti-rabies': { label: 'Anti-rabies campaign', tag: 'tag-red', icon: 'shieldCheck' },
-  'free-program': { label: 'Free program', tag: 'tag-green', icon: 'gift' },
-  deworming: { label: 'Deworming', tag: 'tag-amber', icon: 'pill' },
-  services: { label: 'Veterinary services', tag: 'tag-plum', icon: 'building' },
+  vaccination: { label: 'Vaccination schedule', tag: '', icon: 'syringe' },
+  'anti-rabies': { label: 'Anti-rabies campaign', tag: '', icon: 'shieldCheck' },
+  'free-program': { label: 'Free program', tag: '', icon: 'gift' },
+  deworming: { label: 'Deworming', tag: '', icon: 'pill' },
+  services: { label: 'Veterinary services', tag: '', icon: 'building' },
   advisory: { label: 'Health advisory', tag: '', icon: 'info' },
 };
 
@@ -47,5 +47,33 @@ export const REPORT_STATUSES = {
   resolved: { label: 'Resolved', tag: 'tag-green', step: 4 },
   closed: { label: 'Closed', tag: '', step: 4 },
 };
+
+/** Shop: categories, order statuses and how orders are paid and handed over. */
+export const PRODUCT_CATEGORIES = {
+  food: { label: 'Food', icon: 'bowl' },
+  treats: { label: 'Treats', icon: 'bone' },
+  toys: { label: 'Toys', icon: 'ball' },
+  accessories: { label: 'Collars & gear', icon: 'paw' },
+  grooming: { label: 'Grooming', icon: 'scissors' },
+  health: { label: 'Health care', icon: 'pill' },
+  beds: { label: 'Beds', icon: 'bed' },
+};
+
+export const ORDER_STATUSES = {
+  placed: { label: 'Placed', tag: '', step: 1 },
+  confirmed: { label: 'Confirmed', tag: 'tag-blue', step: 2 },
+  ready: { label: 'Ready', tag: 'tag-amber', step: 3 },
+  completed: { label: 'Completed', tag: 'tag-green', step: 4 },
+  cancelled: { label: 'Cancelled', tag: 'tag-red', step: 4 },
+};
+
+export const SHOP = {
+  deliveryFee: 60,
+  freeDeliveryFrom: 1000,
+  pickup: 'PVO office, Provincial Capitol Compound, Boac',
+  hours: 'Monday to Friday, 8:00 AM – 5:00 PM',
+};
+
+export const peso = (n) => `₱${new Intl.NumberFormat('en-PH', { minimumFractionDigits: 0, maximumFractionDigits: 2 }).format(n || 0)}`;
 
 export const CONTACT_TOPICS = { general: 'General question', registration: 'Pet registration', vaccination: 'Vaccination', report: 'About a report', other: 'Something else' };

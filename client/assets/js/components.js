@@ -1,12 +1,12 @@
 /**
  * Building blocks shared by several pages: pet cards, wall posts (with likes,
  * comments and moderation), announcement and schedule items, missing-pet alerts,
- * report cards with their status timeline.
+ * report cards with their status timeline, shop products and orders.
  * Every value that came from a user goes through esc() before reaching innerHTML.
  */
 import { api } from './api.js';
 import { getUser, isAdmin } from './store.js';
-import { SPECIES, CATEGORIES, REPORT_TYPES, REPORT_STATUSES, SITE } from './config.js';
+import { SPECIES, CATEGORIES, REPORT_TYPES, REPORT_STATUSES, SITE, PRODUCT_CATEGORIES, ORDER_STATUSES, peso } from './config.js';
 import { esc, timeAgo, ageText, formatDate, formatDateTime, formatTime, dateParts, initials, $ } from './format.js';
 import { ICONS } from './icons.js';
 import { toast, armed } from './ui.js';
@@ -301,3 +301,76 @@ export function reportCard(r) {
 }
 
 export { isAdmin };
+
+/* ---------- Shop ---------- */
+
+/** A product photo, or the category icon on a soft tile. */
+export function productImg(p, cls = '') {
+  const src = p.photos?.[0] || p.photo;
+  return src
+    ? `<img class="${cls}" src="${esc(src)}" alt="" loading="lazy">`
+    : `<div class="product-ph ${cls}" aria-hidden="true">${ICONS[PRODUCT_CATEGORIES[p.category]?.icon] || ICONS.bag}</div>`;
+}
+
+const soldText = (n) => (n >= 1000 ? `${(n / 1000).toFixed(1).replace(/\.0$/, '')}k sold` : `${n} sold`);
+
+/** A product tile in the shop grid; the whole tile opens the product. */
+export function productCard(p) {
+  const out = p.stock < 1;
+  return `<article class="product-card${out ? ' is-out' : ''}">
+    <button class="product-open" type="button" data-product="${p._id}" aria-label="${esc(p.name)}, ${peso(p.price)}">
+      <span class="product-photo">${productImg(p)}${out ? '<span class="tag product-flag">Sold out</span>' : p.stock <= 5 ? `<span class="tag tag-amber product-flag">Only ${p.stock} left</span>` : ''}</span>
+      <span class="product-info">
+        <span class="product-name">${esc(p.name)}</span>
+        <span class="product-price">${peso(p.price)}</span>
+        <span class="product-meta"><span>${esc(p.shop?.name || '')}</span>${p.sold ? `<span>${soldText(p.sold)}</span>` : ''}</span>
+      </span>
+    </button>
+    ${out ? '' : `<button class="icon-btn product-add" type="button" data-add="${p._id}" aria-label="Add ${esc(p.name)} to cart">${ICONS.plus}</button>`}
+  </article>`;
+}
+
+export const orderStatusTag = (s) => `<span class="tag ${ORDER_STATUSES[s]?.tag || ''}">${esc(ORDER_STATUSES[s]?.label || s)}</span>`;
+
+/** Order progress: Placed → Confirmed → Ready → Completed. */
+export function orderSteps(status) {
+  if (status === 'cancelled') return '';
+  const step = ORDER_STATUSES[status]?.step || 1;
+  return `<ol class="order-steps">${['Placed', 'Confirmed', 'Ready', 'Completed'].map((l, i) => `<li class="${i < step ? 'on' : ''}">${l}</li>`).join('')}</ol>`;
+}
+
+/**
+ * An order card. `as` is who is looking: 'buyer' (My orders), 'seller' (My shop)
+ * or 'admin'. Sellers and staff get status buttons; buyers can cancel a new order.
+ */
+export function orderCard(o, as = 'buyer') {
+  const next = { placed: ['confirmed', 'Confirm order'], confirmed: ['ready', 'Mark ready'], ready: ['completed', 'Mark completed'] }[o.status];
+  const open = !['completed', 'cancelled'].includes(o.status);
+  const who = as === 'buyer'
+    ? `${ICONS.bag}${esc(o.shopName || 'Alaga Official Store')}`
+    : `${ICONS.user}${esc(o.contact?.name || '')} · <a href="tel:${esc((o.contact?.phone || '').replace(/\s/g, ''))}">${esc(o.contact?.phone || '')}</a>`;
+  return `<article class="card order-card" id="o-${o._id}">
+    <header class="row between">
+      <div class="stack-sm" style="gap:2px">
+        <div class="row" style="gap:6px">${orderStatusTag(o.status)}<span class="mono small">${esc(o.reference)}</span>${as === 'admin' ? `<span class="muted small">${esc(o.shopName || '')}</span>` : ''}</div>
+        <span class="order-who">${who}</span>
+      </div>
+      <span class="muted small">${formatDateTime(o.createdAt)}</span>
+    </header>
+    ${orderSteps(o.status)}
+    <ul class="order-lines">${o.items.map((l) => `<li>${productImg(l)}<span>${esc(l.name)}<small>${l.qty} × ${peso(l.price)}</small></span><b>${peso(l.qty * l.price)}</b></li>`).join('')}</ul>
+    <div class="order-total">
+      <span class="muted small">${o.fulfillment === 'delivery' ? `${ICONS.truck}Delivery to ${esc([o.address?.details, o.address?.barangay, o.address?.municipality].filter(Boolean).join(', '))}` : `${ICONS.pin}Pickup`} · Cash${o.deliveryFee ? ` · ${peso(o.deliveryFee)} delivery` : ''}</span>
+      <strong>${peso(o.total)}</strong>
+    </div>
+    ${o.note ? `<p class="small" style="margin:0"><b>Note:</b> ${esc(o.note)}</p>` : ''}
+    <details><summary class="link-btn small" style="text-decoration:none">Updates (${o.history.length})</summary>
+      <ol class="timeline" style="margin-top:10px">${o.history.map((h, i) => `<li class="${i === o.history.length - 1 ? 'is-current' : ''}"><i aria-hidden="true"></i><div><strong>${esc(ORDER_STATUSES[h.status]?.label || h.status)}</strong> <time datetime="${h.at}">· ${formatDateTime(h.at)}</time>${h.note ? `<p>${esc(h.note)}</p>` : ''}</div></li>`).join('')}</ol>
+    </details>
+    ${as === 'buyer' && o.status === 'placed' ? `<div class="row"><button class="btn btn-danger btn-sm" type="button" data-cancel-order="${o._id}">Cancel order</button></div>` : ''}
+    ${as !== 'buyer' && open ? `<div class="row order-actions">
+      ${next ? `<button class="btn btn-primary btn-sm" type="button" data-order-status="${next[0]}" data-order="${o._id}">${next[1]}</button>` : ''}
+      <button class="btn btn-danger btn-sm" type="button" data-order-status="cancelled" data-order="${o._id}">Cancel</button>
+    </div>` : ''}
+  </article>`;
+}

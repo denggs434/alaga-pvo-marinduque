@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Shop | Alaga · PVO Marinduque</title>
+  <meta name="description" content="Pet food, treats, toys, collars and grooming supplies from pet owners and shops in Marinduque. Cash on pickup or delivery anywhere in the province.">
+  <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#151d24" media="(prefers-color-scheme: dark)">
+  <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="assets/img/favicon-32.png" sizes="32x32" type="image/png">
+  <link rel="apple-touch-icon" href="assets/img/apple-touch-icon.png">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="stylesheet" href="assets/css/styles.css">
+</head>
+<body>
+  <main class="wrap shop-page">
+    <header class="shop-head">
+      <div>
+        <h1>Shop</h1>
+        <p class="muted">Pet supplies from owners and shops around Marinduque. Pay cash on pickup or delivery.</p>
+      </div>
+      <a class="btn btn-soft btn-sm" href="account.html#shop" id="sell-link">Sell on Alaga</a>
+    </header>
+
+    <section class="shop-banner card" id="shop-banner" hidden></section>
+
+    <section class="shop-strip" id="picks" hidden aria-labelledby="picks-title">
+      <div class="panel-head"><h2 id="picks-title">Picked for your pets</h2><span class="muted small" id="picks-why"></span></div>
+      <div class="product-row" id="picks-list"></div>
+    </section>
+
+    <section class="shop-strip" id="shops" hidden aria-labelledby="shops-title">
+      <div class="panel-head"><h2 id="shops-title">Shops</h2></div>
+      <div class="shop-row" id="shops-list"></div>
+    </section>
+
+    <div class="toolbar shop-tools">
+      <div class="search-box">
+        <label class="sr-only" for="shop-q">Search products</label>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+        <input class="input" id="shop-q" type="search" placeholder="Search food, toys, collars…" autocomplete="off">
+      </div>
+      <label><span class="sr-only">For</span><select class="input" id="shop-species"></select></label>
+      <label><span class="sr-only">Sort</span><select class="input" id="shop-sort">
+        <option value="popular">Best selling</option><option value="newest">Newest</option><option value="price-asc">Price: low to high</option><option value="price-desc">Price: high to low</option>
+      </select></label>
+    </div>
+    <div class="chips" id="shop-cats" role="group" aria-label="Category" style="margin-bottom:14px"></div>
+
+    <p class="muted small" id="shop-count" aria-live="polite"></p>
+    <div class="product-grid" id="shop-grid"></div>
+    <div class="row" style="justify-content:center;margin-top:16px"><button class="btn btn-ghost" type="button" id="shop-more" hidden>Show more products</button></div>
+  </main>
+
+  <!-- Product -->
+  <dialog class="modal modal-wide" id="product-dialog" aria-labelledby="product-title">
+    <div class="modal-head"><h2 id="product-title">Product</h2><button class="icon-btn" type="button" data-close aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>
+    <div class="modal-body" id="product-body"></div>
+  </dialog>
+
+  <!-- Cart -->
+  <dialog class="drawer cart-drawer" id="cart-drawer" aria-labelledby="cart-title">
+    <div class="drawer-head"><h2 id="cart-title" style="font-size:1.125rem">Your cart</h2><button class="icon-btn" type="button" data-close aria-label="Close cart"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>
+    <div class="cart-body" id="cart-body"></div>
+    <div class="cart-foot" id="cart-foot"></div>
+  </dialog>
+
+  <!-- Checkout -->
+  <dialog class="modal" id="checkout-dialog" aria-labelledby="checkout-title">
+    <form id="checkout-form" novalidate>
+      <div class="modal-head"><h2 id="checkout-title">Checkout</h2><button class="icon-btn" type="button" data-close aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>
+      <div class="modal-body">
+        <fieldset class="stack-sm" style="border:0;padding:0;margin:0">
+          <legend class="field-label" style="margin-bottom:8px">How do you want to get it?</legend>
+          <div class="choice-row">
+            <label class="choice"><input type="radio" name="fulfillment" value="pickup" checked><span><strong>Pick up</strong><small>From the seller, or the PVO office in Boac for the official store. Free.</small></span></label>
+            <label class="choice"><input type="radio" name="fulfillment" value="delivery"><span><strong>Delivery</strong><small>Anywhere in Marinduque. ₱60 per shop, free from ₱1,000.</small></span></label>
+          </div>
+        </fieldset>
+        <div class="form-grid">
+          <label class="field"><span>Name</span><input class="input" name="name" autocomplete="name" maxlength="80" required><small class="field-error"></small></label>
+          <label class="field"><span>Mobile</span><input class="input" name="phone" autocomplete="tel" placeholder="0917 123 4567" required><small class="field-error"></small></label>
+        </div>
+        <div class="form-grid" id="address-fields" hidden>
+          <label class="field"><span>Municipality</span><select class="input" name="municipality" id="co-town"></select><small class="field-error"></small></label>
+          <label class="field"><span>Barangay</span><input class="input" name="barangay" maxlength="60"><small class="field-error"></small></label>
+          <label class="field span-2"><span>Street or landmark <span class="muted">(optional)</span></span><input class="input" name="details" maxlength="200"></label>
+        </div>
+        <label class="field"><span>Note to the seller <span class="muted">(optional)</span></span><input class="input" name="note" maxlength="300" placeholder="e.g. pick up after 3 PM"></label>
+        <div class="co-summary" id="co-summary"></div>
+        <p class="notice notice-error" id="co-error" hidden role="alert"></p>
+      </div>
+      <div class="modal-foot"><button class="btn btn-ghost" type="button" data-close>Back to cart</button><button class="btn btn-primary" type="submit" id="co-submit">Place order</button></div>
+    </form>
+  </dialog>
+
+  <script type="module" src="assets/js/pages/shop.js"></script>
+</body>
+</html>

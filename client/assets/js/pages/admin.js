@@ -5,6 +5,8 @@
  *   #overview       dashboard: totals, what needs attention, coverage, monthly charts
  *   #pets           the pet registry: verify registrations, record vaccinations, remove
  *   #reports        incident cases: filter, open a case, update status with a note
+ *   #orders         marketplace orders from every shop: confirm, ready, complete, cancel
+ *   #products       every listing: edit, hide or remove; add official-store products
  *   #announcements  publish news and scheduled activities (vaccination drives…)
  *   #owners         accounts: suspend / delete
  *   #messages       contact-form inbox
@@ -15,7 +17,7 @@
 import { api, qs } from '../api.js';
 import { getUser, isAdmin, setSession, clearSession } from '../store.js';
 import { setupThemeToggle } from '../nav.js';
-import { SPECIES, SPECIES_PLURAL, MUNICIPALITIES, CATEGORIES, REPORT_TYPES, REPORT_STATUSES, CONTACT_TOPICS } from '../config.js';
+import { SPECIES, SPECIES_PLURAL, MUNICIPALITIES, CATEGORIES, REPORT_TYPES, REPORT_STATUSES, CONTACT_TOPICS, peso } from '../config.js';
 import {
   initAdminPage, toast, armed, setupModal, showFieldErrors, setBusy, options, createPhotoPicker, emptyState,
   esc, initials, formatDate, formatDateTime, formatNumber, timeAgo, toDateTimeInput, fromDateTimeInput, debounce,
@@ -23,6 +25,8 @@ import {
 } from '../ui.js';
 import { petImg, reportTypeTag, reportStatusTag, categoryTag, timeline, eventWhen } from '../components.js';
 import { groupedBars, stackedBars } from './admin-charts.js';
+import { orderCard, productImg } from '../components.js';
+import { productEditor } from '../product-editor.js';
 
 initAdminPage();
 const brand = `${BRAND_MARK}<span class="brand-word">Alaga<small>PVO admin</small></span>`;
@@ -63,7 +67,7 @@ function showLogin() {
    Console
    ========================================================================= */
 function boot() {
-  const state = { stats: null, pets: [], reports: [], anns: [], users: [], messages: [], reportFilter: 'pending', msgFilter: 'inbox', replying: null };
+  const state = { stats: null, pets: [], reports: [], anns: [], users: [], messages: [], orders: [], products: [], reportFilter: 'pending', orderFilter: 'open', msgFilter: 'inbox', replying: null };
   const user = getUser();
 
   /* ---------- Chrome ---------- */
@@ -118,7 +122,7 @@ function boot() {
   };
   $$('.console .table').forEach((t) => new MutationObserver(() => labelCells(t)).observe(t, { childList: true }));
 
-  const VIEWS = ['overview', 'pets', 'reports', 'announcements', 'owners', 'messages'];
+  const VIEWS = ['overview', 'pets', 'reports', 'orders', 'products', 'announcements', 'owners', 'messages'];
   function showView() {
     const view = VIEWS.includes(location.hash.slice(1)) ? location.hash.slice(1) : 'overview';
     $$('[data-panel]').forEach((p) => (p.hidden = p.dataset.panel !== view));
@@ -135,15 +139,17 @@ function boot() {
   /* ---------- Data ---------- */
   async function loadAll() {
     try {
-      const [stats, pets, reports, anns, users, messages] = await Promise.all([
+      const [stats, pets, reports, anns, users, messages, orders, products] = await Promise.all([
         api('/admin/stats'),
         api(`/pets${qs({ all: 'true', limit: 500 })}`).then((d) => d.items),
         api(`/reports${qs({ limit: 500 })}`),
         api(`/announcements${qs({ all: 'true', limit: 100 })}`).then((d) => d.items),
         api('/users'),
         api('/contact?box=all'),
+        api('/shop/orders'),
+        api(`/shop/products${qs({ all: 'true', limit: 300, sort: 'newest' })}`).then((d) => d.items),
       ]);
-      Object.assign(state, { stats, pets, reports, anns, users, messages });
+      Object.assign(state, { stats, pets, reports, anns, users, messages, orders, products });
       renderAll();
     } catch (err) {
       toast(err.message, 'error');
@@ -154,6 +160,8 @@ function boot() {
     renderOverview();
     renderPets();
     renderReports();
+    renderOrders();
+    renderProducts();
     renderAnnouncements();
     renderOwners();
     renderMessages();
@@ -177,6 +185,7 @@ function boot() {
     set('pets', state.stats.pets.pending);
     set('reports', state.stats.reports.pending);
     set('messages', state.stats.newMessages);
+    set('orders', state.stats.shop.newOrders);
   }
 
   /* ---------- Overview ---------- */
@@ -204,6 +213,8 @@ function boot() {
       <button class="btn btn-sm btn-primary" type="button" data-open-report="${r._id}">Open case</button></li>`));
     if (s.pets.pending) q.push(`<li><span><strong>${s.pets.pending} pet registration${s.pets.pending === 1 ? '' : 's'} to review</strong><br><span>Check the owner's details and photos, then approve or reject.</span></span><button class="btn btn-sm btn-ghost" type="button" data-goto-pending>Review</button></li>`);
     if (s.vaccinations.unverified) q.push(`<li><span><strong>${s.vaccinations.unverified} owner-entered vaccination${s.vaccinations.unverified === 1 ? '' : 's'}</strong><br><span>Approve or reject them in Pets → Review.</span></span><button class="btn btn-sm btn-ghost" type="button" data-goto-vax>Review</button></li>`);
+    if (s.shop.newOrders) q.push(`<li><span><strong>${s.shop.newOrders} new shop order${s.shop.newOrders === 1 ? '' : 's'}</strong><br><span>Waiting for the seller or the official store to confirm.</span></span><a class="btn btn-sm btn-ghost" href="#orders">View</a></li>`);
+    if (s.shop.lowStock) q.push(`<li><span><strong>${s.shop.lowStock} product${s.shop.lowStock === 1 ? '' : 's'} low on stock</strong><br><span>5 or fewer left in the shop.</span></span><button class="btn btn-sm btn-ghost" type="button" data-goto-low>Check</button></li>`);
     if (s.newMessages) q.push(`<li><span><strong>${s.newMessages} new message${s.newMessages === 1 ? '' : 's'}</strong><br><span>From the contact form.</span></span><a class="btn btn-sm btn-ghost" href="#messages">Read</a></li>`);
     $('#queue').innerHTML = q.join('') || '<li><span><strong>All clear.</strong><br><span>New reports and registrations will show up here.</span></span></li>';
     renderQueueMore(q.length);
@@ -471,6 +482,61 @@ function boot() {
     if (!caseDialog.open) caseDialog.showModal();
   }
 
+  /* ---------- Shop orders ---------- */
+  const ORDER_FILTERS = { open: 'To do', placed: 'New', confirmed: 'Confirmed', ready: 'Ready', completed: 'Completed', cancelled: 'Cancelled', all: 'All' };
+  $('#order-q').addEventListener('input', debounce(renderOrders, 150));
+  $('#order-chips').addEventListener('click', (e) => {
+    const c = e.target.closest('[data-ofilter]');
+    if (!c) return;
+    state.orderFilter = c.dataset.ofilter;
+    renderOrders();
+  });
+  function renderOrders() {
+    const sh = state.stats.shop;
+    const tile = (label, value, note) => `<div class="stat"><span class="label">${label}</span><strong>${value}</strong><small>${note}</small></div>`;
+    $('#shop-stats').innerHTML = [
+      tile('Orders to handle', sh.openOrders, `${sh.newOrders} new`),
+      tile('Completed sales', peso(sh.revenue), `${sh.completed} orders`),
+      tile('Products for sale', sh.products, `${sh.lowStock} low on stock`),
+      tile('Seller shops', sh.sellers, 'plus the official store'),
+    ].join('');
+    const count = (k) => (k === 'all' ? state.orders.length : k === 'open' ? state.orders.filter((o) => !['completed', 'cancelled'].includes(o.status)).length : state.orders.filter((o) => o.status === k).length);
+    $('#order-chips').innerHTML = Object.entries(ORDER_FILTERS).map(([k, l]) => `<button class="chip" type="button" data-ofilter="${k}" aria-pressed="${state.orderFilter === k}">${l} <b>${count(k)}</b></button>`).join('');
+    const term = $('#order-q').value.trim().toLowerCase();
+    const rows = state.orders.filter((o) => (state.orderFilter === 'all' || (state.orderFilter === 'open' ? !['completed', 'cancelled'].includes(o.status) : o.status === state.orderFilter))
+      && (!term || `${o.reference} ${o.contact?.name} ${o.shopName} ${o.address?.barangay || ''}`.toLowerCase().includes(term)));
+    $('#orders-list').innerHTML = rows.map((o) => orderCard(o, 'admin')).join('') || emptyState('No orders here', 'Orders from every shop show up in this list.');
+  }
+
+  /* ---------- Shop products ---------- */
+  const editor = productEditor({ onSaved: () => loadAll() });
+  $$('[data-new-product]').forEach((b) => b.addEventListener('click', () => editor.open()));
+  ['#prod-shop', '#prod-state'].forEach((s) => $(s).addEventListener('change', renderProducts));
+  $('#prod-q').addEventListener('input', debounce(renderProducts, 150));
+  function renderProducts() {
+    const shops = [...new Map(state.products.map((p) => [p.shop.id, p.shop.name])).entries()];
+    const sel = $('#prod-shop').value;
+    $('#prod-shop').innerHTML = options(Object.fromEntries(shops), sel, 'All shops');
+    const term = $('#prod-q').value.trim().toLowerCase();
+    const st = $('#prod-state').value;
+    const rows = state.products.filter((p) => (!sel || p.shop.id === sel) && (!term || `${p.name} ${p.shop.name}`.toLowerCase().includes(term))
+      && (st !== 'low' || (p.active && p.stock <= 5)) && (st !== 'hidden' || !p.active));
+    $('#products-table').innerHTML = `<thead><tr><th>Product</th><th>Shop</th><th class="num">Price</th><th class="num">Stock</th><th class="num">Sold</th><th>Status</th><th></th></tr></thead>
+      <tbody>${rows.map((p) => `<tr class="${p.active ? '' : 'is-muted'}">
+        <td><div class="row" style="gap:10px;flex-wrap:nowrap"><span class="admin-thumb">${productImg(p)}</span><strong>${esc(p.name)}</strong></div></td>
+        <td>${esc(p.shop.name)}</td>
+        <td class="num">${peso(p.price)}</td>
+        <td class="num">${p.stock <= 5 ? `<span class="tag ${p.stock ? 'tag-amber' : 'tag-red'}">${p.stock}</span>` : p.stock}</td>
+        <td class="num">${p.sold}</td>
+        <td>${p.active ? '<span class="tag tag-green">For sale</span>' : '<span class="tag">Hidden</span>'}</td>
+        <td><div class="cell-actions">
+          <a class="btn btn-ghost btn-sm" href="shop.html?p=${p._id}" target="_blank" rel="noopener" title="View">${ICONS.eye}<span class="sr-only">View</span></a>
+          <button class="btn btn-ghost btn-sm" type="button" data-hide-product="${p._id}" data-to="${!p.active}">${p.active ? 'Hide' : 'Show'}</button>
+          <button class="btn btn-ghost btn-sm" type="button" data-edit-product="${p._id}">${ICONS.edit}<span class="sr-only">Edit</span></button>
+          <button class="btn btn-danger btn-sm" type="button" data-del-product="${p._id}">${ICONS.trash}<span class="sr-only">Delete</span></button>
+        </div></td></tr>`).join('') || `<tr><td colspan="7">${emptyState('No products match')}</td></tr>`}</tbody>`;
+  }
+
   /* ---------- Announcements ---------- */
   function renderAnnouncements() {
     $('#ann-table').innerHTML = `<thead><tr><th>Title</th><th>Category</th><th>Schedule</th><th>Posted</th><th></th></tr></thead>
@@ -653,6 +719,11 @@ function boot() {
     const pet = (id) => state.pets.find((p) => p._id === id);
 
     if (d.openReport) openCase(d.openReport);
+    if (d.gotoLow !== undefined) { $('#prod-state').value = 'low'; renderProducts(); location.hash = 'products'; }
+    if (d.editProduct) editor.open(state.products.find((p) => p._id === d.editProduct));
+    if (d.hideProduct) act(() => api(`/shop/products/${d.hideProduct}`, { method: 'PUT', body: { active: d.to === 'true' } }), d.to === 'true' ? 'Product is back in the shop.' : 'Product hidden from the shop.');
+    if (d.delProduct && armed(b, 'Delete?')) act(() => api(`/shop/products/${d.delProduct}`, { method: 'DELETE' }), 'Product deleted. The seller was notified.');
+    if (d.orderStatus && (d.orderStatus !== 'cancelled' || armed(b, 'Cancel order?'))) act(() => api(`/shop/orders/${d.order}`, { method: 'PATCH', body: { status: d.orderStatus } }), d.orderStatus === 'cancelled' ? 'Order cancelled. Items are back in stock.' : 'Order updated. The buyer was notified.');
     if (d.gotoPending !== undefined) { $('#pet-reg').value = 'pending'; $('#pet-vax').value = ''; renderPets(); location.hash = 'pets'; }
     if (d.gotoVax !== undefined) { $('#pet-reg').value = ''; $('#pet-vax').value = 'pending'; renderPets(); location.hash = 'pets'; }
     if (d.review) openReview(pet(d.review));

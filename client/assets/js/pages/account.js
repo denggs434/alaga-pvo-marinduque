@@ -2,7 +2,9 @@
  * Account page.
  *  - logged out: log in / create an owner account
  *  - logged in (owner):
- *      Profile  (#pets, #reports, #messages): My pets, My reports (status tracking), Messages (PVO replies)
+ *      Profile  (#pets, #reports, #orders, #shop, #messages): My pets, My reports (status tracking),
+ *               My orders (what I bought), My shop (sell: name the shop, list products, handle orders),
+ *               Messages (PVO replies)
  *      Settings (#settings): your details and password
  *  - Log out lives only in the account menu in the header
  *  - PVO staff are sent to the admin console
@@ -12,7 +14,9 @@ import { getUser, setSession, updateSessionUser, isAdmin } from '../store.js';
 import { MUNICIPALITIES, SPECIES, CONTACT_TOPICS } from '../config.js';
 import { refreshUnread } from '../nav.js';
 import { initPage, toast, showFieldErrors, setBusy, options, emptyState, errorState, skeleton, esc, initials, ageText, formatDate, formatDateTime, ICONS, $ } from '../ui.js';
-import { petImg, petTags, reportCard } from '../components.js';
+import { petImg, petTags, reportCard, orderCard, productImg } from '../components.js';
+import { productEditor } from '../product-editor.js';
+import { peso } from '../config.js';
 
 initPage('');
 
@@ -110,7 +114,7 @@ function showAuth() {
 /* =========================================================================
    Logged in
    ========================================================================= */
-const TABS = ['pets', 'reports', 'messages'];
+const TABS = ['pets', 'reports', 'orders', 'shop', 'messages'];
 function selectTab(which) {
   TABS.forEach((t) => {
     $(`#tab-${t}`).setAttribute('aria-selected', String(t === which));
@@ -134,6 +138,137 @@ function route() {
     selectTab(TABS.includes(hash) ? hash : 'pets');
   }
 }
+
+/* ---------- My orders: what I bought ---------- */
+async function loadOrders() {
+  const box = $('#my-orders');
+  box.innerHTML = skeleton(2, 160);
+  try {
+    const orders = await api('/shop/orders/mine');
+    const open = orders.filter((o) => !['completed', 'cancelled'].includes(o.status)).length;
+    $('#orders-count').textContent = orders.length;
+    box.innerHTML = orders.length
+      ? `${open ? `<p class="muted small" style="margin:0">${open} order${open === 1 ? '' : 's'} in progress. You get a notification at every step.</p>` : ''}${orders.map((o) => orderCard(o, 'buyer')).join('')}`
+      : emptyState('No orders yet', 'Food, toys, collars and more from shops around Marinduque.', '<a class="btn btn-primary" href="shop.html">Go to the shop</a>');
+  } catch (err) {
+    box.innerHTML = errorState(err.message);
+  }
+}
+$('#my-orders').addEventListener('click', async (e) => {
+  const b = e.target.closest('[data-cancel-order]');
+  if (!b) return;
+  if (b.dataset.armed !== 'true') {
+    b.dataset.armed = 'true';
+    b.textContent = 'Tap again to cancel';
+    setTimeout(() => { if (b.isConnected) { b.dataset.armed = ''; b.textContent = 'Cancel order'; } }, 3500);
+    return;
+  }
+  b.disabled = true;
+  try {
+    await api(`/shop/orders/${b.dataset.cancelOrder}/cancel`, { method: 'PATCH' });
+    toast('Order cancelled.');
+    loadOrders();
+  } catch (err) {
+    b.disabled = false;
+    toast(err.message, 'error');
+  }
+});
+
+/* ---------- My shop: sell on Alaga ---------- */
+const shopState = { shop: null, products: [], orders: [], filter: 'open' };
+let editor;
+async function loadShop() {
+  const box = $('#my-shop');
+  box.innerHTML = skeleton(2, 120);
+  try {
+    const [mine, orders] = await Promise.all([api('/shop/mine'), api('/shop/orders/selling')]);
+    Object.assign(shopState, mine, { orders });
+    const waiting = orders.filter((o) => o.status === 'placed').length;
+    $('#shop-count').textContent = waiting ? `${waiting} new` : mine.products.length || '';
+    $('#shop-count').classList.toggle('tag-solid-green', waiting > 0);
+    renderShop();
+  } catch (err) {
+    box.innerHTML = errorState(err.message);
+  }
+}
+
+function renderShop() {
+  const { shop, products, orders } = shopState;
+  const box = $('#my-shop');
+  if (!shop.named) {
+    box.innerHTML = `<form class="card form-section" id="shop-form" novalidate style="max-width:560px">
+      <h2>Open your shop</h2>
+      <p class="muted small" style="margin:0">Sell pet food, treats, toys, collars and other pet supplies to owners in Marinduque. Buyers pay you in cash on pickup or delivery. Listing is free.</p>
+      <label class="field"><span>Shop name</span><input class="input" name="shopName" maxlength="60" required placeholder="e.g. Bantay Pet Supplies"><small class="field-error"></small></label>
+      <label class="field"><span>About your shop <span class="muted">(optional)</span></span><textarea class="input" name="about" maxlength="300" style="min-height:80px" placeholder="What you sell, where buyers pick up"></textarea></label>
+      <button class="btn btn-primary" type="submit">Open my shop</button>
+    </form>`;
+    return;
+  }
+  const shown = orders.filter((o) => (shopState.filter === 'open' ? !['completed', 'cancelled'].includes(o.status) : true));
+  const sales = orders.filter((o) => o.status === 'completed').reduce((s, o) => s + o.total, 0);
+  box.innerHTML = `<div class="my-shop-head">
+      <div class="row" style="gap:12px;flex-wrap:nowrap"><span class="shop-avatar" aria-hidden="true">${esc(shop.name[0])}</span>
+        <div><h2 style="font-size:1.25rem">${esc(shop.name)}</h2><p class="muted small" style="margin:0">${products.length} product${products.length === 1 ? '' : 's'} · ${orders.filter((o) => o.status === 'completed').length} completed orders · ${peso(sales)} sales</p></div></div>
+      <div class="row" style="gap:8px"><a class="btn btn-ghost btn-sm" href="shop.html?shop=${esc(shop.id)}">View my shop</a><button class="btn btn-primary btn-sm" type="button" data-new-product>+ Add product</button></div>
+    </div>
+    <div class="panel-head" style="margin-top:8px"><h3>Orders</h3>
+      <div class="chips" role="group" aria-label="Show"><button class="chip" type="button" data-ofilter="open" aria-pressed="${shopState.filter === 'open'}">To do</button><button class="chip" type="button" data-ofilter="all" aria-pressed="${shopState.filter === 'all'}">All</button></div></div>
+    <div class="stack">${shown.map((o) => orderCard(o, 'seller')).join('') || emptyState(shopState.filter === 'open' ? 'No orders to handle' : 'No orders yet', 'New orders show up here and in your notifications.')}</div>
+    <div class="panel-head" style="margin-top:24px"><h3>Products</h3></div>
+    <div class="seller-products">${products.map((p) => `<article class="card seller-product${p.active ? '' : ' is-hidden'}">
+      ${productImg(p)}
+      <div class="stack-sm" style="gap:2px"><strong>${esc(p.name)}</strong>
+        <span class="small">${peso(p.price)} · ${p.stock < 1 ? '<span style="color:var(--bad)">Sold out</span>' : `${p.stock} in stock`} · ${p.sold} sold${p.active ? '' : ' · <span class="tag">Hidden</span>'}</span></div>
+      <div class="cell-actions"><button class="btn btn-ghost btn-sm" type="button" data-edit-product="${p._id}">${ICONS.edit}<span class="sr-only">Edit</span></button><button class="btn btn-danger btn-sm" type="button" data-del-product="${p._id}">${ICONS.trash}<span class="sr-only">Delete</span></button></div>
+    </article>`).join('') || emptyState('No products yet', 'Add your first product: a clear photo, a fair price and how many you have.', '<button class="btn btn-primary" type="button" data-new-product>+ Add product</button>')}</div>`;
+}
+
+$('#my-shop').addEventListener('submit', async (e) => {
+  if (e.target.id !== 'shop-form') return;
+  e.preventDefault();
+  const f = e.target.elements;
+  try {
+    await api('/shop/mine', { method: 'PUT', body: { name: f.shopName.value.trim(), about: f.about.value.trim() } });
+    toast('Your shop is open. Add your first product.');
+    await loadShop();
+  } catch (err) {
+    showFieldErrors(e.target, err.details || { shopName: err.message });
+  }
+});
+$('#my-shop').addEventListener('click', async (e) => {
+  const b = e.target.closest('button');
+  if (!b) return;
+  const d = b.dataset;
+  editor ||= productEditor({ onSaved: loadShop });
+  if (d.newProduct !== undefined) editor.open();
+  if (d.editProduct) editor.open(shopState.products.find((p) => p._id === d.editProduct));
+  if (d.ofilter) { shopState.filter = d.ofilter; renderShop(); }
+  const confirmFirst = (label) => {
+    if (b.dataset.armed === 'true') return true;
+    b.dataset.armed = 'true';
+    const html = b.innerHTML;
+    b.textContent = label;
+    setTimeout(() => { if (b.isConnected) { b.dataset.armed = ''; b.innerHTML = html; } }, 3500);
+    return false;
+  };
+  try {
+    if (d.delProduct && confirmFirst('Delete?')) {
+      await api(`/shop/products/${d.delProduct}`, { method: 'DELETE' });
+      toast('Product deleted.');
+      loadShop();
+    }
+    if (d.orderStatus && (d.orderStatus !== 'cancelled' || confirmFirst('Cancel order?'))) {
+      b.disabled = true;
+      await api(`/shop/orders/${d.order}`, { method: 'PATCH', body: { status: d.orderStatus } });
+      toast(d.orderStatus === 'cancelled' ? 'Order cancelled. The items are back in stock.' : 'Order updated. The buyer was notified.');
+      loadShop();
+    }
+  } catch (err) {
+    b.disabled = false;
+    toast(err.message, 'error');
+  }
+});
 
 /* ---------- Messages: what I sent the PVO, and the replies ---------- */
 let unreadIds = new Set();
@@ -324,6 +459,8 @@ async function showDashboard() {
   setupProfile(user);
   loadPets();
   loadReports();
+  loadOrders();
+  loadShop();
   loadMessages();
 }
 

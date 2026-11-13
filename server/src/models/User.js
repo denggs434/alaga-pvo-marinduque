@@ -30,6 +30,11 @@ const userSchema = new mongoose.Schema(
       select: false,
     },
     role: { type: String, enum: ['owner', 'admin'], default: 'owner' },
+    // Marketplace: an owner who sells sets a shop name (and opens their shop by listing a product).
+    shop: {
+      name: { type: String, trim: true, maxlength: [60, 'Shop name is too long.'] },
+      about: { type: String, trim: true, maxlength: [300, 'Keep the shop description under 300 characters.'] },
+    },
     // Set by an admin. Banned accounts cannot log in or use an existing session.
     banned: { type: Boolean, default: false },
     bannedAt: Date,

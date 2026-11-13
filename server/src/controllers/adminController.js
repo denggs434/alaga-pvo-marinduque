@@ -7,6 +7,7 @@
  *  - reports: by status, by type, open / high-priority / resolved
  *  - monthly: new registrations, vaccinations given and reports filed for the
  *    last 6 months (Manila time), zero-filled
+ *  - shop: new and open orders, completed sales, low-stock products
  */
 const Pet = require('../models/Pet');
 const User = require('../models/User');
@@ -15,6 +16,7 @@ const Post = require('../models/Post');
 const Announcement = require('../models/Announcement');
 const ContactMessage = require('../models/ContactMessage');
 const asyncHandler = require('../utils/asyncHandler');
+const shop = require('./shopController');
 const { OPEN_REPORT_STATUSES } = require('../config/constants');
 
 const TZ = 'Asia/Manila';
@@ -42,7 +44,7 @@ exports.getStats = asyncHandler(async (req, res) => {
   const [
     petTotals, bySpecies, owners, banned, rabies, vaxTotals, upcoming,
     reportsByStatus, reportsByType, highOpen, regMonthly, vaxMonthly, reportMonthly,
-    recentReports, pendingPets, posts, newMessages,
+    recentReports, pendingPets, posts, newMessages, shopStats,
   ] = await Promise.all([
     Pet.aggregate([{
       $group: {
@@ -86,6 +88,7 @@ exports.getStats = asyncHandler(async (req, res) => {
     Pet.countDocuments({ registrationStatus: 'pending' }),
     Post.countDocuments(),
     ContactMessage.countDocuments({ status: 'new', archived: { $ne: true } }),
+    shop.stats(),
   ]);
 
   const p = petTotals[0] || {};
@@ -123,5 +126,6 @@ exports.getStats = asyncHandler(async (req, res) => {
     })),
     posts,
     newMessages,
+    shop: shopStats,
   });
 });

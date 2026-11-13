@@ -2,7 +2,7 @@
  * Wall notifications: a bell in the site header for logged-in users.
  *  - badge with the unread count, refreshed every minute while the tab is visible
  *  - panel with the latest 30: likes, comments, replies in threads you joined,
- *    and posts or comments the PVO removed
+ *    posts or comments the PVO removed, and shop order updates
  *  - opening one marks it read and goes to the post (index.html?post=<id>)
  *  - "Mark all as read"
  */
@@ -13,13 +13,14 @@ import { ICONS } from './icons.js';
 
 const POLL_MS = 60000;
 
-const ICON = { like: 'heart', comment: 'comment', reply: 'comment', removed: 'alert' };
+const ICON = { like: 'heart', comment: 'comment', reply: 'comment', removed: 'alert', order: 'bag' };
 
 function line(n) {
   const who = `<strong>${esc(n.actorName || 'Someone')}</strong>`;
   const quote = n.snippet ? ` <span class="notif-quote">“${esc(n.snippet)}”</span>` : '';
   if (n.type === 'like') return `${who} liked your post${quote}`;
   if (n.type === 'comment') return `${who} commented on your post:${quote}`;
+  if (n.type === 'order') return `${who} updated your order: ${esc(n.snippet || '')}`;
   if (n.type === 'reply') return `${who} also commented on a post you commented on:${quote}`;
   return esc(n.snippet || 'The PVO removed something you posted.');
 }
@@ -28,8 +29,9 @@ function itemHtml(n) {
   const inner = `<span class="notif-icon notif-${n.type}" aria-hidden="true">${ICONS[ICON[n.type]] || ICONS.info}</span>
     <span class="notif-body"><span class="notif-text">${line(n)}</span><time datetime="${n.createdAt}">${timeAgo(n.createdAt)}</time></span>
     ${n.read ? '' : '<span class="notif-dot" aria-label="Unread"></span>'}`;
-  return n.post
-    ? `<li><a class="notif${n.read ? '' : ' is-unread'}" href="index.html?post=${n.post}" data-notif="${n._id}">${inner}</a></li>`
+  const href = n.post ? `index.html?post=${n.post}` : n.type === 'order' ? 'account.html#orders' : '';
+  return href
+    ? `<li><a class="notif${n.read ? '' : ' is-unread'}" href="${href}" data-notif="${n._id}">${inner}</a></li>`
     : `<li><div class="notif${n.read ? '' : ' is-unread'}" data-notif="${n._id}">${inner}</div></li>`;
 }
 

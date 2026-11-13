@@ -13,7 +13,8 @@ Project write-up (target user, introduction, problem, objectives, scope, limitat
 - **Pet registration:** each pet gets a PVO registration number (`MQ-2026-00001`), up to 6 photos and a public profile; PVO staff verify registrations
 - **Health records:** vaccination record and medical history per pet, private to the owner and the PVO; anti-rabies status (up to date, overdue, none) computed from the record; owner entries are marked until the PVO verifies them
 - **Community wall:** opens with a welcome, other owners' pets, upcoming schedules, announcements and a mixed "For you" feed (or "Latest"); owners post text, up to 4 photos, or both, under their own name; likes, comments and moderation by the PVO
-- **Alagai, the pet-care helper:** a chat for logged-in users that answers from built-in pet-care topics (feeding, grooming, vaccines, deworming, ticks and fleas, behaviour, kapon, signs of sickness, PVO services) and live data (the next PVO activities, the user's pets' anti-rabies status); no AI; it says it is not a veterinarian, never diagnoses or prescribes, and shows the emergency hotline for urgent questions
+- **Alagai, the AI pet-care helper:** a chat for logged-in users powered by Google Gemini (`GEMINI_API_KEY`), grounded in the user's own pets and their anti-rabies status, the PVO schedule and the shop's in-stock products (it suggests real items with links); answers in English, Filipino or Taglish; emergencies always get the hotline answer first, before any AI call; without a key it falls back to built-in pet-care topics
+- **Shop (marketplace):** any pet owner opens a shop under Account → My shop and lists products with photos, price and stock; the PVO runs the Alaga Official Store; buyers search and filter by category, species and shop, get "Picked for your pets" and "Often bought together" suggestions, and check out a cart (cash on pickup or delivery) that splits into one order per shop; sellers confirm, mark ready and complete orders, buyers track them under My orders and get a notification at each step; stock is reserved atomically so the last item is never sold twice; staff see every order and listing in the admin console
 - **Messages:** staff answer contact messages with written replies that senders read under Account → Messages (with a new-reply dot); messages are archived and restored, never deleted
 - **Pet directory:** search and filter by species, municipality and sex, with sorting and paging; filter state lives in the URL so views can be shared
 - **Announcements and schedules:** vaccination drives, deworming days, free programs and advisories, with "add to my calendar" (.ics)
@@ -53,6 +54,7 @@ The repo deploys to Vercel as-is (`vercel.json`): `client/` is served as static 
 | `MONGODB_URI` | MongoDB Atlas integration from the Vercel Marketplace (or set `MONGO_URI` yourself) |
 | `JWT_SECRET` | A long random string, added as a sensitive variable |
 | `BLOB_READ_WRITE_TOKEN` | The connected Vercel Blob store; uploaded photos are saved there because Vercel's filesystem is read-only |
+| `GEMINI_API_KEY` | Free key from Google AI Studio; turns on AI answers for Alagai (optional, sensitive) |
 
 To load the demo data into the cloud database, run the seed once with that connection string: `MONGO_URI="<atlas uri>" npm run seed` (inside `server/`).
 
@@ -65,6 +67,7 @@ client/                       Frontend (static)
   pet-form.html               Register / edit a pet
   announcements.html          PVO news and scheduled activities
   report.html                 File an incident report
+  shop.html                   Marketplace: products, shops, cart, checkout
   account.html                Log in / sign up, my pets, my reports, profile
   services.html  about.html  contact.html  admin.html  404.html
   assets/css/styles.css       Design tokens, light/dark themes, layout
@@ -80,7 +83,7 @@ server/                       Backend
   src/server.js               Entry: env, DB connect, listen
   src/app.js                  Express app, routes, static client
   src/config/                 DB connection, shared constants (municipalities…)
-  src/models/                 User, Pet, Post, Announcement, Report, ContactMessage, Counter
+  src/models/                 User, Pet, Post, Announcement, Report, ContactMessage, Product, Order, Counter
   src/controllers/            Request handlers
   src/routes/                 URL → controller mapping
   src/middleware/             auth (JWT, roles), rate limit, security headers, errors

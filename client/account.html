@@ -65,11 +65,15 @@
       <div class="tabs tabs-grid" role="tablist" aria-label="Profile sections">
         <button class="tab" role="tab" id="tab-pets" aria-controls="panel-pets" aria-selected="true">My pets <span class="tag" id="pets-count"></span></button>
         <button class="tab" role="tab" id="tab-reports" aria-controls="panel-reports" aria-selected="false">My reports <span class="tag" id="reports-count"></span></button>
+        <button class="tab" role="tab" id="tab-orders" aria-controls="panel-orders" aria-selected="false">My orders <span class="tag" id="orders-count"></span></button>
+        <button class="tab" role="tab" id="tab-shop" aria-controls="panel-shop" aria-selected="false">My shop <span class="tag" id="shop-count"></span></button>
         <button class="tab" role="tab" id="tab-messages" aria-controls="panel-messages" aria-selected="false">Messages <span class="tag" id="messages-count"></span></button>
       </div>
 
       <section id="panel-pets" role="tabpanel" aria-labelledby="tab-pets"><div class="stack" id="my-pets"></div></section>
       <section id="panel-reports" role="tabpanel" aria-labelledby="tab-reports" hidden><div class="stack" id="my-reports"></div></section>
+      <section id="panel-orders" role="tabpanel" aria-labelledby="tab-orders" hidden><div class="stack" id="my-orders"></div></section>
+      <section id="panel-shop" role="tabpanel" aria-labelledby="tab-shop" hidden><div id="my-shop"></div></section>
       <section id="panel-messages" role="tabpanel" aria-labelledby="tab-messages" hidden>
         <div class="row between" style="margin-bottom:12px"><p class="muted small" style="margin:0">Your messages to the PVO and the office's replies.</p><a class="btn btn-soft btn-sm" href="contact.html">New message</a></div>
         <div class="stack" id="my-messages"></div>

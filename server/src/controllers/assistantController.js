@@ -4,13 +4,17 @@
  * POST /api/assistant/chat  { messages: [{ role: 'user' | 'assistant', content }] }
  *   -> { reply, urgent }
  *
- * No AI: Alagai answers from a vetted list of pet-care topics written for this
- * site, plus live data (the owner's pets and the PVO schedule). It never
- * diagnoses or prescribes, and urgent words (poisoning, seizures, bleeding,
- * bites…) always get the emergency answer first.
+ * With GEMINI_API_KEY set, answers come from Google Gemini, grounded in live
+ * data: the user's own pets and their anti-rabies status, the next PVO
+ * activities, and the shop's in-stock products (so it can suggest real items
+ * with a link). Without a key, or if Gemini fails, Alagai answers from the
+ * vetted pet-care topics below. Either way it never diagnoses or prescribes,
+ * and urgent words (poisoning, seizures, bleeding, bites…) always get the
+ * emergency answer first, before any model call.
  */
 const Pet = require('../models/Pet');
 const Announcement = require('../models/Announcement');
+const Product = require('../models/Product');
 const HttpError = require('../utils/httpError');
 const asyncHandler = require('../utils/asyncHandler');
 
@@ -94,6 +98,71 @@ function readMessages(body) {
   return clean;
 }
 
+/* ---------- Gemini ---------- */
+const GEMINI_URL = (model) => `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
+const CATEGORY_LABEL = { food: 'Food', treats: 'Treats', toys: 'Toys', accessories: 'Collars & gear', grooming: 'Grooming', health: 'Health care', beds: 'Beds' };
+
+/** Facts the model may use: the user's pets, the PVO schedule, the shop catalog. */
+async function context(user) {
+  const [pets, events, products] = await Promise.all([
+    user.role === 'owner' ? Pet.find({ owner: user._id, status: { $ne: 'deceased' } }).select('name species breed birthDate sex neutered vaccinations status').lean() : [],
+    Announcement.find({ published: true, 'event.startsAt': { $gte: new Date() } }).sort({ 'event.startsAt': 1 }).limit(5).select('title event').lean(),
+    Product.find({ active: true, stock: { $gt: 0 } }).sort({ sold: -1 }).limit(40).select('name category species price brand').lean(),
+  ]);
+  const petLines = pets.map((p) => {
+    const r = Pet.rabiesStatus(p);
+    const rabies = r.status === 'current' ? `anti-rabies valid until ${fmt(r.due)}` : r.status === 'overdue' ? 'anti-rabies OVERDUE' : 'no anti-rabies on record';
+    return `- ${p.name}: ${p.species}${p.breed ? `, ${p.breed}` : ''}${p.sex ? `, ${p.sex}` : ''}${p.birthDate ? `, born ${fmt(p.birthDate)}` : ''}${p.neutered ? ', kapon done' : ''}${p.status === 'missing' ? ', currently MISSING' : ''}; ${rabies}`;
+  });
+  const eventLines = events.map((e) => `- ${fmt(e.event.startsAt)}: ${e.title}${e.event.venue ? `, ${e.event.venue}` : ''}${e.event.municipality ? ` (${e.event.municipality})` : ''}`);
+  const productLines = products.map((p) => `- [${p.name}](shop.html?p=${p._id}) · ${CATEGORY_LABEL[p.category] || p.category} · for ${p.species.length ? p.species.join('/') : 'any pet'} · ₱${p.price}${p.brand ? ` · ${p.brand}` : ''}`);
+  return `TODAY: ${fmt(new Date())}
+USER: ${user.name.split(' ')[0]}${user.role === 'admin' ? ' (PVO staff)' : ''}${user.municipality ? `, lives in ${user.municipality}` : ''}
+USER'S PETS:
+${petLines.join('\n') || '- none registered'}
+NEXT PVO ACTIVITIES:
+${eventLines.join('\n') || '- none scheduled'}
+ALAGA SHOP (in stock; cash on pickup at the PVO office or delivery anywhere in Marinduque, ₱60, free from ₱1,000):
+${productLines.join('\n') || '- shop is empty'}`;
+}
+
+const SYSTEM = `You are Alagai, the friendly pet-care helper of Alaga, the pet community website of the Provincial Veterinary Office (PVO) of Marinduque, Philippines.
+
+How to answer:
+- Reply in the user's language: English, Filipino/Tagalog, or Taglish, matching how they write.
+- Be warm, practical and short: 2 to 6 sentences or a short bulleted list. Use **bold** sparingly. No headings, no tables.
+- You are NOT a veterinarian. Never diagnose, never name a disease as the cause, never give drug names with doses. For worrying signs, tell them to see a licensed vet, and say how soon.
+- Use the facts in CONTEXT about the user's own pets (call them by name) and the PVO schedule. Never invent pets, dates, prices or products.
+- When a product from ALAGA SHOP genuinely helps (food, toys, carrier for drives, tick shampoo…), suggest at most 3, written exactly as the markdown link given, with its price. Only suggest items for the right species. Do not push products when the question is medical or urgent.
+- PVO office: ${OFFICE.address}, ${OFFICE.hours}. Telephone ${OFFICE.phone}; animal bite hotline ${OFFICE.hotline}. Anti-rabies vaccination is free at PVO drives and required yearly from 3 months old (RA 9482).
+- Site features you can point to: Register a pet (Account), Report page (bites, missing pets, strays, welfare), Announcements (schedules), Shop, Contact page.
+- Politely decline topics unrelated to pets, animals, the PVO or this website.`;
+
+/** Ask Gemini; returns the reply text, or null when it is not configured or fails. */
+async function geminiAnswer(messages, user) {
+  const key = process.env.GEMINI_API_KEY;
+  if (!key) return null;
+  try {
+    const res = await fetch(GEMINI_URL(process.env.GEMINI_MODEL || 'gemini-2.5-flash'), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-goog-api-key': key },
+      signal: AbortSignal.timeout(20000),
+      body: JSON.stringify({
+        systemInstruction: { parts: [{ text: `${SYSTEM}\n\nCONTEXT\n${await context(user)}` }] },
+        contents: messages.map((m) => ({ role: m.role === 'assistant' ? 'model' : 'user', parts: [{ text: m.content }] })),
+        generationConfig: { temperature: 0.6, maxOutputTokens: 700, thinkingConfig: { thinkingBudget: 0 } },
+      }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error?.message || `HTTP ${res.status}`);
+    const text = data.candidates?.[0]?.content?.parts?.map((p) => p.text || '').join('').trim();
+    return text || null;
+  } catch (err) {
+    console.error(`[alagai] Gemini failed, using built-in answers: ${err.message}`);
+    return null;
+  }
+}
+
 // POST /api/assistant/chat
 exports.chat = asyncHandler(async (req, res) => {
   const messages = readMessages(req.body);
@@ -104,6 +173,8 @@ exports.chat = asyncHandler(async (req, res) => {
   if (/^\s*(hi|hello|hey|kumusta|kamusta|good (morning|afternoon|evening))\b/i.test(question) && question.length < 40) {
     return res.json({ reply: `Hi ${req.user.name.split(' ')[0]}! Ask me about feeding, grooming, vaccines, deworming, behaviour, or PVO services and schedules.`, urgent: false });
   }
+  const ai = await geminiAnswer(messages, req.user);
+  if (ai) return res.json({ reply: ai, urgent: false, ai: true });
   const reply = (await dataAnswer(question, req.user)) || topicAnswer(question, previous) || FALLBACK;
   res.json({ reply: `${reply}\n\n${NOT_A_VET}`, urgent: false });
 });

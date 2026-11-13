@@ -1,10 +1,11 @@
 /**
- * Site header: brand, main links, "Report" button, theme toggle, account menu,
+ * Site header: brand, main links, "Report" button, cart, theme toggle, account menu,
  * and the slide-in menu used on phones and tablets.
  */
 import { getUser, isAdmin, isOwner, clearSession } from './store.js';
 import { api } from './api.js';
 import { notificationsButton, setupNotifications } from './notifications.js';
+import { cart } from './cart.js';
 import { SITE } from './config.js';
 import { esc, initials, $, $$ } from './format.js';
 import { ICONS, BRAND_MARK } from './icons.js';
@@ -12,6 +13,7 @@ import { ICONS, BRAND_MARK } from './icons.js';
 const LINKS = [
   { key: 'wall', href: 'index.html', label: 'Community', icon: 'home' },
   { key: 'pets', href: 'pets.html', label: 'Pets', icon: 'paw' },
+  { key: 'shop', href: 'shop.html', label: 'Shop', icon: 'bag' },
   { key: 'announcements', href: 'announcements.html', label: 'Announcements', icon: 'megaphone' },
   { key: 'services', href: 'services.html', label: 'Services', icon: 'stethoscope' },
   { key: 'contact', href: 'contact.html', label: 'Contact', icon: 'mail' },
@@ -31,6 +33,7 @@ function accountHtml() {
         ${isAdmin()
           ? `<a href="admin.html">${ICONS.shield}PVO admin console</a>`
           : `<a href="account.html#pets">${ICONS.user}Profile<small class="popover-hint">My pets and reports</small></a>
+             <a href="account.html#orders">${ICONS.bag}My orders</a>
              <a href="account.html#messages">${ICONS.inbox}Messages<span class="dot" data-unread hidden><span class="sr-only">new reply</span></span></a>
              <a href="account.html#settings">${ICONS.gear}Settings</a>
              <button type="button" data-open-alagai>${ICONS.sparkle}Ask Alagai</button>`}
@@ -50,6 +53,7 @@ function headerHtml(active) {
       <nav aria-label="Main"><ul class="nav-links">${LINKS.map((l) => `<li>${link(l)}</li>`).join('')}</ul></nav>
       <div class="nav-tools">
         ${isAdmin() ? '' : `<a class="btn btn-primary btn-sm nav-report" href="report.html" ${active === 'report' ? 'aria-current="page"' : ''}>${ICONS.flag}Report</a>`}
+        ${isAdmin() ? '' : `<a class="icon-btn cart-btn" id="cart-btn" href="shop.html#cart" aria-label="Cart">${ICONS.bag}<span class="cart-count" id="cart-count" hidden></span></a>`}
         <button class="icon-btn" id="theme-toggle" type="button" aria-label="Switch colour theme">${ICONS.moon}</button>
         ${notificationsButton()}
         ${accountHtml()}
@@ -72,6 +76,7 @@ function headerHtml(active) {
            <a href="pet-form.html">${ICONS.plus}Register a pet</a>
            ${getUser() ? '' : `<a href="account.html">${ICONS.user}Log in or sign up</a>`}
            ${getUser() ? `<a href="account.html#pets">${ICONS.user}Profile</a>
+           <a href="account.html#orders">${ICONS.bag}My orders</a>
            <a href="account.html#messages">${ICONS.inbox}Messages<span class="dot" data-unread hidden><span class="sr-only">new reply</span></span></a>
            <a href="account.html#settings">${ICONS.gear}Settings</a>
            <a href="#alagai" data-open-alagai>${ICONS.sparkle}Ask Alagai</a>` : ''}`}
@@ -149,7 +154,11 @@ export async function refreshUnread() {
   } catch { /* the dot is a nicety */ }
 }
 
-/** A pill that slides between the main links: it follows the pointer and rests on the current page. */
+/**
+ * Hover pill: slides between the main links under the pointer and fades out when
+ * the pointer leaves. The current page has its own fixed highlight (CSS), so a
+ * new page never shows the pill travelling from another link while it loads.
+ */
 function setupNavPill() {
   const list = $('.nav-links');
   if (!list) return;
@@ -158,7 +167,6 @@ function setupNavPill() {
   pill.setAttribute('aria-hidden', 'true');
   list.prepend(pill);
   const links = $$('.nav-link', list);
-  const current = () => links.find((l) => l.getAttribute('aria-current') === 'page');
   const moveTo = (el, instant = false) => {
     if (!el) { pill.style.opacity = '0'; return; }
     if (instant) pill.style.transition = 'none';
@@ -166,20 +174,31 @@ function setupNavPill() {
     pill.style.width = `${box.width}px`;
     pill.style.transform = `translateX(${box.left - list.getBoundingClientRect().left}px)`;
     pill.style.opacity = '1';
-    pill.classList.toggle('is-current', el === current());
     if (instant) { pill.offsetWidth; pill.style.transition = ''; }
   };
   links.forEach((l) => {
     l.addEventListener('mouseenter', () => moveTo(l));
     l.addEventListener('focus', () => moveTo(l));
   });
-  list.addEventListener('mouseleave', () => moveTo(current()));
-  list.addEventListener('focusout', (e) => { if (!list.contains(e.relatedTarget)) moveTo(current()); });
-  // Place it once the webfont has settled the link widths, and again on resize.
-  const place = () => moveTo(current(), true);
-  place();
-  document.fonts?.ready.then(place);
-  addEventListener('resize', place);
+  // Leaving the links fades the pill out where it is (no slide back across the bar).
+  list.addEventListener('mouseleave', () => moveTo(null));
+  list.addEventListener('focusout', (e) => { if (!list.contains(e.relatedTarget)) moveTo(null); });
+  // The first hover after page load appears in place instead of sliding in from the left.
+  list.addEventListener('mouseenter', (e) => { if (pill.style.opacity !== '1') moveTo(e.target.closest('.nav-link') || null, true); }, true);
+}
+
+/** Item count on the header's cart button; follows every cart change. */
+function setupCartButton() {
+  const count = $('#cart-count');
+  if (!count) return;
+  const paint = () => {
+    const n = cart.count();
+    count.textContent = n > 99 ? '99+' : n;
+    count.hidden = !n;
+    $('#cart-btn').setAttribute('aria-label', n ? `Cart, ${n} item${n === 1 ? '' : 's'}` : 'Cart, empty');
+  };
+  document.addEventListener('cart:change', paint);
+  paint();
 }
 
 export function renderHeader(active) {
@@ -188,6 +207,7 @@ export function renderHeader(active) {
   setupNavPill();
   setupAccountMenu();
   setupMobileMenu();
+  setupCartButton();
   $$('[data-logout]').forEach((b) => b.addEventListener('click', () => logout()));
   refreshUnread();
   setupNotifications();

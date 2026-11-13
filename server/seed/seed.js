@@ -1,13 +1,14 @@
 /**
  * Seeds the database with demo data for the Alaga pet community:
  * a PVO admin, six pet owners, sixteen pets with health records, wall posts,
- * announcements and scheduled activities, reports and contact messages.
+ * announcements and scheduled activities, reports, contact messages, and shop
+ * products with a few orders.
  * Dates are relative to today so "upcoming" lists and charts always look current.
  *
  *   npm run seed
  *
  * WARNING: clears every collection this app uses (users, pets, posts,
- * announcements, reports, contact messages, counters) in the MONGO_URI database.
+ * announcements, reports, contact messages, products, orders, counters) in the MONGO_URI database.
  * All people, pets and incidents here are fictional.
  */
 const path = require('path');
@@ -22,6 +23,8 @@ const Announcement = require('../src/models/Announcement');
 const Report = require('../src/models/Report');
 const ContactMessage = require('../src/models/ContactMessage');
 const Counter = require('../src/models/Counter');
+const Product = require('../src/models/Product');
+const Order = require('../src/models/Order');
 
 const DAY = 864e5;
 const daysAgo = (n, hour = 10) => {
@@ -172,9 +175,55 @@ const MESSAGES = [
     replies: [['The office is closed on national holidays. For emergencies, call the animal bite hotline.', 39]], archived: true },
 ];
 
+// Shop catalog: [name, category, species, brand, price, stock, sold, description]
+const PRODUCTS = [
+  ['Adult dog food, chicken and rice, 3 kg', 'food', ['dog'], 'Pedigree', 489, 24, 0, 'Complete food for adult dogs of all sizes. Chicken and rice with added calcium for strong bones. Mix with rice or feed on its own.'],
+  ['Puppy food, milk and beef, 1.5 kg', 'food', ['dog'], 'Pedigree', 299, 18, 0, 'Small kibble for puppies from 2 months old, with DHA for brain development. Soak in warm water for very young puppies.'],
+  ['Cat food, tuna, 1.2 kg', 'food', ['cat'], 'Whiskas', 329, 20, 0, 'Dry food for adult cats with real tuna and taurine for healthy eyes and heart. Keep fresh water out at all times.'],
+  ['Kitten food, ocean fish, 450 g', 'food', ['cat'], 'Whiskas', 149, 15, 0, 'Crunchy bites sized for kittens from 2 to 12 months, with milk for growing bones.'],
+  ['Rabbit pellets with timothy hay, 1 kg', 'food', ['rabbit'], 'Vitakraft', 259, 8, 0, 'High-fibre pellets for adult rabbits. Feed with unlimited fresh hay and a handful of leafy greens.'],
+  ['Bird seed mix for lovebirds, 1 kg', 'food', ['bird'], 'Vitakraft', 139, 12, 0, 'Millet, canary seed, oats and sunflower seeds for lovebirds and other small parrots.'],
+  ['Chicken jerky dog treats, 100 g', 'treats', ['dog'], 'Goodies', 119, 30, 0, 'Air-dried chicken strips for training rewards. Break into small pieces for small dogs.'],
+  ['Creamy cat treats, tuna, 4 sticks', 'treats', ['cat'], 'Ciao Churu', 99, 40, 0, 'Lickable tuna purée cats love. Squeeze straight from the stick or over dry food. Handy for giving pills.'],
+  ['Rope tug toy, large', 'toys', ['dog'], 'Alaga Pet Supply', 129, 16, 0, 'Braided cotton rope for tug and fetch. Helps clean teeth while your dog chews. Replace when frayed.'],
+  ['Feather wand with bell', 'toys', ['cat'], 'Alaga Pet Supply', 89, 22, 0, 'A long wand with feathers and a bell that keeps indoor cats active. Put away after play so the string is not chewed.'],
+  ['Adjustable nylon collar with ID tag', 'accessories', ['dog', 'cat'], 'Alaga Pet Supply', 159, 25, 0, 'Fits necks from 25 to 40 cm. Comes with a blank tag: write your phone number and your pet\'s Alaga registration number.'],
+  ['Retractable leash, 5 m', 'accessories', ['dog'], 'Flexi', 549, 6, 0, 'One-button brake and lock, for dogs up to 20 kg. Keep it short near roads and other dogs.'],
+  ['Pet carrier with ventilation, medium', 'accessories', ['cat', 'dog', 'rabbit'], 'Alaga Pet Supply', 899, 5, 0, 'Hard-shell carrier with a steel door and side vents, for cats and small dogs up to 7 kg. Required for cats at PVO vaccination drives.'],
+  ['Stainless steel food bowl set', 'accessories', [], 'Alaga Pet Supply', 199, 20, 0, 'Two 500 ml non-slip bowls for food and water. Dishwasher safe and does not hold smells.'],
+  ['Tick and flea shampoo, 250 ml', 'grooming', ['dog'], 'Madre de Cacao', 179, 14, 0, 'Made with madre de cacao, a local plant extract that drives off ticks and fleas. Lather and leave for 5 minutes before rinsing.'],
+  ['Slicker brush for long and short coats', 'grooming', ['dog', 'cat', 'rabbit'], 'Alaga Pet Supply', 149, 10, 0, 'Fine bent pins that lift loose fur and small tangles. Brush gently in the direction the coat grows.'],
+  ['Nail clipper with safety guard', 'grooming', [], 'Alaga Pet Supply', 129, 9, 0, 'Clips nails for dogs, cats and rabbits. The guard stops you from cutting too deep into the quick.'],
+  ['Dewormer tablets for dogs and cats, 4 pcs', 'health', ['dog', 'cat'], 'Drontal', 260, 12, 0, 'Treats roundworm, hookworm and tapeworm. Ask a PVO vet for the right dose for your pet\'s weight, and deworm every 3 months.'],
+  ['Pet first-aid kit', 'health', [], 'Alaga Pet Supply', 450, 4, 0, 'Gauze, bandage, antiseptic, tweezers for ticks and a guide card. For small wounds only: call the PVO for bites and deep cuts.'],
+  ['Washable pet bed, medium', 'beds', ['dog', 'cat'], 'Alaga Pet Supply', 699, 7, 0, 'Soft raised edges with a removable cover that goes in the washing machine. For pets up to 12 kg.'],
+];
+
+// Product photos (Wikimedia Commons, see client/assets/img/credits.json), same order as PRODUCTS.
+const PRODUCT_PHOTOS = ['dog-food', 'puppy-food', 'cat-food', 'kitten-food', 'rabbit-pellets', 'bird-seed', 'dog-treats', 'cat-treats', 'rope-toy', 'cat-toy',
+  'collar', 'leash', 'carrier', 'bowls', 'shampoo', 'brush', 'nail-clipper', 'dewormer', 'first-aid', 'pet-bed'].map((n) => `assets/img/shop/${n}.jpg`);
+
+// Owners who sell: their shop, and which PRODUCTS (by index) they list. The rest are the PVO's official store.
+const SHOPS = {
+  ana: { name: "Ana's Paws & Crafts", about: 'Handmade collars, toys and beds from Gasan. Pick up in Dawis or have it delivered.', products: [9, 10, 19] },
+  carlo: { name: "Carlo's Pet Corner", about: 'Pet food and treats in Santa Cruz at sari-sari prices.', products: [2, 3, 6, 7] },
+  liza: { name: 'Furry Needs Buenavista', about: 'Grooming supplies and food for rabbits and birds.', products: [4, 5, 14, 15, 16] },
+};
+
+// Past orders: [buyer, [[product index, qty]], fulfillment, status steps [[status, note, daysAgo]], placed daysAgo]
+const ORDERS = [
+  ['maria', [[0, 1], [6, 2], [10, 1]], 'pickup', [['confirmed', '', 20], ['ready', 'Ready at the PVO office, Boac.', 19], ['completed', '', 18]], 21],
+  ['jose', [[0, 1], [14, 1], [6, 1]], 'delivery', [['confirmed', '', 15], ['ready', 'Out for delivery.', 14], ['completed', '', 13]], 16],
+  ['ana', [[2, 1], [7, 3], [8, 1]], 'pickup', [['confirmed', '', 11], ['ready', '', 10], ['completed', '', 9]], 12],
+  ['carlo', [[0, 2], [10, 1], [12, 1]], 'delivery', [['confirmed', '', 8], ['ready', 'Out for delivery.', 7], ['completed', '', 6]], 9],
+  ['liza', [[1, 1], [10, 1], [8, 1]], 'pickup', [['confirmed', '', 4]], 5],
+  ['paolo', [[17, 1], [14, 1]], 'delivery', [], 1],
+  ['maria', [[3, 1], [7, 1]], 'pickup', [], 0],
+];
+
 async function seed() {
   await connectDB(process.env.MONGO_URI);
-  await Promise.all([User, Pet, Post, Announcement, Report, ContactMessage, Counter].map((M) => M.deleteMany({})));
+  await Promise.all([User, Pet, Post, Announcement, Report, ContactMessage, Product, Order, Counter].map((M) => M.deleteMany({})));
 
   const admin = await User.create({
     name: 'PVO Records Officer',
@@ -246,7 +295,49 @@ async function seed() {
     await saveAt(doc, daysAgo(at));
   }
 
-  console.log(`Seeded ${OWNERS.length} owners, ${PETS.length} pets, ${POSTS.length} posts, ${ANNOUNCEMENTS.length} announcements, ${REPORTS.length} reports.`);
+  const sellerOf = {};
+  for (const [key, shop] of Object.entries(SHOPS)) {
+    users[key].shop = { name: shop.name, about: shop.about };
+    await users[key].save({ timestamps: false });
+    shop.products.forEach((i) => { sellerOf[i] = users[key]; });
+  }
+  const products = [];
+  for (const [i, [name, category, species, brand, price, stock, sold, description]] of PRODUCTS.entries()) {
+    products.push(await saveAt(new Product({ name, category, species, brand, price, stock, sold, description, photos: [PRODUCT_PHOTOS[i]], seller: sellerOf[i]?._id }), daysAgo(60 - i)));
+  }
+  // Each cart becomes one order per shop, as at checkout.
+  let orderCount = 0;
+  for (const [who, lines, fulfillment, steps, at] of ORDERS) {
+    const u = users[who];
+    const groups = new Map();
+    for (const [i, qty] of lines) {
+      const seller = sellerOf[i] || null;
+      const key = seller ? String(seller._id) : 'official';
+      if (!groups.has(key)) groups.set(key, { seller, items: [] });
+      groups.get(key).items.push({ product: products[i]._id, name: products[i].name, price: products[i].price, photo: products[i].photos[0], qty });
+    }
+    for (const { seller, items } of groups.values()) {
+      const subtotal = items.reduce((s, l) => s + l.price * l.qty, 0);
+      const deliveryFee = fulfillment === 'delivery' && subtotal < 1000 ? 60 : 0;
+      const order = new Order({
+        buyer: u._id, seller: seller?._id, shopName: seller ? seller.shop.name : 'Alaga Official Store',
+        items, subtotal, deliveryFee, total: subtotal + deliveryFee, fulfillment,
+        contact: { name: u.name, phone: u.phone },
+        address: fulfillment === 'delivery' ? { municipality: u.municipality, barangay: u.barangay } : {},
+      });
+      await order.validate(); // first history entry
+      order.history[0].at = daysAgo(at, 11);
+      for (const [status, note, ago] of steps) {
+        order.status = status;
+        order.history.push({ status, note: note || undefined, by: seller ? 'seller' : 'pvo', at: daysAgo(ago, 15) });
+      }
+      await saveAt(order, daysAgo(at, 11));
+      for (const l of items) await Product.updateOne({ _id: l.product }, { $inc: { sold: l.qty } });
+      orderCount += 1;
+    }
+  }
+
+  console.log(`Seeded ${OWNERS.length} owners, ${PETS.length} pets, ${POSTS.length} posts, ${ANNOUNCEMENTS.length} announcements, ${REPORTS.length} reports, ${PRODUCTS.length} products in ${Object.keys(SHOPS).length + 1} shops, ${orderCount} orders.`);
   console.log(`PVO admin login:  ${admin.email}`);
   console.log('Pet owner login:  maria@example.com / Owner123!  (also jose@, ana@, carlo@, liza@, paolo@ with the same password)');
 }

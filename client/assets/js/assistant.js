@@ -1,14 +1,15 @@
 /**
  * Alagai: the pet-care helper, available to logged-in users on every public page.
- * Answers come from the server's built-in pet-care topics and live PVO data (no AI).
+ * Answers come from Google Gemini on the server, grounded in the user's pets, the PVO
+ * schedule and the shop (with built-in pet-care answers when AI is unavailable).
  *  - a labelled "Ask Alagai" button opens a chat panel (a modal dialog: focus stays
  *    inside, Escape closes it, it fills the screen on phones)
  *  - the conversation is kept for this browser tab (sessionStorage) so it survives
  *    moving between pages; "New chat" clears it
  *  - the server adds an urgent flag for emergencies; the panel then shows the
  *    hotline banner
- * Replies are escaped first, then a tiny Markdown subset (bold, bullet and
- * numbered lists, paragraphs) is turned into HTML.
+ * Replies are escaped first, then a tiny Markdown subset (bold, links to pages
+ * of this site only, bullet and numbered lists, paragraphs) is turned into HTML.
  */
 import { api } from './api.js';
 import { getUser } from './store.js';
@@ -21,6 +22,7 @@ const SUGGESTIONS = [
   'When is the next vaccination drive?',
   'Is my pets\' anti-rabies up to date?',
   'My dog keeps scratching. What can I do?',
+  'What should I buy for my pet from the shop?',
 ];
 const MAX_LEN = 1500;
 
@@ -32,9 +34,11 @@ function saveHistory(list) {
   try { sessionStorage.setItem(storeKey(), JSON.stringify(list.slice(-30))); } catch { /* storage blocked */ }
 }
 
-/** Escape, then render **bold**, "- " / "1. " lists and paragraphs. */
+/** Escape, then render **bold**, [links](page.html?…) to this site, "- " / "1. " lists and paragraphs. */
 export function renderReply(text) {
-  const inline = (s) => esc(s).replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+  const inline = (s) => esc(s)
+    .replace(/\[([^\]]+)\]\(([a-z-]+\.html(?:\?[\w=.-]*)?(?:#[\w-]*)?)\)/g, '<a href="$2">$1</a>')
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
   const out = [];
   let para = [];
   let list = null;
